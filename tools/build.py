@@ -19,6 +19,7 @@ LIBRARIES BUILD
 """
 import sys
 from time import time
+from os import getcwd
 from os.path import join, abspath, dirname
 
 
@@ -36,6 +37,7 @@ from tools.build_api import static_analysis_scan, static_analysis_scan_lib, stat
 from tools.build_api import print_build_results
 from tools.settings import CPPCHECK_CMD, CPPCHECK_MSG_FORMAT
 from utils import argparse_filestring_type
+from utils import argparse_non_parent_dir_type
 
 if __name__ == '__main__':
     start = time()
@@ -46,7 +48,7 @@ if __name__ == '__main__':
     parser.add_argument("--source", dest="source_dir", type=argparse_filestring_type,
                         default=None, help="The source (input) directory", action="append")
 
-    parser.add_argument("--build", dest="build_dir",
+    parser.add_argument("--build", dest="build_dir", type=argparse_non_parent_dir_type(getcwd()),
                       default=None, help="The build (output) directory")
 
     parser.add_argument("--no-archive", dest="no_archive", action="store_true",

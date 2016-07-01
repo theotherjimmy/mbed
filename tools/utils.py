@@ -21,7 +21,7 @@ import argparse
 import math
 from os import listdir, remove, makedirs
 from shutil import copyfile
-from os.path import isdir, join, exists, split, relpath, splitext
+from os.path import isdir, join, exists, split, relpath, splitext, abspath
 from subprocess import Popen, PIPE, STDOUT, call
 import json
 from collections import OrderedDict
@@ -253,6 +253,29 @@ def argparse_filestring_type(string) :
         return string
     else :
         raise argparse.ArgumentTypeError("{0}"" does not exist in the filesystem.".format(string))
+
+# Detect if *lhs* is a sub-directory of *rhs*
+def is_subdir_of(lhs, rhs):
+    print lhs, rhs
+    head, tail = split(lhs)
+    while head and tail:
+        if head == rhs:
+            return True
+        head, tail = os.path.split(head)
+    return False
+
+# An argument type that will error if the directory specified is a parent of the
+# current working directory. Intended for use with --build options, that may delete
+# the directory before doing anything.
+def argparse_non_parent_dir_type(dir):
+    def parse_type(string):
+        lhs = abspath(dir)
+        rhs = abspath(string)
+        if is_subdir_of(lhs, rhs) or lhs == rhs:
+            raise argparse.ArgumentTypeError("{0} can not be a parent directory of or the same as {1}.".format(string, dir))
+        else:
+            return string
+    return parse_type
 
 # render a list of strings as a in a bunch of columns
 def columnate(strings, seperator=", ", chars=80):

@@ -110,7 +110,7 @@ if __name__ == '__main__':
                        default=None, help="The source (input) directory", action="append")
     parser.add_argument("--duration", type=int, dest="duration",
                       default=None, help="Duration of the test")
-    parser.add_argument("--build", dest="build_dir",
+    parser.add_argument("--build", dest="build_dir", type=argparse_non_parent_dir_type(getcwd()),
                       default=None, help="The build (output) directory")
     parser.add_argument("-N", "--artifact-name", dest="artifact_name",
                       default=None, help="The built project's name")
