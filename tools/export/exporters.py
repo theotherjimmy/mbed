@@ -48,6 +48,7 @@ class Exporter(object):
         self.sources_relative = sources_relative
         self.config_header = None
         self.resources = resources
+        self.generated_files = []
 
     def get_toolchain(self):
         return self.TOOLCHAIN
@@ -111,14 +112,16 @@ class Exporter(object):
         settings = ProjectSettings()
         s = {"root":[os.path.dirname(os.getcwd())]}
         settings.update(s)
-        print settings.root
-        print settings.root
         project = Project(self.program_name, [project_data], settings)
         # TODO: Fix this, the inc_dirs are not valid (our scripts copy files), therefore progen
         # thinks it is not dict but a file, and adds them to workspace.
         project.project['common']['include_paths'] = self.resources.inc_dirs
         project.generate(tool_name, copied=not self.sources_relative)
-        self.generated_files = project.generated_files
+        for _, dict in project.generated_files.iteritems():
+            for feild, thing in dict.iteritems():
+                if feild == "files":
+                    for __, filename in thing.iteritems():
+                        self.generated_files.append(filename)
         if progen_build:
             print("Project exported, building...")
             result = project.build(tool_name)
@@ -133,6 +136,7 @@ class Exporter(object):
         target_path = join(self.inputDir, target_file)
         logging.debug("Generating: %s" % target_path)
         open(target_path, "w").write(target_text)
+        self.generated_files += target_path
 
     def get_symbols(self, add_extra_symbols=True):
         """ This function returns symbols which must be exported.

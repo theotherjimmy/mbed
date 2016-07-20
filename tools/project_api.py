@@ -11,39 +11,9 @@ from tools.build_api import *
 from tools.export.__init__ import EXPORTERS
 #from tools.export.exporters import TargetNotSupported
 import yaml
+import zipfile
+import copy
 
-
-def copy_files(toolchain, files_paths, trg_path, resources=None, rel_path=None):
-        # Handle a single file
-        if type(files_paths) != ListType: files_paths = [files_paths]
-
-        for source in files_paths:
-            if source is None:
-                files_paths.remove(source)
-
-        for source in files_paths:
-            if resources is not None:
-                relative_path = relpath(source, resources.file_basepath[source])
-            elif rel_path is not None:
-                relative_path = relpath(source, rel_path)
-            else:
-                _, relative_path = split(source)
-
-            target = join(trg_path, relative_path)
-
-            if (target != source) and (toolchain.need_update(target, [source])):
-                toolchain.progress("copy", relative_path)
-                mkdir(dirname(target))
-                copyfile(source, target)
-
-def copy_resources(resources):
-    print yaml.dump(resources.file_basepath)
-    resources.base_path
-    for field in ['cpp_sources', 'repo_files', 'linker_script','headers',
-                  's_sources', 'c_sources', 'objects', 'libraries',
-                  'lib_builds', 'lib_refs', 'hex_files', 'bin_files']:
-        vals = getattr(resources, field)
-        print vals
 
 def get_exporter_toolchain(ide):
     return EXPORTERS[ide], EXPORTERS[ide].TOOLCHAIN
@@ -97,9 +67,8 @@ def export_project(src_paths, export_path, target, ide,
     try:
         # Call unified scan_resources
         resources = scan_resources(src_paths, toolchain, inc_dirs=inc_dirs)
-        print str(resources)
+        temp = copy.deepcopy(resources)
         resources.relative_to(export_path)
-        #copy_resources(resources)
 
         # Change linker script if specified
         if linker_script is not None:
@@ -109,6 +78,7 @@ def export_project(src_paths, export_path, target, ide,
         exporter = Exporter(target, export_path, name, extra_symbols=macros,
                             resources=resources)
         res = exporter.generate()
+        files = exporter.generated_files
 
         if report != None:
             end = time()
@@ -119,7 +89,7 @@ def export_project(src_paths, export_path, target, ide,
 
             add_result_to_report(report, cur_result)
 
-        return res,resources
+        return files, temp
 
     except Exception, e:
         if report != None:
@@ -141,6 +111,12 @@ def export_project(src_paths, export_path, target, ide,
         # Let Exception propagate
         raise
 
+def zip_export(filename, prefix, resources, project_files):
+    with zipfile.ZipFile(filename, "w") as zip:
+        for file in project_files:
+            zip.write(file, join(prefix, basename(file)))
+        for source in resources.headers + resources.s_sources + resources.c_sources + resources.cpp_sources + resources.libraries + resources.hex_files + [resources.linker_script] + resources.bin_files + resources.objects + resources.json_files:
+            zip.write(source, join(prefix, relpath(source, resources.file_basepath[source])))
 
 def print_results(successes, failures, skips = []):
     print

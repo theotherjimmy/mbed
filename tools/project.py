@@ -16,7 +16,7 @@ from tools.targets import TARGET_NAMES, TARGET_MAP
 from utils import argparse_filestring_type, argparse_many
 from utils import argparse_force_lowercase_type, argparse_force_uppercase_type
 from tools.libraries import LIBRARIES
-from project_api import export_project, get_exporter_toolchain, copy_resources
+from project_api import export_project, get_exporter_toolchain, zip_export
 from tools.build_api import scan_resources, prepare_toolchain
 
 def get_lib_symbols(macros, src, program):
@@ -71,10 +71,9 @@ def perform_export(target, ide, build=None, src=None,
                     macros=None, project_id=None, clean=False, zip=False):
     export, name, src, lib = setup_project(ide, target, program=project_id, source_dir=src, build=build, macros=macros, clean=clean)
 
-    export_project(src, export, target, ide,
-                   clean=clean, name=name, macros=macros, build=build,
-                   libraries_paths=lib)
-    return None, None
+    return export_project(src, export, target, ide,
+                          clean=clean, name=name, macros=macros, build=build,
+                          libraries_paths=lib)
 
 if __name__ == '__main__':
     # Parse Options
@@ -186,9 +185,6 @@ if __name__ == '__main__':
     successes = []
     failures = []
 
-    # source_dir = use relative paths, otherwise sources are copied
-    sources_relative = True if options.source_dir else False
-
     for mcu in options.mcu:
         # Program Number or name
         p, src, ide = options.program, options.source_dir, options.ide
@@ -198,5 +194,6 @@ if __name__ == '__main__':
 
         # Export to selected toolchain
         #lib_symbols = get_lib_symbols(options.macros, src, p)
-        tmp_path, report = perform_export(mcu,ide,build=options.build,src=src, macros=options.macros, project_id=p, clean=clean)
-        print report
+        generated_files, resources = perform_export(mcu,ide,build=options.build,src=src, macros=options.macros, project_id=p, clean=clean)
+        if zip:
+            zip_export("foo.zip", "foo", resources, generated_files)
