@@ -37,34 +37,30 @@ def copy_files(toolchain, files_paths, trg_path, resources=None, rel_path=None):
                 copyfile(source, target)
 
 def copy_resources(resources):
-    print yaml.dump(resources.file_basepath)
     resources.base_path
-    for field in ['cpp_sources', 'repo_files',
-                  'linker_script','headers', 's_sources', 'c_sources', 'objects', 'libraries',
+    for field in ['cpp_sources', 'repo_files', 'linker_script','headers',
+                  's_sources', 'c_sources', 'objects', 'libraries',
                   'lib_builds', 'lib_refs', 'hex_files', 'bin_files']:
         vals = getattr(resources, field)
-        print vals
 
-def get_src_paths(src_paths, libraries_paths):
+def get_exporter_toolchain(ide):
+    return EXPORTERS[ide], EXPORTERS[ide].TOOLCHAIN
+
+def export_project(src_paths, export_path, target, ide,
+                   libraries_paths=None, options=None, linker_script=None,
+                   clean=False, notify=None, verbose=False, name=None, macros=None,
+                   inc_dirs=None, jobs=1, silent=False, report=None, properties=None,
+                   project_id=None, project_description=None, extra_verbose=False,
+                   config=None, build=False):
+    """ This function builds a project. Project can be for example one test / UT
+    """
+
     # Convert src_path to a list if needed
     if type(src_paths) != ListType:
         src_paths = [src_paths]
     # Extend src_paths wiht libraries_paths
     if libraries_paths is not None:
         src_paths.extend(libraries_paths)
-
-def get_exporter_toolchain(ide):
-    return EXPORTERS[ide], EXPORTERS[ide].TOOLCHAIN
-
-def export_project(src_paths, export_path, target, ide,
-                    libraries_paths=None, options=None, linker_script=None,
-                    clean=False, notify=None, verbose=False, name=None, macros=None, inc_dirs=None,
-                    jobs=1, silent=False, report=None, properties=None, project_id=None, project_description=None,
-                    extra_verbose=False, config=None, build=False):
-    """ This function builds project. Project can be for example one test / UT
-    """
-
-    get_src_paths(src_paths, libraries_paths)
 
     # Export Directory
     if clean:
@@ -76,14 +72,13 @@ def export_project(src_paths, export_path, target, ide,
 
     # Pass all params to the unified prepare_resources()
     toolchain = prepare_toolchain(src_paths, export_path, target, toolchain_name,
-                                                     macros=macros, options=options, clean=clean, jobs=jobs,
-                                                     notify=notify, silent=silent, verbose=verbose,
-                                                     extra_verbose=extra_verbose, config=config)
+                                  macros=macros, options=options, clean=clean, jobs=jobs,
+                                  notify=notify, silent=silent, verbose=verbose,
+                                  extra_verbose=extra_verbose, config=config)
 
     # The first path will give the name to the library
     if name is None:
         name = basename(normpath(abspath(src_paths[0])))
-
 
     # Initialize reporting
     if report != None:
@@ -109,7 +104,8 @@ def export_project(src_paths, export_path, target, ide,
             resources.linker_script = linker_script
 
         # Export project files
-        exporter = Exporter(target, export_path, name, None, extra_symbols=macros, resources=resources)
+        exporter = Exporter(target, export_path, name, None, extra_symbols=macros,
+                            resources=resources)
         res = exporter.generate()
 
         if report != None:
@@ -146,15 +142,15 @@ def export_project(src_paths, export_path, target, ide,
 
 def print_results(successes, failures, skips = []):
     print
-    if len(successes) > 0:
+    if successes:
         print "Successful: "
         for success in successes:
             print "  * %s" % success
-    if len(failures) > 0:
+    if failures:
         print "Failed: "
         for failure in failures:
             print "  * %s" % failure
-    if len(skips) > 0:
+    if skips:
         print "Skipped: "
         for skip in skips:
             print "  * %s" % skip
