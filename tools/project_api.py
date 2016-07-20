@@ -1,97 +1,147 @@
 import sys
-from os.path import join, abspath, dirname, exists, basename
+from os.path import join, abspath, dirname, exists, basename, relpath, split, isdir
+from os import listdir
+from shutil import copyfile
 ROOT = abspath(join(dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
 
-from tools.paths import EXPORT_WORKSPACE, EXPORT_TMP
-from tools.paths import MBED_BASE, MBED_LIBRARIES
-from tools.export import export, setup_user_prj
-from tools.utils import mkdir
-from tools.tests import Test, TEST_MAP, TESTS
+
 from tools.libraries import LIBRARIES
-
-try:
-    import tools.private_settings as ps
-except:
-    ps = object()
-
-
-def get_program(n):
-    p = TEST_MAP[n].n
-    return p
+from tools.build_api import *
+from tools.export.__init__ import EXPORTERS
+#from tools.export.exporters import TargetNotSupported
+import yaml
 
 
-def get_test(p):
-    return Test(p)
+def copy_files(toolchain, files_paths, trg_path, resources=None, rel_path=None):
+        # Handle a single file
+        if type(files_paths) != ListType: files_paths = [files_paths]
 
+        for source in files_paths:
+            if source is None:
+                files_paths.remove(source)
 
-def get_test_from_name(n):
-    if not n in TEST_MAP.keys():
-        # Check if there is an alias for this in private_settings.py
-        if getattr(ps, "test_alias", None) is not None:
-            alias = ps.test_alias.get(n, "")
-            if not alias in TEST_MAP.keys():
-                return None
+        for source in files_paths:
+            if resources is not None:
+                relative_path = relpath(source, resources.file_basepath[source])
+            elif rel_path is not None:
+                relative_path = relpath(source, rel_path)
             else:
-                n = alias
-        else:
-            return None
-    return get_program(n)
+                _, relative_path = split(source)
+
+            target = join(trg_path, relative_path)
+
+            if (target != source) and (toolchain.need_update(target, [source])):
+                toolchain.progress("copy", relative_path)
+                mkdir(dirname(target))
+                copyfile(source, target)
+
+def copy_resources(resources):
+    print yaml.dump(resources.file_basepath)
+    resources.base_path
+    for field in ['cpp_sources', 'repo_files',
+                  'linker_script','headers', 's_sources', 'c_sources', 'objects', 'libraries',
+                  'lib_builds', 'lib_refs', 'hex_files', 'bin_files']:
+        vals = getattr(resources, field)
+        print vals
+
+def get_src_paths(src_paths, libraries_paths):
+    # Convert src_path to a list if needed
+    if type(src_paths) != ListType:
+        src_paths = [src_paths]
+    # Extend src_paths wiht libraries_paths
+    if libraries_paths is not None:
+        src_paths.extend(libraries_paths)
+
+def get_exporter_toolchain(ide):
+    return EXPORTERS[ide], EXPORTERS[ide].TOOLCHAIN
+
+def export_project(src_paths, export_path, target, ide,
+                    libraries_paths=None, options=None, linker_script=None,
+                    clean=False, notify=None, verbose=False, name=None, macros=None, inc_dirs=None,
+                    jobs=1, silent=False, report=None, properties=None, project_id=None, project_description=None,
+                    extra_verbose=False, config=None, build=False):
+    """ This function builds project. Project can be for example one test / UT
+    """
+
+    get_src_paths(src_paths, libraries_paths)
+
+    # Export Directory
+    if clean:
+        if exists(export_path):
+            rmtree(export_path)
+    mkdir(export_path)
+
+    Exporter, toolchain_name = get_exporter_toolchain(ide)
+
+    # Pass all params to the unified prepare_resources()
+    toolchain = prepare_toolchain(src_paths, export_path, target, toolchain_name,
+                                                     macros=macros, options=options, clean=clean, jobs=jobs,
+                                                     notify=notify, silent=silent, verbose=verbose,
+                                                     extra_verbose=extra_verbose, config=config)
+
+    # The first path will give the name to the library
+    if name is None:
+        name = basename(normpath(abspath(src_paths[0])))
 
 
-def get_lib_symbols(macros, src, program):
-    # Some libraries have extra macros (called by exporter symbols) to we need to pass
-    # them to maintain compilation macros integrity between compiled library and
-    # header files we might use with it
-    lib_symbols = []
-    if macros:
-        lib_symbols += macros
-    if src:
-        return lib_symbols
-    test = get_test(program)
-    for lib in LIBRARIES:
-        if lib['build_dir'] in test.dependencies:
-            lib_macros = lib.get('macros', None)
-            if lib_macros is not None:
-                lib_symbols.extend(lib_macros)
+    # Initialize reporting
+    if report != None:
+        start = time()
+        # If project_id is specified, use that over the default name
+        id_name = project_id.upper() if project_id else name.upper()
+        description = project_description if project_description else name
+        vendor_label = target.extra_labels[0]
+        prep_report(report, target.name, toolchain_name, id_name)
+        cur_result = create_result(target.name, toolchain_name, id_name, description)
+        if properties != None:
+            prep_properties(properties, target.name, toolchain_name, vendor_label)
 
+    try:
+        # Call unified scan_resources
+        resources = scan_resources(src_paths, toolchain, inc_dirs=inc_dirs)
+        print str(resources)
+        resources.relative_to(export_path)
+        #copy_resources(resources)
 
-def setup_project(mcu, ide, program=None, source_dir=None, build=None):
+        # Change linker script if specified
+        if linker_script is not None:
+            resources.linker_script = linker_script
 
-    # Some libraries have extra macros (called by exporter symbols) to we need to pass
-    # them to maintain compilation macros integrity between compiled library and
-    # header files we might use with it
-    if source_dir:
-        # --source is used to generate IDE files to toolchain directly in the source tree and doesn't generate zip file
-        project_dir = source_dir
-        project_name = TESTS[program] if program else "Unnamed_Project"
-        project_temp = join(source_dir[0], 'projectfiles', '%s_%s' % (ide, mcu))
-        mkdir(project_temp)
-    else:
-        test = get_test(program)
-        if not build:
-            # Substitute the library builds with the sources
-            # TODO: Substitute also the other library build paths
-            if MBED_LIBRARIES in test.dependencies:
-                test.dependencies.remove(MBED_LIBRARIES)
-                test.dependencies.append(MBED_BASE)
+        # Export project files
+        exporter = Exporter(target, export_path, name, None, extra_symbols=macros, resources=resources)
+        res = exporter.generate()
 
-        # Build the project with the same directory structure of the mbed online IDE
-        project_name = test.id
-        project_dir = [join(EXPORT_WORKSPACE, project_name)]
-        project_temp = EXPORT_TMP
-        setup_user_prj(project_dir[0], test.source_dir, test.dependencies)
+        if report != None:
+            end = time()
+            cur_result["elapsed_time"] = end - start
+            cur_result["output"] = toolchain.get_output()
+            cur_result["result"] = "OK"
+            cur_result["memory_usage"] = toolchain.map_outputs
 
-    return project_dir, project_name, project_temp
+            add_result_to_report(report, cur_result)
 
+        return res,res
 
-def perform_export(dir, name, ide, mcu, temp, clean=False, zip=False, lib_symbols='',
-                   sources_relative=False, progen_build=False):
+    except Exception, e:
+        if report != None:
+            end = time()
 
-    tmp_path, report = export(dir, name, ide, mcu, dir[0], temp, clean=clean,
-                              make_zip=zip, extra_symbols=lib_symbols, sources_relative=sources_relative,
-                              progen_build=progen_build)
-    return tmp_path, report
+            if isinstance(e, TargetNotSupported):
+                cur_result["result"] = "NOT_SUPPORTED"
+            else:
+                cur_result["result"] = "FAIL"
+
+            cur_result["elapsed_time"] = end - start
+
+            toolchain_output = toolchain.get_output()
+            if toolchain_output:
+                cur_result["output"] += toolchain_output
+
+            add_result_to_report(report, cur_result)
+
+        # Let Exception propagate
+        raise
 
 
 def print_results(successes, failures, skips = []):

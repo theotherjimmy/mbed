@@ -35,7 +35,8 @@ class Exporter(object):
     TEMPLATE_DIR = dirname(__file__)
     DOT_IN_RELATIVE_PATH = False
 
-    def __init__(self, target, inputDir, program_name, build_url_resolver, extra_symbols=None, sources_relative=True):
+    def __init__(self, target, inputDir, program_name, build_url_resolver, extra_symbols=None, sources_relative=True,
+                 resources=None):
         self.inputDir = inputDir
         self.target = target
         self.program_name = program_name
@@ -47,6 +48,7 @@ class Exporter(object):
         self.config_macros = []
         self.sources_relative = sources_relative
         self.config_header = None
+        self.resources = resources
 
     def get_toolchain(self):
         return self.TOOLCHAIN
@@ -80,8 +82,7 @@ class Exporter(object):
         """ Get grouped files based on the dirname """
         files_grouped = {}
         for file in files:
-            rel_path = os.path.relpath(file, os.getcwd())
-            dir_path = os.path.dirname(rel_path)
+            dir_path = os.path.dirname(file)
             if dir_path == '':
                 # all files within the current dir go into Source_Files
                 dir_path = 'Source_Files'
@@ -120,11 +121,16 @@ class Exporter(object):
     def progen_gen_file(self, tool_name, project_data, progen_build=False):
         """ Generate project using ProGen Project API """
         settings = ProjectSettings()
+        s = {"root":[os.path.dirname(os.getcwd())]}
+        settings.update(s)
+        print settings.root
+        print settings.root
         project = Project(self.program_name, [project_data], settings)
         # TODO: Fix this, the inc_dirs are not valid (our scripts copy files), therefore progen
         # thinks it is not dict but a file, and adds them to workspace.
         project.project['common']['include_paths'] = self.resources.inc_dirs
         project.generate(tool_name, copied=not self.sources_relative)
+        self.generated_files = project.generated_files
         if progen_build:
             print("Project exported, building...")
             result = project.build(tool_name)
