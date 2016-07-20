@@ -16,7 +16,7 @@ from tools.targets import TARGET_NAMES, TARGET_MAP
 from utils import argparse_filestring_type, argparse_many
 from utils import argparse_force_lowercase_type, argparse_force_uppercase_type
 from tools.libraries import LIBRARIES
-from project_api import export_project, get_exporter_toolchain, get_src_paths, copy_resources
+from project_api import export_project, get_exporter_toolchain, copy_resources
 from tools.build_api import scan_resources, prepare_toolchain
 
 def get_lib_symbols(macros, src, program):
@@ -61,20 +61,19 @@ def setup_project(ide, target, program=None, source_dir=None, build=None, macros
         # Build the project with the same directory structure of the mbed online IDE
         src_paths = test.source_dir
         lib_paths = test.dependencies
-        get_src_paths(src_paths, lib_paths)
         project_name = test.id
         project_dir = join(EXPORT_WORKSPACE, project_name)
 
-    return project_dir, project_name, [src_paths]+lib_paths
+    return project_dir, project_name, [src_paths], lib_paths
 
 
 def perform_export(target, ide, build=None, src=None,
                     macros=None, project_id=None, clean=False, zip=False):
-    export, name, paths = setup_project(ide, target, program=project_id, source_dir=src, build=build, macros=macros, clean=clean)
+    export, name, src, lib = setup_project(ide, target, program=project_id, source_dir=src, build=build, macros=macros, clean=clean)
 
-
-    export_project(paths, export, target, ide,
-                   clean=clean, name=name, macros=macros, build=build)
+    export_project(src, export, target, ide,
+                   clean=clean, name=name, macros=macros, build=build,
+                   libraries_paths=lib)
     return None, None
 
 if __name__ == '__main__':

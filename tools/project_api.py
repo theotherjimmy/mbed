@@ -37,11 +37,13 @@ def copy_files(toolchain, files_paths, trg_path, resources=None, rel_path=None):
                 copyfile(source, target)
 
 def copy_resources(resources):
+    print yaml.dump(resources.file_basepath)
     resources.base_path
     for field in ['cpp_sources', 'repo_files', 'linker_script','headers',
                   's_sources', 'c_sources', 'objects', 'libraries',
                   'lib_builds', 'lib_refs', 'hex_files', 'bin_files']:
         vals = getattr(resources, field)
+        print vals
 
 def get_exporter_toolchain(ide):
     return EXPORTERS[ide], EXPORTERS[ide].TOOLCHAIN
@@ -104,7 +106,7 @@ def export_project(src_paths, export_path, target, ide,
             resources.linker_script = linker_script
 
         # Export project files
-        exporter = Exporter(target, export_path, name, None, extra_symbols=macros,
+        exporter = Exporter(target, export_path, name, extra_symbols=macros,
                             resources=resources)
         res = exporter.generate()
 
@@ -117,7 +119,7 @@ def export_project(src_paths, export_path, target, ide,
 
             add_result_to_report(report, cur_result)
 
-        return res,res
+        return res,resources
 
     except Exception, e:
         if report != None:

@@ -21,7 +21,7 @@ import yaml
 
 from tools.utils import mkdir
 from tools.export import uvision4, uvision5, codered, gccarm, ds5_5, iar, emblocks, coide, kds, zip, simplicityv3, atmelstudio, sw4stm32, e2studio
-from tools.export.exporters import zip_working_directory_and_clean_up, OldLibrariesException, FailedBuildException
+from tools.export.exporters import OldLibrariesException, FailedBuildException
 from tools.targets import TARGET_NAMES, EXPORT_MAP, TARGET_MAP
 
 from project_generator_definitions.definitions import ProGenDef
@@ -149,8 +149,6 @@ def export(project_path, project_name, ide, target, destination='/tmp/',
         # copy .hgignore file to exported direcotry as well.
         if exists(os.path.join(exporter.TEMPLATE_DIR,'.hgignore')):
             copy(os.path.join(exporter.TEMPLATE_DIR,'.hgignore'), tempdir)
-        if make_zip:
-            zip_path = zip_working_directory_and_clean_up(tempdir, destination, project_name, clean)
         else:
             zip_path = destination
 
