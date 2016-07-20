@@ -21,7 +21,7 @@ import yaml
 
 from tools.utils import mkdir
 from tools.export import uvision4, uvision5, codered, gccarm, ds5_5, iar, emblocks, coide, kds, zip, simplicityv3, atmelstudio, sw4stm32, e2studio
-from tools.export.exporters import zip_working_directory_and_clean_up, OldLibrariesException, FailedBuildException
+from tools.export.exporters import OldLibrariesException, FailedBuildException
 from tools.targets import TARGET_NAMES, EXPORT_MAP, TARGET_MAP
 
 from project_generator_definitions.definitions import ProGenDef

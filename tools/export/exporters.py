@@ -14,7 +14,7 @@ from tools.toolchains import TOOLCHAIN_CLASSES
 from tools.targets import TARGET_MAP
 
 from project_generator.generate import Generator
-from project_generator.project import Project
+from project_generator.project import Project, ProjectTemplateInternal
 from project_generator.settings import ProjectSettings
 
 from tools.config import Config
@@ -35,7 +35,7 @@ class Exporter(object):
     TEMPLATE_DIR = dirname(__file__)
     DOT_IN_RELATIVE_PATH = False
 
-    def __init__(self, target, inputDir, program_name, extra_symbols=None,
+    def __init__(self, target, inputDir, program_name, extra_symbols=[],
                  sources_relative=True, resources=None):
         self.inputDir = inputDir
         self.target = target
@@ -43,11 +43,13 @@ class Exporter(object):
         self.toolchain = TOOLCHAIN_CLASSES[self.get_toolchain()](TARGET_MAP[target])
         jinja_loader = FileSystemLoader(os.path.dirname(os.path.abspath(__file__)))
         self.jinja_environment = Environment(loader=jinja_loader)
-        self.extra_symbols = extra_symbols
         self.config_macros = []
         self.sources_relative = sources_relative
         self.config_header = None
         self.resources = resources
+        self.symbols = self.toolchain.get_symbols() + self.config_macros
+        if extra_symbols:
+            self.symbols += extra_symbols
 
     def get_toolchain(self):
         return self.TOOLCHAIN
@@ -65,45 +67,38 @@ class Exporter(object):
                 self._progen_flag_cache['cxx_flags'] += self.toolchain.get_config_option(self.config_header)
         return self._progen_flag_cache
 
-    @staticmethod
-    def _get_dir_grouped_files(files):
-        """ Get grouped files based on the dirname """
-        files_grouped = {}
-        for file in files:
-            dir_path = os.path.dirname(file)
-            if dir_path == '':
-                # all files within the current dir go into Source_Files
-                dir_path = 'Source_Files'
-            if not dir_path in files_grouped.keys():
-                files_grouped[dir_path] = []
-            files_grouped[dir_path].append(file)
-        return files_grouped
+    def get_source_paths(self):
+        source_keys = ['s_sources', 'c_sources', 'cpp_sources']
+        source_files = []
+        [source_files.extend(getattr(self.resources,key)) for key in source_keys]
+        return [os.path.dirname(src) for src in source_files]
+
 
     def progen_get_project_data(self):
         """ Get ProGen project data  """
         # provide default data, some tools don't require any additional
         # tool specific settings
-        code_files = []
-        for r_type in ['c_sources', 'cpp_sources', 's_sources']:
-            for file in getattr(self.resources, r_type):
-                code_files.append(file)
+        def grouped(sources):
+            return {os.path.dirname(src): sources for src in sources}
+        project_data = ProjectTemplateInternal._get_project_template()
 
-        sources_files = code_files + self.resources.hex_files + self.resources.objects + \
-            self.resources.libraries
-        sources_grouped = Exporter._get_dir_grouped_files(sources_files)
-        headers_grouped = Exporter._get_dir_grouped_files(self.resources.headers)
-
-        project_data = {
-            'common': {
-                'sources': sources_grouped,
-                'includes': headers_grouped,
-                'build_dir':'.build',
-                'target': [TARGET_MAP[self.target].progen['target']],
-                'macros': self.get_symbols(),
-                'export_dir': [self.inputDir],
-                'linker_file': [self.resources.linker_script],
-            }
-        }
+        project_data['target'] = TARGET_MAP[self.target].progen['target']
+        project_data['source_paths'] = self.get_source_paths()
+        project_data['include_paths'] = self.resources.inc_dirs
+        project_data['include_files'] = grouped(self.resources.headers)
+        project_data['source_files_s'] = grouped(self.resources.s_sources)
+        project_data['source_files_c'] = grouped(self.resources.c_sources)
+        project_data['source_files_cpp'] = grouped(self.resources.cpp_sources)
+        project_data['source_files_obj'] = grouped(self.resources.objects)
+        project_data['source_files_lib'] = grouped(self.resources.libraries)
+        project_data['output_dir']['path'] = self.inputDir
+        project_data['linker_file'] = self.resources.linker_script
+        project_data['macros'] = self.symbols
+        project_data['build_dir'] = '.build'
+        project_data['template'] = None
+        project_data['name'] = self.program_name
+        project_data['output_type'] = 'exe'
+        project_data['debugger'] = None
         return project_data
 
     def progen_gen_file(self, tool_name, project_data, progen_build=False):
@@ -111,12 +106,8 @@ class Exporter(object):
         settings = ProjectSettings()
         s = {"root":[os.path.dirname(os.getcwd())]}
         settings.update(s)
-        print settings.root
-        print settings.root
         project = Project(self.program_name, [project_data], settings)
-        # TODO: Fix this, the inc_dirs are not valid (our scripts copy files), therefore progen
-        # thinks it is not dict but a file, and adds them to workspace.
-        project.project['common']['include_paths'] = self.resources.inc_dirs
+        project.project['export'] = project_data.copy()
         project.generate(tool_name, copied=not self.sources_relative)
         self.generated_files = project.generated_files
         if progen_build:
@@ -134,13 +125,3 @@ class Exporter(object):
         logging.debug("Generating: %s" % target_path)
         open(target_path, "w").write(target_text)
 
-    def get_symbols(self, add_extra_symbols=True):
-        """ This function returns symbols which must be exported.
-            Please add / overwrite symbols in each exporter separately
-        """
-        symbols = self.toolchain.get_symbols() + self.config_macros
-        # We have extra symbols from e.g. libraries, we want to have them also added to export
-        if add_extra_symbols:
-            if self.extra_symbols is not None:
-                symbols.extend(self.extra_symbols)
-        return symbols

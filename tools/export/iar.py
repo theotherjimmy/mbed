@@ -77,7 +77,7 @@ class IAREmbeddedWorkbench(Exporter):
         project_data['tool_specific']['iar']['misc'].update(self.progen_flags)
         # VLA is enabled via template IccAllowVLA
         project_data['tool_specific']['iar']['misc']['c_flags'].remove("--vla")
-        project_data['common']['build_dir'] = os.path.join(project_data['common']['build_dir'], 'iar_arm')
+        project_data['build_dir'] = os.path.join(project_data['common']['build_dir'], 'iar_arm')
         if progen_build:
             self.progen_gen_file('iar_arm', project_data, True)
         else:
