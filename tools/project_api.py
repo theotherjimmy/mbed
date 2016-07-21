@@ -1,3 +1,4 @@
+""" The new way of doing exports """
 import sys
 from os.path import join, abspath, dirname, exists
 from os.path import basename, relpath, normpath
@@ -13,7 +14,6 @@ from time import time
 from shutil import rmtree
 import zipfile
 import copy
-import os
 
 
 def get_exporter_toolchain(ide):
@@ -24,13 +24,27 @@ def get_exporter_toolchain(ide):
     """
     return EXPORTERS[ide], EXPORTERS[ide].TOOLCHAIN
 
-def new_basepath(val, resources, export_path):
-    new_f = relpath(val, resources.file_basepath[val])
+def rewrite_basepath(file_name, resources, export_path):
+    """ Replace the basepath of filename with export_path
+
+    Positional arguments:
+    file_name - the absolute path to a file
+    resources - the resources object that the file came from
+    export_path - the final destination of the file after export
+    """
+    new_f = relpath(file_name, resources.file_basepath[file_name])
     resources.file_basepath[join(export_path, new_f)] = export_path
     return new_f
 
 
 def subtract_basepath(resources, export_path):
+    """ Rewrite all of the basepaths with the export_path
+
+    Positional arguments:
+    resources - the resource object to rewrite the basepaths of
+    export_path - the final destination of the resources with respect to the
+      generated project files
+    """
     keys = ['s_sources', 'c_sources', 'cpp_sources', 'hex_files',
             'objects', 'libraries', 'inc_dirs', 'headers', 'linker_script']
     for key in keys:
@@ -38,10 +52,11 @@ def subtract_basepath(resources, export_path):
         if type(vals) is list:
             new_vals = []
             for val in vals:
-                new_vals.append(new_basepath(val, resources, export_path))
+                new_vals.append(rewrite_basepath(val, resources, export_path))
             setattr(resources, key, new_vals)
         else:
-            setattr(resources, key, new_basepath(vals, resources, export_path))
+            setattr(resources, key, rewrite_basepath(vals, resources,
+                                                     export_path))
 
 
 def export_project(src_paths, export_path, target, ide,
@@ -109,7 +124,7 @@ def export_project(src_paths, export_path, target, ide,
 
 
         temp = copy.deepcopy(resources)
-        subtract_basepath(resources,export_path)
+        subtract_basepath(resources, export_path)
         exporter = exporter_cls(target, export_path, name, toolchain,
                                 extra_symbols=macros, resources=resources)
         exporter.generate()
