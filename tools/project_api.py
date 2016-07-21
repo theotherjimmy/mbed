@@ -16,6 +16,11 @@ import copy
 
 
 def get_exporter_toolchain(ide):
+    """ Return the exporter class and the toolchain string as a tuple
+
+    Positional arguments:
+    ide - the ide name of an exporter
+    """
     return EXPORTERS[ide], EXPORTERS[ide].TOOLCHAIN
 
 def export_project(src_paths, export_path, target, ide,
