@@ -139,7 +139,7 @@ def export_project(src_paths, export_path, target, ide,
 
             add_result_to_report(report, cur_result)
 
-        return files, temp
+        return files, temp, export_path, name
 
     except Exception:
         if report != None:
