@@ -20,7 +20,7 @@ def get_exporter_toolchain(ide):
 
 def export_project(src_paths, export_path, target, ide,
                    libraries_paths=None, options=None, linker_script=None,
-                   clean=False, notify=None, verbose=False, name=None, macros=None,
+                   clean=False, notify=None, verbose=False, name=None, macros=[],
                    inc_dirs=None, jobs=1, silent=False, report=None, properties=None,
                    project_id=None, project_description=None, extra_verbose=False,
                    config=None, build=False):
@@ -75,8 +75,8 @@ def export_project(src_paths, export_path, target, ide,
             resources.linker_script = linker_script
 
         # Export project files
-        exporter = Exporter(target, export_path, name, extra_symbols=macros,
-                            resources=resources)
+        exporter = Exporter(target, export_path, name, toolchain, extra_symbols=macros, resources=resources)
+
         res = exporter.generate()
         files = exporter.generated_files
 
