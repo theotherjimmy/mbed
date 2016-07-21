@@ -9,7 +9,7 @@ sys.path.insert(0, ROOT)
 from tools.build_api import prepare_toolchain, prep_report, create_result
 from tools.build_api import prep_properties, scan_resources
 from tools.build_api import add_result_to_report
-from tools.export import EXPORTERS
+from tools.export.__init__ import EXPORTERS
 from time import time
 from shutil import rmtree
 import zipfile

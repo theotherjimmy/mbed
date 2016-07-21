@@ -1,14 +1,13 @@
 """Just a template for subclassing"""
 import os
 import logging
-from os.path import join, dirname
+from os.path import join, dirname, relpath
 from itertools import groupby
 from jinja2 import FileSystemLoader
 from jinja2.environment import Environment
 
 from tools.targets import TARGET_MAP
 from project_generator.project import Project, ProjectTemplateInternal
-from project_generator.settings import ProjectSettings
 
 
 class OldLibrariesException(Exception): pass
@@ -52,9 +51,9 @@ class Exporter(object):
         # symbols.
         config_macros = self.toolchain.config.get_config_data_macros()
         if config_macros:
-            self.symbols += config_macros
+            self.symbols.extend(config_macros)
         if extra_symbols:
-            self.symbols += extra_symbols
+            self.symbols.extend(extra_symbols)
 
     def get_toolchain(self):
         return self.TOOLCHAIN
@@ -70,6 +69,7 @@ class Exporter(object):
         common_flags - common options
         """
         config_header = self.toolchain.get_config_header()
+        config_header = relpath(config_header, self.resources.file_basepath[config_header])
         flags = dict([(key + "_flags", value) for key,value in self.toolchain.flags.iteritems()])
         if config_header:
             flags['c_flags'] += self.toolchain.get_config_option(config_header)
