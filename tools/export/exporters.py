@@ -1,24 +1,15 @@
 """Just a template for subclassing"""
-import uuid, shutil, os, logging, fnmatch
-from os import walk, remove
-from os.path import join, dirname, isdir, split
-from copy import copy
+import os
+import logging
+from os.path import join, dirname
+from itertools import groupby
 from jinja2 import Template, FileSystemLoader
 from jinja2.environment import Environment
-from contextlib import closing
-from zipfile import ZipFile, ZIP_DEFLATED
-from operator import add
-from itertools import groupby
 
-from tools.utils import mkdir
-from tools.toolchains import TOOLCHAIN_CLASSES
 from tools.targets import TARGET_MAP
-
-from project_generator.generate import Generator
 from project_generator.project import Project, ProjectTemplateInternal
 from project_generator.settings import ProjectSettings
 
-from tools.config import Config
 
 class OldLibrariesException(Exception): pass
 
@@ -46,9 +37,10 @@ class Exporter(object):
         self.jinja_environment = Environment(loader=jinja_loader)
         self.config_macros = self.toolchain.config.get_config_data_macros()
         self.sources_relative = sources_relative
-        self.config_header = self.toolchain.MBED_CONFIG_FILE_NAME
+        self.config_header = toolchain.get_config_header()
         self.resources = resources
         self.symbols = self.toolchain.get_symbols()
+        self.generated_files = []
         if self.config_macros:
             self.symbols += self.config_macros
         if extra_symbols:
@@ -81,10 +73,15 @@ class Exporter(object):
         """ Get ProGen project data  """
         # provide default data, some tools don't require any additional
         # tool specific settings
+        def make_key(src):
+            key = os.path.basename(os.path.dirname(src))
+            if not key:
+                key = os.path.basename(self.inputDir)
+            return key
 
         def grouped(sources):
-            data = sorted(sources, key=os.path.dirname)
-            return {k:list(g) for k,g in groupby(data,os.path.dirname)}
+            data = sorted(sources, key=make_key)
+            return {k:list(g) for k,g in groupby(data,make_key)}
 
         project_data = ProjectTemplateInternal._get_project_template()
 

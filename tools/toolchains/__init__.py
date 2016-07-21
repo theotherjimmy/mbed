@@ -524,6 +524,7 @@ class mbedToolchain:
 
             # Add root to include paths
             resources.inc_dirs.append(root)
+            resources.file_basepath[root] = base_path
 
             for file in files:
                 file_path = join(root, file)
@@ -532,7 +533,7 @@ class mbedToolchain:
     # A helper function for both scan_resources and _add_dir. _add_file adds one file
     # (*file_path*) to the resources object based on the file type.
     def _add_file(self, file_path, resources, base_path, exclude_paths=None):
-      #  file_path = rel_path(file_path, base_path)
+        #file_path = rel_path(file_path, base_path)
         resources.file_basepath[file_path] = base_path
 
         if self.is_ignored(file_path):

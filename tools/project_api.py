@@ -13,6 +13,7 @@ from time import time
 from shutil import rmtree
 import zipfile
 import copy
+import os
 
 
 def get_exporter_toolchain(ide):
@@ -23,10 +24,30 @@ def get_exporter_toolchain(ide):
     """
     return EXPORTERS[ide], EXPORTERS[ide].TOOLCHAIN
 
+def new_basepath(val, resources, export_path):
+    new_f = relpath(val, resources.file_basepath[val])
+    resources.file_basepath[join(export_path, new_f)] = export_path
+    return new_f
+
+
+def subtract_basepath(resources, export_path):
+    keys = ['s_sources', 'c_sources', 'cpp_sources', 'hex_files',
+            'objects', 'libraries', 'inc_dirs', 'headers', 'linker_script']
+    for key in keys:
+        vals = getattr(resources, key)
+        if type(vals) is list:
+            new_vals = []
+            for val in vals:
+                new_vals.append(new_basepath(val, resources, export_path))
+            setattr(resources, key, new_vals)
+        else:
+            setattr(resources, key, new_basepath(vals, resources, export_path))
+
+
 def export_project(src_paths, export_path, target, ide,
                    libraries_paths=None, options=None, linker_script=None,
                    clean=False, notify=None, verbose=False, name=None,
-                   macros=None, inc_dirs=None, jobs=1, silent=False,
+                   inc_dirs=None, jobs=1, silent=False,
                    report=None, properties=None, project_id=None,
                    project_description=None, extra_verbose=False, config=None,
                    build=False, macros=[]):
@@ -55,6 +76,7 @@ def export_project(src_paths, export_path, target, ide,
                                   notify=notify, silent=silent, verbose=verbose,
                                   extra_verbose=extra_verbose, config=config)
 
+
     # The first path will give the name to the library
     if name is None:
         name = basename(normpath(abspath(src_paths[0])))
@@ -76,16 +98,20 @@ def export_project(src_paths, export_path, target, ide,
     try:
         # Call unified scan_resources
         resources = scan_resources(src_paths, toolchain, inc_dirs=inc_dirs)
-        temp = copy.deepcopy(resources)
-        resources.relative_to(export_path)
+        toolchain.build_dir = export_path
+        config_header = toolchain.get_config_header()
+        resources.headers.append(config_header)
+        resources.file_basepath[config_header] = dirname(config_header)
 
         # Change linker script if specified
         if linker_script is not None:
             resources.linker_script = linker_script
 
-        # Export project files
-        exporter = exporter_cls(target, export_path, name, extra_symbols=macros,
-                                resources=resources)
+
+        temp = copy.deepcopy(resources)
+        subtract_basepath(resources,export_path)
+        exporter = exporter_cls(target, export_path, name, toolchain,
+                                extra_symbols=macros, resources=resources)
         exporter.generate()
         files = exporter.generated_files
 
