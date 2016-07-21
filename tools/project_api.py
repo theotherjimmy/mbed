@@ -145,7 +145,9 @@ def print_results(successes, failures, skips=None):
     Positional arguments:
     successes - The list of exports that succeeded
     failures - The list of exports that failed
-    skips - (optional) The list of exports that were skipped
+
+    Keyword arguments:
+    skips - The list of exports that were skipped
     """
     print
     if successes:
