@@ -3,7 +3,7 @@ import os
 import logging
 from os.path import join, dirname
 from itertools import groupby
-from jinja2 import Template, FileSystemLoader
+from jinja2 import FileSystemLoader
 from jinja2.environment import Environment
 
 from tools.targets import TARGET_MAP
@@ -27,59 +27,73 @@ class Exporter(object):
     TEMPLATE_DIR = dirname(__file__)
     DOT_IN_RELATIVE_PATH = False
 
-    def __init__(self, target, inputDir, program_name, toolchain, extra_symbols=[],
-                 sources_relative=True, resources=None):
-        self.inputDir = inputDir
+    def __init__(self, target, export_dir, project_name, toolchain, extra_symbols=[],
+                 resources=None):
+        """Initialize an instance of class exporter
+        Parameters:
+        target        -- the target mcu/board for this project
+        export_dir    -- the directory of the exported project files
+        project_name  -- the name of the project
+        toolchain     -- an instance of class toolchain
+        extra_symbols -- a list of extra macros for the toolchain
+        resources     -- an instance of class Resources
+        """
+        self.export_dir = export_dir
         self.target = target
-        self.program_name = program_name
+        self.project_name = project_name
         self.toolchain = toolchain
-        jinja_loader = FileSystemLoader(os.path.dirname(os.path.abspath(__file__)))
-        self.jinja_environment = Environment(loader=jinja_loader)
-        self.config_macros = self.toolchain.config.get_config_data_macros()
-        self.sources_relative = sources_relative
-        self.config_header = toolchain.get_config_header()
         self.resources = resources
         self.symbols = self.toolchain.get_symbols()
         self.generated_files = []
-        if self.config_macros:
-            self.symbols += self.config_macros
+
+        # Add extra symbols and config file symbols to the Exporter's list of
+        # symbols.
+        config_macros = self.toolchain.config.get_config_data_macros()
+        if config_macros:
+            self.symbols += config_macros
         if extra_symbols:
             self.symbols += extra_symbols
-
 
     def get_toolchain(self):
         return self.TOOLCHAIN
 
-
     @property
-    def progen_flags(self):
-        print self.toolchain.flags
-        if not hasattr(self, "_progen_flag_cache") :
-            self._progen_flag_cache = dict([(key + "_flags", value) for key,value in self.toolchain.flags.iteritems()])
-            if self.config_header:
-                self._progen_flag_cache['c_flags'] += self.toolchain.get_config_option(self.config_header)
-                self._progen_flag_cache['cxx_flags'] += self.toolchain.get_config_option(self.config_header)
-        return self._progen_flag_cache
-
+    def flags(self):
+        """Returns a dictionary of toolchain flags.
+        Keys of the dictionary are:
+        cxx_flags    -- c++ flags
+        c_flags      -- c flags
+        ld_flags     -- linker flags
+        asm_flags    -- assembler flags
+        common_flags -- common options
+        """
+        config_header = self.toolchain.get_config_header()
+        flags = dict([(key + "_flags", value) for key,value in self.toolchain.flags.iteritems()])
+        if config_header:
+            flags['c_flags'] += self.toolchain.get_config_option(config_header)
+            flags['cxx_flags'] += self.toolchain.get_config_option(config_header)
+        return flags
 
     def get_source_paths(self):
+        """Returns a list of the directories where source files are contained"""
         source_keys = ['s_sources', 'c_sources', 'cpp_sources', 'hex_files', 'objects', 'libraries']
         source_files = []
         [source_files.extend(getattr(self.resources,key)) for key in source_keys]
         return list(set([os.path.dirname(src) for src in source_files]))
 
-
     def progen_get_project_data(self):
         """ Get ProGen project data  """
         # provide default data, some tools don't require any additional
         # tool specific settings
+
         def make_key(src):
             key = os.path.basename(os.path.dirname(src))
             if not key:
-                key = os.path.basename(self.inputDir)
+                key = os.path.basename(self.export_dir)
             return key
 
         def grouped(sources):
+            # Group the source files by their encompassing directory
             data = sorted(sources, key=make_key)
             return {k:list(g) for k,g in groupby(data,make_key)}
 
@@ -94,12 +108,12 @@ class Exporter(object):
         project_data['source_files_cpp'] = grouped(self.resources.cpp_sources)
         project_data['source_files_obj'] = grouped(self.resources.objects)
         project_data['source_files_lib'] = grouped(self.resources.libraries)
-        project_data['output_dir']['path'] = self.inputDir
+        project_data['output_dir']['path'] = self.export_dir
         project_data['linker_file'] = self.resources.linker_script
         project_data['macros'] = self.symbols
         project_data['build_dir'] = '.build'
         project_data['template'] = None
-        project_data['name'] = self.program_name
+        project_data['name'] = self.project_name
         project_data['output_type'] = 'exe'
         project_data['debugger'] = None
         return project_data
@@ -109,9 +123,9 @@ class Exporter(object):
         settings = ProjectSettings()
         s = {"root":[os.path.dirname(os.getcwd())]}
         settings.update(s)
-        project = Project(self.program_name, [project_data], settings)
+        project = Project(self.project_name, [project_data], settings)
         project.project['export'] = project_data.copy()
-        project.generate(tool_name, copied=not self.sources_relative)
+        project.generate(tool_name, copied=False, fill=False)
         for _, dict in project.generated_files.iteritems():
             for feild, thing in dict.iteritems():
                 if feild == "files":
@@ -124,11 +138,15 @@ class Exporter(object):
                 raise FailedBuildException("Build Failed")
 
     def gen_file(self, template_file, data, target_file):
+        """Generates a project file from a template using jinja"""
+        jinja_loader = FileSystemLoader(os.path.dirname(os.path.abspath(__file__)))
+        jinja_environment = Environment(loader=jinja_loader)
+
         template_path = join(Exporter.TEMPLATE_DIR, template_file)
-        template = self.jinja_environment.get_template(template_file)
+        template = jinja_environment.get_template(template_file)
         target_text = template.render(data)
 
-        target_path = join(self.inputDir, target_file)
+        target_path = join(self.export_dir, target_file)
         logging.debug("Generating: %s" % target_path)
         open(target_path, "w").write(target_text)
         self.generated_files += target_path

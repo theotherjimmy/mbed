@@ -48,7 +48,7 @@ class CodeRed(Exporter):
             libraries.append(l[3:])
 
         ctx = {
-            'name': self.program_name,
+            'name': self.project_name,
             'include_paths': self.resources.inc_dirs,
             'linker_script': self.resources.linker_script,
             'object_files': self.resources.objects,

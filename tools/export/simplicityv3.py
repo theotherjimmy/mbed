@@ -157,7 +157,7 @@ class SimplicityV3(Exporter):
         self.check_and_add_path(split(self.resources.linker_script)[0])
 
         ctx = {
-            'name': self.program_name,
+            'name': self.project_name,
             'main_files': main_files,
             'recursiveFolders': self.orderedPaths,
             'object_files': self.resources.objects,
@@ -191,4 +191,4 @@ class SimplicityV3(Exporter):
                 print("\t" + bpath.name + "\n")
         '''
 
-        self.gen_file('simplicityv3_slsproj.tmpl', ctx, '%s.slsproj' % self.program_name)
+        self.gen_file('simplicityv3_slsproj.tmpl', ctx, '%s.slsproj' % self.project_name)

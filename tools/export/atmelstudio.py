@@ -61,7 +61,7 @@ class AtmelStudio(Exporter):
 
         ctx = {
             'target': self.target,
-            'name': self.program_name,
+            'name': self.project_name,
             'source_files': source_files,
             'source_folders': source_folders,
             'object_files': self.resources.objects,
@@ -75,5 +75,5 @@ class AtmelStudio(Exporter):
         }
         ctx.update(self.progen_flags)
         target = self.target.lower()
-        self.gen_file('atmelstudio6_2.atsln.tmpl', ctx, '%s.atsln' % self.program_name)
-        self.gen_file('atmelstudio6_2.cppproj.tmpl', ctx, '%s.cppproj' % self.program_name)
+        self.gen_file('atmelstudio6_2.atsln.tmpl', ctx, '%s.atsln' % self.project_name)
+        self.gen_file('atmelstudio6_2.cppproj.tmpl', ctx, '%s.cppproj' % self.project_name)

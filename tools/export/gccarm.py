@@ -149,9 +149,9 @@ class GccArm(Exporter):
             l, _ = splitext(basename(lib))
             libraries.append(l[3:])
 
-        build_dir = abspath(join(self.inputDir, ".build"))
+        build_dir = abspath(join(self.export_dir, ".build"))
         ctx = {
-            'name': self.program_name,
+            'name': self.project_name,
             'to_be_compiled': to_be_compiled,
             'object_files': self.resources.objects,
             'include_paths': self.resources.inc_dirs,

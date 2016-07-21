@@ -75,9 +75,9 @@ class Uvision5(Exporter):
         # get flags from toolchain and apply
         project_data['misc'] = {}
         # asm flags only, common are not valid within uvision project, they are armcc specific
-        project_data['misc']['asm_flags'] = list(set(self.progen_flags['asm_flags']))
+        project_data['misc']['asm_flags'] = list(set(self.flags['asm_flags']))
         # cxx flags included, as uvision have them all in one tab
-        project_data['misc']['c_flags'] = list(set(self.progen_flags['common_flags'] + self.progen_flags['c_flags'] + self.progen_flags['cxx_flags']))
+        project_data['misc']['c_flags'] = list(set(self.flags['common_flags'] + self.progen_flags['c_flags'] + self.progen_flags['cxx_flags']))
         # ARM_INC is by default as system inclusion, not required for exported project
         project_data['misc']['c_flags'].remove("-I \""+ARM_INC+"\"")
         # not compatible with c99 flag set in the template
@@ -86,7 +86,7 @@ class Uvision5(Exporter):
         project_data['misc']['c_flags'].remove("--cpp")
         # we want no-vla for only cxx, but it's also applied for C in IDE, thus we remove it
         project_data['misc']['c_flags'].remove("--no_vla")
-        project_data['misc']['ld_flags'] = self.progen_flags['ld_flags']
+        project_data['misc']['ld_flags'] = self.flags['ld_flags']
 
         i = 0
         for macro in self.symbols:

@@ -61,7 +61,7 @@ class IAREmbeddedWorkbench(Exporter):
             project_data['template']=[os.path.join(os.path.dirname(__file__), 'iar_template.ewp.tmpl')]
 
 
-        project_data['misc'] = self.progen_flags
+        project_data['misc'] = self.flags
         # VLA is enabled via template IccAllowVLA
         project_data['misc']['c_flags'].remove("--vla")
         project_data['build_dir'] = os.path.join(project_data['build_dir'], 'iar_arm')
