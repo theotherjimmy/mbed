@@ -132,4 +132,3 @@ class Exporter(object):
         logging.debug("Generating: %s" % target_path)
         open(target_path, "w").write(target_text)
         self.generated_files += target_path
-

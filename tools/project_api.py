@@ -1,22 +1,27 @@
 import sys
-from os.path import join, abspath, dirname, exists, basename, relpath, split, isdir
-from os import listdir
-from shutil import copyfile
+from os.path import join, abspath, dirname, exists
+from os.path import basename, relpath, normpath
+from os import mkdir
 ROOT = abspath(join(dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
 
-
-from tools.libraries import LIBRARIES
-from tools.build_api import *
-from tools.export.__init__ import EXPORTERS
-#from tools.export.exporters import TargetNotSupported
-import yaml
+from tools.build_api import prepare_toolchain, prep_report, create_result
+from tools.build_api import prep_properties, scan_resources
+from tools.build_api import add_result_to_report
+from tools.export import EXPORTERS
+from time import time
+from shutil import rmtree
 import zipfile
 import copy
 import os
 
 
 def get_exporter_toolchain(ide):
+    """ Return the exporter class and the toolchain string as a tuple
+
+    Positional arguments:
+    ide - the ide name of an exporter
+    """
     return EXPORTERS[ide], EXPORTERS[ide].TOOLCHAIN
 
 def new_basepath(val, resources, export_path):
@@ -41,15 +46,16 @@ def subtract_basepath(resources, export_path):
 
 def export_project(src_paths, export_path, target, ide,
                    libraries_paths=None, options=None, linker_script=None,
-                   clean=False, notify=None, verbose=False, name=None, macros=[],
-                   inc_dirs=None, jobs=1, silent=False, report=None, properties=None,
-                   project_id=None, project_description=None, extra_verbose=False,
-                   config=None, build=False):
+                   clean=False, notify=None, verbose=False, name=None,
+                   inc_dirs=None, jobs=1, silent=False,
+                   report=None, properties=None, project_id=None,
+                   project_description=None, extra_verbose=False, config=None,
+                   build=False, macros=[]):
     """ This function builds a project. Project can be for example one test / UT
     """
 
     # Convert src_path to a list if needed
-    if type(src_paths) != ListType:
+    if type(src_paths) != type([]):
         src_paths = [src_paths]
     # Extend src_paths wiht libraries_paths
     if libraries_paths is not None:
@@ -61,11 +67,12 @@ def export_project(src_paths, export_path, target, ide,
             rmtree(export_path)
     mkdir(export_path)
 
-    Exporter, toolchain_name = get_exporter_toolchain(ide)
+    exporter_cls, toolchain_name = get_exporter_toolchain(ide)
 
     # Pass all params to the unified prepare_resources()
-    toolchain = prepare_toolchain(src_paths, export_path, target, toolchain_name,
-                                  macros=macros, options=options, clean=clean, jobs=jobs,
+    toolchain = prepare_toolchain(src_paths, export_path, target,
+                                  toolchain_name, macros=macros,
+                                  options=options, clean=clean, jobs=jobs,
                                   notify=notify, silent=silent, verbose=verbose,
                                   extra_verbose=extra_verbose, config=config)
 
@@ -82,9 +89,11 @@ def export_project(src_paths, export_path, target, ide,
         description = project_description if project_description else name
         vendor_label = target.extra_labels[0]
         prep_report(report, target.name, toolchain_name, id_name)
-        cur_result = create_result(target.name, toolchain_name, id_name, description)
+        cur_result = create_result(target.name, toolchain_name, id_name,
+                                   description)
         if properties != None:
-            prep_properties(properties, target.name, toolchain_name, vendor_label)
+            prep_properties(properties, target.name, toolchain_name,
+                            vendor_label)
 
     try:
         # Call unified scan_resources
@@ -98,11 +107,12 @@ def export_project(src_paths, export_path, target, ide,
         if linker_script is not None:
             resources.linker_script = linker_script
 
+
         temp = copy.deepcopy(resources)
         subtract_basepath(resources,export_path)
-        exporter = Exporter(target, export_path, name, toolchain, extra_symbols=macros, resources=resources)
-
-        res = exporter.generate()
+        exporter = exporter_cls(target, export_path, name, toolchain,
+                                extra_symbols=macros, resources=resources)
+        exporter.generate()
         files = exporter.generated_files
 
         if report != None:
@@ -116,14 +126,11 @@ def export_project(src_paths, export_path, target, ide,
 
         return files, temp
 
-    except Exception, e:
+    except Exception:
         if report != None:
             end = time()
 
-            if isinstance(e, TargetNotSupported):
-                cur_result["result"] = "NOT_SUPPORTED"
-            else:
-                cur_result["result"] = "FAIL"
+            cur_result["result"] = "FAIL"
 
             cur_result["elapsed_time"] = end - start
 
@@ -136,14 +143,36 @@ def export_project(src_paths, export_path, target, ide,
         # Let Exception propagate
         raise
 
-def zip_export(filename, prefix, resources, project_files):
-    with zipfile.ZipFile(filename, "w") as zip:
-        for file in project_files:
-            zip.write(file, join(prefix, basename(file)))
-        for source in resources.headers + resources.s_sources + resources.c_sources + resources.cpp_sources + resources.libraries + resources.hex_files + [resources.linker_script] + resources.bin_files + resources.objects + resources.json_files:
-            zip.write(source, join(prefix, relpath(source, resources.file_basepath[source])))
+def zip_export(file_name, prefix, resources, project_files):
+    """Create a zip file from an exported project.
 
-def print_results(successes, failures, skips = []):
+    Positional Parameters:
+    file_name - the file name of the resulting zip file
+    prefix - a directory name that will prefix the entire zip file's contents
+    resources - a resources object with files that must be included in the zip
+    project_files - a list of extra files to be added to the root of the prefix
+      directory
+    """
+    with zipfile.ZipFile(file_name, "w") as zip_file:
+        for prj_file in project_files:
+            zip_file.write(prj_file, join(prefix, basename(prj_file)))
+        for source in resources.headers + resources.s_sources + \
+            resources.c_sources + resources.cpp_sources + \
+            resources.libraries + resources.hex_files + \
+            [resources.linker_script] + resources.bin_files \
+            + resources.objects + resources.json_files:
+            zip_file.write(source,
+                      join(prefix, relpath(source,
+                                           resources.file_basepath[source])))
+
+def print_results(successes, failures, skips=None):
+    """ Print out the results of an export process
+
+    Positional arguments:
+    successes - The list of exports that succeeded
+    failures - The list of exports that failed
+    skips - (optional) The list of exports that were skipped
+    """
     print
     if successes:
         print "Successful: "
