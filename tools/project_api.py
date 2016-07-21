@@ -169,8 +169,8 @@ def zip_export(file_name, prefix, resources, project_files):
       directory
     """
     with zipfile.ZipFile(file_name, "w") as zip_file:
-        for prj_file in project_files:
-            zip_file.write(prj_file, join(prefix, basename(prj_file)))
+        for name,prj_file in project_files.items():
+            zip_file.writestr(join(prefix,name), prj_file)
         for source in resources.headers + resources.s_sources + \
             resources.c_sources + resources.cpp_sources + \
             resources.libraries + resources.hex_files + \

@@ -76,7 +76,7 @@ class Uvision4(Exporter):
         # asm flags only, common are not valid within uvision project, they are armcc specific
         project_data['misc']['asm_flags'] = list(set(self.flags['asm_flags']))
         # cxx flags included, as uvision have them all in one tab
-        project_data['misc']['c_flags'] = list(set(self.flags['common_flags'] + self.progen_flags['c_flags'] + self.progen_flags['cxx_flags']))
+        project_data['misc']['c_flags'] = list(set(self.flags['common_flags'] + self.flags['c_flags'] + self.flags['cxx_flags']))
         # not compatible with c99 flag set in the template
         project_data['misc']['c_flags'].remove("--c99")
         # ARM_INC is by default as system inclusion, not required for exported project
@@ -98,7 +98,7 @@ class Uvision4(Exporter):
                 project_data['macros'].pop(i)
             i += 1
         project_data['macros'].append('__ASSERT_MSG')
-        project_data['build_dir'] = project_data['common']['build_dir'] + '\\' + 'uvision4'
+        project_data['build_dir'] = project_data['build_dir'] + '\\' + 'uvision4'
         if progen_build:
             self.progen_gen_file('uvision', project_data, True)
         else:
