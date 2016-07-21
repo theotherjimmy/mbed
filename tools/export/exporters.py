@@ -30,13 +30,15 @@ class Exporter(object):
     def __init__(self, target, export_dir, project_name, toolchain, extra_symbols=[],
                  resources=None):
         """Initialize an instance of class exporter
-        Parameters:
-        target        -- the target mcu/board for this project
-        export_dir    -- the directory of the exported project files
-        project_name  -- the name of the project
-        toolchain     -- an instance of class toolchain
-        extra_symbols -- a list of extra macros for the toolchain
-        resources     -- an instance of class Resources
+        Positional arguments:
+        target        - the target mcu/board for this project
+        export_dir    - the directory of the exported project files
+        project_name  - the name of the project
+        toolchain     - an instance of class toolchain
+        extra_symbols - a list of extra macros for the toolchain
+
+        Keyword arguments:
+        resources     - an instance of class Resources
         """
         self.export_dir = export_dir
         self.target = target
@@ -61,11 +63,11 @@ class Exporter(object):
     def flags(self):
         """Returns a dictionary of toolchain flags.
         Keys of the dictionary are:
-        cxx_flags    -- c++ flags
-        c_flags      -- c flags
-        ld_flags     -- linker flags
-        asm_flags    -- assembler flags
-        common_flags -- common options
+        cxx_flags    - c++ flags
+        c_flags      - c flags
+        ld_flags     - linker flags
+        asm_flags    - assembler flags
+        common_flags - common options
         """
         config_header = self.toolchain.get_config_header()
         flags = dict([(key + "_flags", value) for key,value in self.toolchain.flags.iteritems()])
@@ -119,7 +121,17 @@ class Exporter(object):
         return project_data
 
     def progen_gen_file(self, tool_name, project_data, progen_build=False):
-        """ Generate project using ProGen Project API """
+        """ Generate project using ProGen Project API
+        Positional arguments:
+        tool_name    - the tool for which to generate project files
+        project_data - a dict whose base key, values are specified in
+                       progen_get_project_data, the items will have been
+                       modified by Exporter subclasses
+
+        Keyword arguments:
+        progen_build - A boolean that determines if the tool will build the
+                       project
+        """
         settings = ProjectSettings()
         s = {"root":[os.path.dirname(os.getcwd())]}
         settings.update(s)
