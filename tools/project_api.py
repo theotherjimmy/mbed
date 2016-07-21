@@ -134,7 +134,14 @@ def zip_export(file_name, prefix, resources, project_files):
                       join(prefix, relpath(source,
                                            resources.file_basepath[source])))
 
-def print_results(successes, failures, skips = []):
+def print_results(successes, failures, skips=None):
+    """ Print out the results of an export process
+
+    Positional arguments:
+    successes - The list of exports that succeeded
+    failures - The list of exports that failed
+    skips - (optional) The list of exports that were skipped
+    """
     print
     if successes:
         print "Successful: "
