@@ -195,6 +195,10 @@ if __name__ == '__main__':
 
         # Export to selected toolchain
         #lib_symbols = get_lib_symbols(options.macros, src, p)
-        generated_files, resources = perform_export(mcu,ide,build=options.build,src=src, macros=options.macros, project_id=p, clean=clean)
+        generated_files, resources = perform_export(mcu, ide,
+                                                    build=options.build,
+                                                    src=src,
+                                                    macros=options.macros,
+                                                    project_id=p, clean=clean)
         if zip:
             zip_export("foo.zip", "foo", resources, generated_files)
