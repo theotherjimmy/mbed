@@ -52,6 +52,15 @@ class IAREmbeddedWorkbench(Exporter):
     def generate(self, progen_build=False):
         """ Generates the project files """
         project_data = self.progen_get_project_data()
+        try:
+            if TARGET_MAP[self.target].progen['iar']['template']:
+                project_data['template']=TARGET_MAP[self.target].progen['iar']['template']
+        except KeyError:
+            # use default template
+            # by the mbed projects
+            project_data['template']=[os.path.join(os.path.dirname(__file__), 'iar_template.ewp.tmpl')]
+
+
         project_data['misc'] = self.progen_flags
         # VLA is enabled via template IccAllowVLA
         project_data['misc']['c_flags'].remove("--vla")
