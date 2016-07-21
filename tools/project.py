@@ -16,7 +16,8 @@ from tools.targets import TARGET_NAMES, TARGET_MAP
 from utils import argparse_filestring_type, argparse_many
 from utils import argparse_force_lowercase_type, argparse_force_uppercase_type
 from tools.libraries import LIBRARIES
-from project_api import export_project, get_exporter_toolchain, zip_export
+from project_api import export_project, zip_export
+
 from tools.build_api import scan_resources, prepare_toolchain
 
 def get_lib_symbols(macros, src, program):
@@ -61,8 +62,8 @@ def setup_project(ide, target, program=None, source_dir=None, build=None, macros
         # Build the project with the same directory structure of the mbed online IDE
         src_paths = test.source_dir
         lib_paths = test.dependencies
-        project_name = test.id
-        project_dir = join(EXPORT_WORKSPACE, project_name)
+        project_name = "_".join([test.id, ide, target])
+        project_dir = join(EXPORT_DIR, project_name)
 
     return project_dir, project_name, [src_paths], lib_paths
 

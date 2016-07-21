@@ -24,7 +24,7 @@ def export_project(src_paths, export_path, target, ide,
                    macros=None, inc_dirs=None, jobs=1, silent=False,
                    report=None, properties=None, project_id=None,
                    project_description=None, extra_verbose=False, config=None,
-                   build=False):
+                   build=False, macros=[]):
     """ This function builds a project. Project can be for example one test / UT
     """
 

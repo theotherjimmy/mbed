@@ -8,6 +8,7 @@ from jinja2.environment import Environment
 from contextlib import closing
 from zipfile import ZipFile, ZIP_DEFLATED
 from operator import add
+from itertools import groupby
 
 from tools.utils import mkdir
 from tools.toolchains import TOOLCHAIN_CLASSES
@@ -35,52 +36,56 @@ class Exporter(object):
     TEMPLATE_DIR = dirname(__file__)
     DOT_IN_RELATIVE_PATH = False
 
-    def __init__(self, target, inputDir, program_name, extra_symbols=[],
+    def __init__(self, target, inputDir, program_name, toolchain, extra_symbols=[],
                  sources_relative=True, resources=None):
         self.inputDir = inputDir
         self.target = target
         self.program_name = program_name
-        self.toolchain = TOOLCHAIN_CLASSES[self.get_toolchain()](TARGET_MAP[target])
+        self.toolchain = toolchain
         jinja_loader = FileSystemLoader(os.path.dirname(os.path.abspath(__file__)))
         self.jinja_environment = Environment(loader=jinja_loader)
-        self.config_macros = []
+        self.config_macros = self.toolchain.config.get_config_data_macros()
         self.sources_relative = sources_relative
-        self.config_header = None
+        self.config_header = self.toolchain.MBED_CONFIG_FILE_NAME
         self.resources = resources
-        self.generated_files = []
-        self.symbols = self.toolchain.get_symbols() + self.config_macros
+        self.symbols = self.toolchain.get_symbols()
+        if self.config_macros:
+            self.symbols += self.config_macros
         if extra_symbols:
             self.symbols += extra_symbols
+
 
     def get_toolchain(self):
         return self.TOOLCHAIN
 
-    @property
-    def flags(self):
-        return self.toolchain.flags
 
     @property
     def progen_flags(self):
+        print self.toolchain.flags
         if not hasattr(self, "_progen_flag_cache") :
-            self._progen_flag_cache = dict([(key + "_flags", value) for key,value in self.flags.iteritems()])
+            self._progen_flag_cache = dict([(key + "_flags", value) for key,value in self.toolchain.flags.iteritems()])
             if self.config_header:
                 self._progen_flag_cache['c_flags'] += self.toolchain.get_config_option(self.config_header)
                 self._progen_flag_cache['cxx_flags'] += self.toolchain.get_config_option(self.config_header)
         return self._progen_flag_cache
 
+
     def get_source_paths(self):
-        source_keys = ['s_sources', 'c_sources', 'cpp_sources']
+        source_keys = ['s_sources', 'c_sources', 'cpp_sources', 'hex_files', 'objects', 'libraries']
         source_files = []
         [source_files.extend(getattr(self.resources,key)) for key in source_keys]
-        return [os.path.dirname(src) for src in source_files]
+        return list(set([os.path.dirname(src) for src in source_files]))
 
 
     def progen_get_project_data(self):
         """ Get ProGen project data  """
         # provide default data, some tools don't require any additional
         # tool specific settings
+
         def grouped(sources):
-            return {os.path.dirname(src): sources for src in sources}
+            data = sorted(sources, key=os.path.dirname)
+            return {k:list(g) for k,g in groupby(data,os.path.dirname)}
+
         project_data = ProjectTemplateInternal._get_project_template()
 
         project_data['target'] = TARGET_MAP[self.target].progen['target']
