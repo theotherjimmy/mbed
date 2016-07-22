@@ -28,51 +28,40 @@ sys.path.insert(0, ROOT)
 
 from tools.export import EXPORTERS
 from tools.targets import TARGET_NAMES, TARGET_MAP
-from tools.project_api import setup_project, perform_export, print_results, get_test_from_name, get_lib_symbols
+from tools.tests import TESTS
+from tools.project import setup_project, perform_export
+from tools.project_api import print_results, prepare_project, export_project, get_exporter_toolchain
+from tools.tests import test_name_known, test_known
+from tools.export.exporters import FailedBuildException, TargetNotSupportedException
 from project_generator_definitions.definitions import ProGenDef
-from tools.utils import args_error
+from tools.utils import args_error, argparse_force_lowercase_type, argparse_force_uppercase_type, argparse_many
 
 
 class ProgenBuildTest():
-    def __init__(self, desired_ides, targets):
+    def __init__(self, desired_ides, mcus, tests):
         #map of targets and the ides that can build programs for them
-        self.target_ides = {}
-        for target in targets:
-            self.target_ides[target] =[]
-            for ide in desired_ides:
-                if target in EXPORTERS[ide].TARGETS:
-                    #target is supported by ide
-                    self.target_ides[target].append(ide)
-            if len(self.target_ides[target]) == 0:
-                del self.target_ides[target]
+        self.ides = desired_ides
+        self.mcus = mcus
+        self.tests = tests
 
-
-    @staticmethod
-    def get_pgen_targets(ides):
-        #targets supported by pgen and desired ides for tests
-        targs = []
-        for ide in ides:
-            for target in TARGET_NAMES:
-                if target not in targs and hasattr(TARGET_MAP[target],'progen') \
-                        and ProGenDef(ide).is_supported(TARGET_MAP[target].progen['target']):
-                    targs.append(target)
-        return targs
+    @property
+    def mcu_ide_pairs(self):
+        for mcu in self.mcus:
+            for ide in self.ides:
+                if mcu in EXPORTERS[ide].TARGETS:
+                    yield mcu, ide
 
     @staticmethod
-    def handle_project_files(project_dir, mcu, test, tool, clean=False):
+    def handle_project_files(project_dir, tool, name, clean=False):
         log = ''
         if tool == 'uvision' or tool == 'uvision5':
             log = os.path.join(project_dir,"build","build_log.txt")
         elif tool == 'iar':
             log = os.path.join(project_dir, 'build_log.txt')
-        try:
-            with open(log, 'r') as f:
-                print f.read()
-        except:
-            return
+        with open(log, 'r') as f:
+            print f.read()
 
-        prefix = "_".join([test, mcu, tool])
-        log_name = os.path.join(os.path.dirname(project_dir), prefix+"_log.txt")
+        log_name = os.path.join(dirname(project_dir), name+"_log.txt")
 
         #check if a log already exists for this platform+test+ide
         if os.path.exists(log_name):
@@ -82,62 +71,62 @@ class ProgenBuildTest():
 
         if clean:
             shutil.rmtree(project_dir, ignore_errors=True)
-            return
 
-    def generate_and_build(self, tests, clean=False):
-
+    def generate_and_build(self, clean=False):
         #build results
         successes = []
         failures = []
         skips = []
-        for mcu, ides in self.target_ides.items():
-            for test in tests:
-                #resolve name alias
-                test = get_test_from_name(test)
-                for ide in ides:
-                    lib_symbols = get_lib_symbols(None, None, test)
-                    project_dir, project_name, project_temp = setup_project(mcu, ide, test)
+        for mcu, ide in self.mcu_ide_pairs:
+            for test in self.tests:
+                export_location, name, src, lib = setup_project(ide, mcu, program=test)
+                resources, toolchain = prepare_project(src, export_location, mcu, ide,
+                                                       clean=clean, name=name,
+                                                       libraries_paths=lib)
+                resources.relative_to(export_location)
+                try:
+                    files, exporter = export_project(resources, export_location, mcu, name, toolchain, ide)
+                    exporter.progen_build()
+                    successes.append("%s::%s\t%s" % (mcu, ide, test))
+                except FailedBuildException:
+                    failures.append("%s::%s\t%s" % (mcu, ide, test))
+                except TargetNotSupportedException:
+                    skips.append("%s::%s\t%s" % (mcu, ide, test))
 
-                    dest_dir = os.path.dirname(project_temp)
-                    destination = os.path.join(dest_dir,"_".join([project_name, mcu, ide]))
-
-                    tmp_path, report = perform_export(project_dir, project_name, ide, mcu, destination,
-                                                      lib_symbols=lib_symbols, progen_build = True)
-
-                    if report['success']:
-                        successes.append("build for %s::%s\t%s" % (mcu, ide, project_name))
-                    elif report['skip']:
-                        skips.append("%s::%s\t%s" % (mcu, ide, project_name))
-                    else:
-                        failures.append("%s::%s\t%s for %s" % (mcu, ide, report['errormsg'], project_name))
-
-                    ProgenBuildTest.handle_project_files(destination, mcu, project_name, ide, clean)
+                ProgenBuildTest.handle_project_files(export_location, ide, name, clean=clean)
         return successes, failures, skips
 
 
 if __name__ == '__main__':
-    accepted_ides = ["iar", "uvision", "uvision5"]
-    accepted_targets = sorted(ProgenBuildTest.get_pgen_targets(accepted_ides))
-    default_tests = ["MBED_BLINKY"]
+    toolchainlist = ["iar", "uvision", "uvision5"]
+    default_tests = [test_name_known("MBED_BLINKY")]
+    targetnames = TARGET_NAMES
+    targetnames.sort()
 
     parser = argparse.ArgumentParser(description = "Test progen builders. Leave any flag off to run with all possible options.")
-    parser.add_argument("-i", "--IDEs",
-                      nargs = '+',
+    parser.add_argument("-i",
                       dest="ides",
-                      help="tools you wish to perfrom build tests. (%s)" % ', '.join(accepted_ides),
-                      default = accepted_ides)
+                      default='uvision',
+                      type=argparse_many(argparse_force_lowercase_type(toolchainlist, "toolchain")),
+                      help="The target IDE: %s"% str(toolchainlist))
+
+    parser.add_argument("-p",
+                       type=argparse_many(test_name_known),
+                       dest="programs",
+                       help="The index of the desired test program: [0-%d]" % (len(TESTS) - 1),
+                       default=default_tests)
 
     parser.add_argument("-n",
-                    nargs='+',
-                    dest="tests",
-                    help="names of desired test programs",
-                    default = default_tests)
+                        type=argparse_many(test_name_known),
+                        dest="programs",
+                        help="The name of the desired test program",
+                        default=default_tests)
 
-    parser.add_argument("-m", "--mcus",
-                      nargs='+',
-                      dest ="targets",
-                      help="generate project for the given MCUs (%s)" % '\n '.join(accepted_targets),
-                      default = accepted_targets)
+    parser.add_argument("-m", "--mcu",
+                        metavar="MCU",
+                        default='LPC1768',
+                        type= argparse_many(argparse_force_uppercase_type(targetnames, "MCU")),
+                        help="generate project for the given MCU (%s)" % ', '.join(targetnames))
 
     parser.add_argument("-c", "--clean",
                         dest="clean",
@@ -147,21 +136,8 @@ if __name__ == '__main__':
 
     options = parser.parse_args()
 
-    tests = options.tests
-    ides = [ide.lower() for ide in options.ides]
-    targets = [target.upper() for target in options.targets]
-
-    if any(get_test_from_name(test) is None for test in tests):
-        args_error(parser, "[ERROR] test name not recognized")
-
-    if any(target not in accepted_targets for target in targets):
-        args_error(parser, "[ERROR] mcu must be one of the following:\n %s" % '\n '.join(accepted_targets))
-
-    if any(ide not in accepted_ides for ide in ides):
-        args_error(parser, "[ERROR] ide must be in %s" % ', '.join(accepted_ides))
-
-    build_test = ProgenBuildTest(ides, targets)
-    successes, failures, skips = build_test.generate_and_build(tests, options.clean)
+    build_test = ProgenBuildTest(options.ides, options.mcu, options.programs)
+    successes, failures, skips = build_test.generate_and_build(clean=options.clean)
     print_results(successes, failures, skips)
     sys.exit(len(failures))
 

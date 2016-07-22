@@ -1,5 +1,6 @@
 """Just a template for subclassing"""
 import os
+import sys
 import logging
 from os.path import join, dirname, relpath
 from itertools import groupby
@@ -9,11 +10,14 @@ from jinja2.environment import Environment
 from tools.targets import TARGET_MAP
 from project_generator.project import Project, ProjectTemplateInternal
 from project_generator.settings import ProjectSettings
+from project_generator_definitions.definitions import ProGenDef
 
 
 class OldLibrariesException(Exception): pass
 
 class FailedBuildException(Exception) : pass
+
+class TargetNotSupportedException(Exception):pass
 
 # Exporter descriptor for TARGETS
 # TARGETS as class attribute for backward compatibility (allows: if in Exporter.TARGETS)
@@ -53,6 +57,7 @@ class Exporter(object):
         self.resources = resources
         self.symbols = self.toolchain.get_symbols()
         self.generated_files = []
+        self.project = None
 
         # Add extra symbols and config file symbols to the Exporter's list of
         # symbols.
@@ -127,7 +132,7 @@ class Exporter(object):
         project_data['debugger'] = None
         return project_data
 
-    def progen_gen_file(self, tool_name, project_data, progen_build=False):
+    def progen_gen_file(self, project_data):
         """ Generate project using ProGen Project API
         Positional arguments:
         tool_name    - the tool for which to generate project files
@@ -139,20 +144,31 @@ class Exporter(object):
         progen_build - A boolean that determines if the tool will build the
                        project
         """
+        if not self.check_supported(self.NAME):
+            raise TargetNotSupportedException("Target not supported")
         settings = ProjectSettings()
-        project = Project(self.project_name, [project_data], settings)
-        project.project['export'] = project_data.copy()
-        project.generate(tool_name, copied=False, fill=False)
-        for _, dict in project.generated_files.iteritems():
-            for feild, thing in dict.iteritems():
-                if feild == "files":
+        self.project = Project(self.project_name, [project_data], settings)
+        self.project.project['export'] = project_data.copy()
+        self.project.generate(self.NAME, copied=False, fill=False)
+        for _, dict in self.project.generated_files.iteritems():
+            for field, thing in dict.iteritems():
+                if field == "files":
                     for __, filename in thing.iteritems():
                         self.generated_files.append(filename)
-        if progen_build:
-            print("Project exported, building...")
-            result = project.build(tool_name)
-            if result == -1:
-                raise FailedBuildException("Build Failed")
+
+    def progen_build(self):
+        print("Project %s exported, building for %s..."%(self.project_name, self.NAME))
+        sys.stdout.flush()
+        result = self.project.build(self.NAME)
+        if result == -1:
+            raise FailedBuildException("Build Failed")
+
+    def check_supported(self, ide):
+        if self.target not in self.TARGETS or self.TOOLCHAIN not in TARGET_MAP[self.target].supported_toolchains:
+            return False
+        if not ProGenDef(ide).is_supported(TARGET_MAP[self.target].progen['target']):
+            return False
+        return True
 
     def gen_file(self, template_file, data, target_file):
         """Generates a project file from a template using jinja"""

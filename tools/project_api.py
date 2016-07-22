@@ -2,7 +2,7 @@
 import sys
 from os.path import join, abspath, dirname, exists
 from os.path import basename, relpath, normpath
-from os import mkdir
+from os import makedirs
 ROOT = abspath(join(dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
 
@@ -77,7 +77,7 @@ def prepare_project(src_paths, export_path, target, ide,
     if exists(export_path) and clean:
         rmtree(export_path)
     if not exists(export_path):
-        mkdir(export_path)
+        makedirs(export_path)
 
     _, toolchain_name = get_exporter_toolchain(ide)
 
@@ -131,7 +131,8 @@ def export_project(resources, export_path, target, name, toolchain, ide,
     exporter.generate()
     files = exporter.generated_files
 
-    return files
+    return files, exporter
+
 
 def zip_export(file_name, prefix, resources, project_files):
     """Create a zip file from an exported project.
