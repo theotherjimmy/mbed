@@ -1,25 +1,24 @@
+"""The generic interface for all exporters.
 """
-mbed SDK
-Copyright (c) 2011-2013 ARM Limited
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# mbed SDK
+# Copyright (c) 2011-2013 ARM Limited
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 import os, tempfile
 from os.path import join, exists, basename
 from shutil import copytree, rmtree, copy
 import yaml
 
-from tools.utils import mkdir
 from tools.export import uvision4, uvision5, codered, gccarm, ds5_5, iar
 from tools.export import emblocks, coide, kds, simplicityv3, atmelstudio
 from tools.export import sw4stm32, e2studio
@@ -54,27 +53,25 @@ ERROR_MESSAGE_NOT_EXPORT_LIBS = """
 To export this project please <a href='http://mbed.org/compiler/?import=http://mbed.org/users/mbed_official/code/mbed-export/k&mode=lib' target='_blank'>import the export version of the mbed library</a>.
 """
 
-def mcu_ide_matrix(verbose_html=False, platform_filter=None):
-    """  Shows target map using prettytable """
-    supported_ides = []
-    for key in EXPORTERS.iterkeys():
-        supported_ides.append(key)
-    supported_ides.sort()
-    from prettytable import PrettyTable, ALL # Only use it in this function so building works without extra modules
+def mcu_ide_matrix(verbose_html=False):
+    """Shows target map using prettytable
+
+    Keyword argumets:
+    verbose_html - print the matrix in html format
+    """
+    supported_ides = sorted(EXPORTERS.keys())
+    # Only use it in this function so building works without extra modules
+    from prettytable import PrettyTable, ALL
 
     # All tests status table print
-    columns = ["Platform"] + supported_ides
-    pt = PrettyTable(columns)
+    table_printer = PrettyTable(["Platform"] + supported_ides)
     # Align table
-    for col in columns:
-        pt.align[col] = "c"
-    pt.align["Platform"] = "l"
+    for col in supported_ides:
+        table_printer.align[col] = "c"
+    table_printer.align["Platform"] = "l"
 
     perm_counter = 0
-    target_counter = 0
     for target in sorted(TARGET_NAMES):
-        target_counter += 1
-
         row = [target]  # First column is platform name
         for ide in supported_ides:
             text = "-"
@@ -85,20 +82,24 @@ def mcu_ide_matrix(verbose_html=False, platform_filter=None):
                     text = "x"
                 perm_counter += 1
             row.append(text)
-        pt.add_row(row)
+        table_printer.add_row(row)
 
-    pt.border = True
-    pt.vrules = ALL
-    pt.hrules = ALL
-    # creates a html page suitable for a browser
-    # result = pt.get_html_string(format=True) if verbose_html else pt.get_string()
+    table_printer.border = True
+    table_printer.vrules = ALL
+    table_printer.hrules = ALL
     # creates a html page in a shorter format suitable for readme.md
-    result = pt.get_html_string() if verbose_html else pt.get_string()
+    if verbose_html:
+        result = table_printer.get_html_string()
+    else:
+        result = table_printer.get_string()
     result += "\n"
     result += "Total IDEs: %d\n"% (len(supported_ides))
-    if verbose_html: result += "<br>"
-    result += "Total platforms: %d\n"% (target_counter)
-    if verbose_html: result += "<br>"
+    if verbose_html:
+        result += "<br>"
+    result += "Total platforms: %d\n"% (len(TARGET_NAMES))
+    if verbose_html:
+        result += "<br>"
     result += "Total permutations: %d"% (perm_counter)
-    if verbose_html: result = result.replace("&amp;", "&")
+    if verbose_html:
+        result = result.replace("&amp;", "&")
     return result

@@ -69,6 +69,15 @@ def export(target, ide, build=None, src=None, macros=None, project_id=None,
 
     Positional arguments:
     target - MCU that the project will compile for
+    ide - the IDE or project structure to export to
+
+    Keyword arguments:
+    build - to use the compiled mbed libraries or not
+    src - directory or directories that contain the source to export
+    macros - extra macros to add to the project
+    project_id - the name of the project
+    clean - start from a clean state before exporting
+    zip_proj - create a zip file or not
     """
     project_dir, name, src, lib = setup_project(ide, target, program=project_id,
                                            source_dir=src, build=build)
@@ -124,7 +133,7 @@ def main():
         "-p",
         type=test_known,
         dest="program",
-        help="The index of the desired test program: [0-{}]"% (len(TESTS)-1))
+        help="The index of the desired test program: [0-%s]"% (len(TESTS)-1))
 
     group.add_argument("-n",
                       type=test_name_known,
@@ -207,7 +216,7 @@ def main():
         #lib_symbols = get_lib_symbols(options.macros, src, p)
         export(mcu, options.ide, build=options.build, src=options.source_dir,
                macros=options.macros, project_id=options.project,
-               clean=options.clean, zip=zip_proj)
+               clean=options.clean, zip_proj=zip_proj)
 
 
 if __name__ == "__main__":
