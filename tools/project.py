@@ -2,52 +2,33 @@ import sys
 from os.path import join, abspath, dirname, exists, basename
 ROOT = abspath(join(dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
-
-from shutil import move, rmtree
+from shutil import rmtree
 from argparse import ArgumentParser
 from os.path import normpath
+import copy
 
-
-from tools.paths import EXPORT_DIR, MBED_BASE, MBED_LIBRARIES, EXPORT_WORKSPACE
+from tools.paths import EXPORT_DIR, MBED_BASE, MBED_LIBRARIES
 from tools.export import EXPORTERS, mcu_ide_matrix
 from tools.tests import TESTS, TEST_MAP
 from tools.tests import test_known, test_name_known, Test
-from tools.targets import TARGET_NAMES, TARGET_MAP
+from tools.targets import TARGET_NAMES
 from utils import argparse_filestring_type, argparse_many
 from utils import argparse_force_lowercase_type, argparse_force_uppercase_type
-from tools.libraries import LIBRARIES
-from project_api import export_project, zip_export
+from project_api import export_project, zip_export, prepare_project, subtract_basepath
 
-from tools.build_api import scan_resources, prepare_toolchain
 
-def get_lib_symbols(macros, src, program):
+def setup_project(ide, target, program=None, source_dir=None, build=None):
     # Some libraries have extra macros (called by exporter symbols) to we need to pass
     # them to maintain compilation macros integrity between compiled library and
     # header files we might use with it
-    lib_symbols = []
-    if macros:
-        lib_symbols += macros
-    if src:
-        return lib_symbols
-    test = Test(program)
-    for lib in LIBRARIES:
-        if lib['build_dir'] in test.dependencies:
-            lib_macros = lib.get('macros', None)
-            if lib_macros is not None:
-                lib_symbols.extend(lib_macros)
-    return lib_symbols
-
-
-def setup_project(ide, target, program=None, source_dir=None, build=None, macros=None, clean=False):
-    # Some libraries have extra macros (called by exporter symbols) to we need to pass
-    # them to maintain compilation macros integrity between compiled library and
-    # header files we might use with it
-    lib_symbols = get_lib_symbols(macros, source_dir, program)
     if source_dir:
-        # --source is used to generate IDE files to toolchain directly in the source tree and doesn't generate zip file
-        project_dir = source_dir
-        project_name = TESTS[program] if program else basename(normpath(source_dir))
-        test = None
+        # --source is used to generate IDE files to toolchain directly
+        # in the source tree and doesn't generate zip file
+        project_dir = source_dir[0]
+        if program:
+            project_name = TESTS[program]
+        else:
+            project_name = basename(normpath(source_dir[0]))
         src_paths = source_dir
         lib_paths=None
     else:
@@ -60,21 +41,33 @@ def setup_project(ide, target, program=None, source_dir=None, build=None, macros
                 test.dependencies.append(MBED_BASE)
 
         # Build the project with the same directory structure of the mbed online IDE
-        src_paths = test.source_dir
+        src_paths = [test.source_dir]
         lib_paths = test.dependencies
         project_name = "_".join([test.id, ide, target])
         project_dir = join(EXPORT_DIR, project_name)
 
-    return project_dir, project_name, [src_paths], lib_paths
+    return project_dir, project_name, src_paths, lib_paths
 
 
-def perform_export(target, ide, build=None, src=None,
-                    macros=None, project_id=None, clean=False, zip=False):
-    export, name, src, lib = setup_project(ide, target, program=project_id, source_dir=src, build=build, macros=macros, clean=clean)
+def perform_export(target, ide, build=None, src=None, macros=None,
+                   project_id=None, clean=False, zip=False):
+    export, name, src, lib = setup_project(ide, target, program=project_id,
+                                           source_dir=src, build=build)
 
-    return export_project(src, export, target, ide,
-                          clean=clean, name=name, macros=macros, build=build,
+    resources, toolchain = prepare_project(src, export, target, ide,
+                          clean=clean, name=name, macros=macros,
                           libraries_paths=lib)
+
+    temp = copy.deepcopy(resources)
+    if zip:
+        subtract_basepath(resources, export)
+    else:
+        resources.relative_to(export)
+
+    files = export_project(resources, export, target, name, toolchain, ide, macros=macros)
+    if zip:
+        zip_export(export + ".zip", name, temp, files)
+
 
 if __name__ == '__main__':
     # Parse Options
@@ -191,14 +184,8 @@ if __name__ == '__main__':
         p, src, ide = options.program, options.source_dir, options.ide
 
         zip = src is not []  # create zip when no src_dir provided
-        clean = src is not []  # don't clean when source is provided, use acrual source tree for IDE files
 
         # Export to selected toolchain
         #lib_symbols = get_lib_symbols(options.macros, src, p)
-        generated_files, resources, ex_path, name = perform_export(mcu, ide,
-                                                    build=options.build,
-                                                    src=src,
-                                                    macros=options.macros,
-                                                    project_id=p, clean=clean)
-        if zip:
-            zip_export(ex_path+".zip", name, resources, generated_files)
+        perform_export(mcu, ide, build=options.build, src=src,
+                       macros=options.macros, project_id=p, clean=options.clean, zip=zip)

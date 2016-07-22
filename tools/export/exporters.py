@@ -27,7 +27,7 @@ class Exporter(object):
     TEMPLATE_DIR = dirname(__file__)
     DOT_IN_RELATIVE_PATH = False
 
-    def __init__(self, target, export_dir, project_name, toolchain, extra_symbols=[],
+    def __init__(self, target, export_dir, project_name, toolchain, extra_symbols=None,
                  resources=None):
         """Initialize an instance of class exporter
         Positional arguments:
@@ -92,7 +92,7 @@ class Exporter(object):
         def make_key(src):
             key = os.path.basename(os.path.dirname(src))
             if not key:
-                key = os.path.basename(self.export_dir)
+                key = os.path.basename(os.path.normpath(self.export_dir))
             return key
 
         def grouped(sources):
