@@ -28,7 +28,7 @@ class IAREmbeddedWorkbench(Exporter):
     Exporter class for IAR Systems. This class uses project generator.
     """
     # These 2 are currently for exporters backward compatiblity
-    NAME = 'IAR'
+    NAME = 'iar_arm'
     TOOLCHAIN = 'IAR'
     # PROGEN_ACTIVE contains information for exporter scripts that this is using progen
     PROGEN_ACTIVE = True
@@ -49,7 +49,7 @@ class IAREmbeddedWorkbench(Exporter):
                     continue
         return cls._targets_supported
 
-    def generate(self, progen_build=False):
+    def generate(self):
         """ Generates the project files """
         project_data = self.progen_get_project_data()
         try:
@@ -65,10 +65,7 @@ class IAREmbeddedWorkbench(Exporter):
         # VLA is enabled via template IccAllowVLA
         project_data['misc']['c_flags'].remove("--vla")
         project_data['build_dir'] = os.path.join(project_data['build_dir'], 'iar_arm')
-        if progen_build:
-            self.progen_gen_file('iar_arm', project_data, True)
-        else:
-            self.progen_gen_file('iar_arm', project_data)
+        self.progen_gen_file(project_data)
 
 # Currently not used, we should reuse folder_name to create virtual folders
 class IarFolder():

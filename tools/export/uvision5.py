@@ -29,7 +29,7 @@ class Uvision5(Exporter):
     Exporter class for uvision5. This class uses project generator.
     """
     # These 2 are currently for exporters backward compatiblity
-    NAME = 'uVision5'
+    NAME = 'uvision5'
     TOOLCHAIN = 'ARM'
     # PROGEN_ACTIVE contains information for exporter scripts that this is using progen
     PROGEN_ACTIVE = True
@@ -53,7 +53,7 @@ class Uvision5(Exporter):
     def get_toolchain(self):
         return TARGET_MAP[self.target].default_toolchain
 
-    def generate(self, progen_build=False):
+    def generate(self):
         """ Generates the project files """
         project_data = self.progen_get_project_data()
         tool_specific = {}
@@ -100,7 +100,4 @@ class Uvision5(Exporter):
             i += 1
         project_data['macros'].append('__ASSERT_MSG')
         project_data['build_dir'] = project_data['build_dir'] + '\\' + 'uvision5'
-        if progen_build:
-            self.progen_gen_file('uvision5', project_data, True)
-        else:
-            self.progen_gen_file('uvision5', project_data)
+        self.progen_gen_file(project_data)

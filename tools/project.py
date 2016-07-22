@@ -64,7 +64,7 @@ def perform_export(target, ide, build=None, src=None, macros=None,
     else:
         resources.relative_to(export)
 
-    files = export_project(resources, export, target, name, toolchain, ide, macros=macros)
+    files, _ = export_project(resources, export, target, name, toolchain, ide, macros=macros)
     if zip:
         zip_export(export + ".zip", name, temp, files)
 
