@@ -21,31 +21,37 @@ import sys
 import argparse
 import os
 import shutil
-from os.path import join, abspath, dirname, exists, basename
+from os.path import join, abspath, dirname
 r=dirname(__file__)
 ROOT = abspath(join(r, "..","..",".."))
 sys.path.insert(0, ROOT)
 
 from tools.export import EXPORTERS
-from tools.targets import TARGET_NAMES, TARGET_MAP
+from tools.targets import TARGET_NAMES
 from tools.tests import TESTS
-from tools.project import setup_project, export
-from tools.project_api import print_results, prepare_project, export_project, get_exporter_toolchain
-from tools.tests import test_name_known, test_known
+from tools.project import setup_project
+from tools.project_api import print_results, prepare_project, export_project
+from tools.tests import test_name_known
 from tools.export.exporters import FailedBuildException, TargetNotSupportedException
-from project_generator_definitions.definitions import ProGenDef
-from tools.utils import args_error, argparse_force_lowercase_type, argparse_force_uppercase_type, argparse_many
+from tools.utils import argparse_force_lowercase_type, argparse_force_uppercase_type, argparse_many
 
 
 class ProgenBuildTest():
     def __init__(self, desired_ides, mcus, tests):
-        #map of targets and the ides that can build programs for them
+        """
+        Initialize an instance of class ProgenBuildTest
+        Args:
+        desired_ides: the IDEs you wish to make/build project files for
+        mcus: the mcus to specify in project files
+        tests: the test projects to make/build project files from
+        """
         self.ides = desired_ides
         self.mcus = mcus
         self.tests = tests
 
     @property
     def mcu_ide_pairs(self):
+        """Yields tuples of valid mcu, ide combination"""
         for mcu in self.mcus:
             for ide in self.ides:
                 if mcu in EXPORTERS[ide].TARGETS:
@@ -53,6 +59,15 @@ class ProgenBuildTest():
 
     @staticmethod
     def handle_project_files(project_dir, tool, name, clean=False):
+        """
+        Renames/moves log files and performs clean operation
+        Args:
+            project_dir: the directory that contains project files
+            tool: the ide that created the project files
+            name: the name of the project
+            clean: a boolean value determining whether to remove the
+                   created project files
+        """
         log = ''
         if tool == 'uvision' or tool == 'uvision5':
             log = os.path.join(project_dir,"build","build_log.txt")
@@ -63,9 +78,9 @@ class ProgenBuildTest():
 
         log_name = os.path.join(dirname(project_dir), name+"_log.txt")
 
-        #check if a log already exists for this platform+test+ide
+        # check if a log already exists for this platform+test+ide
         if os.path.exists(log_name):
-            #delete it if so
+            # delete it if so
             os.remove(log_name)
         os.rename(log, log_name)
 
@@ -73,7 +88,21 @@ class ProgenBuildTest():
             shutil.rmtree(project_dir, ignore_errors=True)
 
     def generate_and_build(self, clean=False):
-        #build results
+        """
+        Generate the project file and build the project
+        Args:
+            clean: a boolean value determining whether to remove the
+                   created project files
+
+        Returns:
+            successes: a list of strings that contain the mcu, ide, test
+                       properties of a successful build test
+            skips: a list of strings that contain the mcu, ide, test properties
+                   of a skipped test (if the ide does not support mcu)
+            failures: a list of strings that contain the mcu, ide, test
+                       properties of a failed build test
+
+        """
         successes = []
         failures = []
         skips = []
