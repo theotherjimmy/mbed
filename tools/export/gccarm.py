@@ -170,7 +170,7 @@ class GccArm(Exporter):
                 ctx[key] = ctx['vpath'][0] + "/" + ctx[key]
         if "../." not in ctx["include_paths"]:
             ctx["include_paths"] += ['../.']
-        ctx.update(self.progen_flags)
+        ctx.update(self.flags)
         self.gen_file('gcc_arm_%s.tmpl' % self.target.lower(), ctx, 'Makefile')
 
     def scan_and_copy_resources(self, prj_paths, trg_path, relative=False):

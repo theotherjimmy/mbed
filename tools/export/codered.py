@@ -55,6 +55,6 @@ class CodeRed(Exporter):
             'libraries': libraries,
             'symbols': self.get_symbols()
         }
-        ctx.update(self.progen_flags)
+        ctx.update(self.flags)
         self.gen_file('codered_%s_project.tmpl' % self.target.lower(), ctx, '.project')
         self.gen_file('codered_%s_cproject.tmpl' % self.target.lower(), ctx, '.cproject')

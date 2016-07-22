@@ -8,6 +8,7 @@ from jinja2.environment import Environment
 
 from tools.targets import TARGET_MAP
 from project_generator.project import Project, ProjectTemplateInternal
+from project_generator.settings import ProjectSettings
 
 
 class OldLibrariesException(Exception): pass
@@ -133,8 +134,6 @@ class Exporter(object):
                        project
         """
         settings = ProjectSettings()
-        s = {"root":[os.path.dirname(os.getcwd())]}
-        settings.update(s)
         project = Project(self.project_name, [project_data], settings)
         project.project['export'] = project_data.copy()
         project.generate(tool_name, copied=False, fill=False)

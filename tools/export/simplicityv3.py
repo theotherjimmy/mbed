@@ -171,7 +171,7 @@ class SimplicityV3(Exporter):
             'kit': self.KITS[self.target],
             'loopcount': 0
         }
-        ctx.update(self.progen_flags)
+        ctx.update(self.flags)
 
         ## Strip main folder from include paths because ssproj is not capable of handling it
         if '.' in ctx['include_paths']:
