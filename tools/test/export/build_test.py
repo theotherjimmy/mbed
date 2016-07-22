@@ -29,7 +29,7 @@ sys.path.insert(0, ROOT)
 from tools.export import EXPORTERS
 from tools.targets import TARGET_NAMES, TARGET_MAP
 from tools.tests import TESTS
-from tools.project import setup_project, perform_export
+from tools.project import setup_project, export
 from tools.project_api import print_results, prepare_project, export_project, get_exporter_toolchain
 from tools.tests import test_name_known, test_known
 from tools.export.exporters import FailedBuildException, TargetNotSupportedException

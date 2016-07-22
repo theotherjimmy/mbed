@@ -99,6 +99,7 @@ def prepare_project(src_paths, export_path, target, ide,
     toolchain.build_dir = export_path
     config_header = toolchain.get_config_header()
     resources.headers.append(config_header)
+    resources.inc_dirs.append(dirname(config_header))
     resources.file_basepath[config_header] = dirname(config_header)
 
     # Change linker script if specified
