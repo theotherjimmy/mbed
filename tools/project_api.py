@@ -2,18 +2,17 @@
 import sys
 from os.path import join, abspath, dirname, exists
 from os.path import basename, relpath, normpath
-from os import mkdir, remove
+from os import mkdir
 ROOT = abspath(join(dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
 
 from tools.build_api import prepare_toolchain, prep_report, create_result
 from tools.build_api import prep_properties, scan_resources
 from tools.build_api import add_result_to_report
-from tools.export.__init__ import EXPORTERS
+from tools.export import EXPORTERS
 from time import time
 from shutil import rmtree
 import zipfile
-import copy
 
 
 def get_exporter_toolchain(ide):
@@ -80,7 +79,7 @@ def prepare_project(src_paths, export_path, target, ide,
     if not exists(export_path):
         mkdir(export_path)
 
-    exporter_cls, toolchain_name = get_exporter_toolchain(ide)
+    _, toolchain_name = get_exporter_toolchain(ide)
 
     # Pass all params to the unified prepare_resources()
     toolchain = prepare_toolchain(src_paths, export_path, target,
@@ -109,14 +108,30 @@ def prepare_project(src_paths, export_path, target, ide,
     return resources, toolchain
 
 
-def export_project(resources, export_path, target, name, toolchain, ide, macros=None):
-        exporter_cls, toolchain_name = get_exporter_toolchain(ide)
-        exporter = exporter_cls(target, export_path, name, toolchain,
-                                extra_symbols=macros, resources=resources)
-        exporter.generate()
-        files = exporter.generated_files
+def export_project(resources, export_path, target, name, toolchain, ide,
+                   macros=None):
+    """Generate the project files for a project
 
-        return files
+    Positional arguments:
+    resources - a Resources object containing all of the files needed to build
+      this project
+    export_path - location to place project files
+    name - name of the project
+    toolchain - a toolchain class that corresponds to the toolchain used by the
+      IDE or makefile
+    ide - IDE name to export to
+
+    Optional arguments:
+    macros - additional macros that should be defined within the exported
+      project
+    """
+    exporter_cls, _ = get_exporter_toolchain(ide)
+    exporter = exporter_cls(target, export_path, name, toolchain,
+                            extra_symbols=macros, resources=resources)
+    exporter.generate()
+    files = exporter.generated_files
+
+    return files
 
 def zip_export(file_name, prefix, resources, project_files):
     """Create a zip file from an exported project.
