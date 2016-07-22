@@ -24,11 +24,17 @@ class ExporterTargetsProperty(object):
         return self.func(cls)
 
 class Exporter(object):
+    """Exporter base class
+
+    This class is meant to be extended by individual exporters, and provides a
+    few helper methods for implementing an exporter with either jinja2 or
+    progen.
+    """
     TEMPLATE_DIR = dirname(__file__)
     DOT_IN_RELATIVE_PATH = False
 
-    def __init__(self, target, export_dir, project_name, toolchain, extra_symbols=None,
-                 resources=None):
+    def __init__(self, target, export_dir, project_name, toolchain,
+                 extra_symbols=None, resources=None):
         """Initialize an instance of class exporter
         Positional arguments:
         target        - the target mcu/board for this project
