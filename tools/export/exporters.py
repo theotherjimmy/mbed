@@ -85,7 +85,8 @@ class Exporter(object):
 
     def progen_get_project_data(self):
         """ Get ProGen project data  """
-        # provide default data needed to generate a project ifle
+        # provide default data, some tools don't require any additional
+        # tool specific settings
 
         def make_key(src):
             key = os.path.basename(os.path.dirname(src))
@@ -131,9 +132,17 @@ class Exporter(object):
         progen_build - A boolean that determines if the tool will build the
                        project
         """
-        project = Project(self.project_name, [])
+        settings = ProjectSettings()
+        s = {"root":[os.path.dirname(os.getcwd())]}
+        settings.update(s)
+        project = Project(self.project_name, [project_data], settings)
         project.project['export'] = project_data.copy()
-        self.generated_files = project.generate(tool_name, copied=False, fill=False, return_text=True)
+        project.generate(tool_name, copied=False, fill=False)
+        for _, dict in project.generated_files.iteritems():
+            for feild, thing in dict.iteritems():
+                if feild == "files":
+                    for __, filename in thing.iteritems():
+                        self.generated_files.append(filename)
         if progen_build:
             print("Project exported, building...")
             result = project.build(tool_name)
