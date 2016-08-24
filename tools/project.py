@@ -39,7 +39,7 @@ def setup_project(ide, target, program=None, source_dir=None, build=None):
     if source_dir:
         # --source is used to generate IDE files to toolchain directly
         # in the source tree and doesn't generate zip file
-        project_dir = join(source_dir[0],'projectfiles',ide+"_"+target)
+        project_dir = source_dir[0]
         if program:
             project_name = TESTS[program]
         else:
@@ -63,7 +63,7 @@ def setup_project(ide, target, program=None, source_dir=None, build=None):
 
 
 def export(target, ide, build=None, src=None, macros=None, project_id=None,
-           clean=False, zip_proj=False):
+           clean=False, zip_proj=False, options=None):
     """Do an export of a project.
 
     Positional arguments:
@@ -84,7 +84,7 @@ def export(target, ide, build=None, src=None, macros=None, project_id=None,
     zip_name = name+".zip" if zip_proj else None
 
     export_project(src, project_dir, target, ide, clean=clean, name=name,
-                   macros=macros, libraries_paths=lib, zip_proj=zip_name)
+                   macros=macros, libraries_paths=lib, zip_proj=zip_name, options=options)
 
 
 def main():
@@ -165,6 +165,12 @@ def main():
                         dest="macros",
                         help="Add a macro definition")
 
+    parser.add_argument("-o",
+                        type=argparse_many(str),
+                        dest="opts",
+                        default=["debug-info"],
+                        help="Toolchain options")
+
     options = parser.parse_args()
 
     # Print available tests in order and exit
@@ -204,7 +210,7 @@ def main():
         # Export to selected toolchain
         export(mcu, options.ide, build=options.build, src=options.source_dir,
                macros=options.macros, project_id=options.program,
-               clean=options.clean, zip_proj=zip_proj)
+               clean=options.clean, zip_proj=zip_proj, options=options.opts)
 
 
 if __name__ == "__main__":
