@@ -15,10 +15,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from copy import deepcopy
+import os
 # Implementation of mbed configuration mechanism
 from tools.utils import json_file_to_dict
-from tools.targets import Target
-import os
+from tools.targets import CUMULATIVE_ATTRIBUTES, TARGET_MAP, \
+    generate_py_target, get_resolution_order
 
 # Base class for all configuration exceptions
 class ConfigException(Exception):
@@ -348,7 +350,7 @@ class Config(object):
         "UVISOR", "BLE", "CLIENT", "IPV4", "IPV6", "COMMON_PAL", "STORAGE"
     ]
 
-    def __init__(self, target, top_level_dirs=None):
+    def __init__(self, tgt, top_level_dirs=None):
         """Construct a mbed configuration
 
         Positional arguments:
@@ -387,20 +389,26 @@ class Config(object):
                                    self.__mbed_app_config_name))
         # Update the list of targets with the ones defined in the application
         # config, if applicable
-        Target.add_py_targets(self.app_config_data.get("custom_targets", {}))
         self.lib_config_data = {}
         # Make sure that each config is processed only once
         self.processed_configs = {}
-        self.target = target if isinstance(target, basestring) else target.name
-        self.target_labels = Target.get_target(self.target).get_labels()
+        if isinstance(tgt, basestring):
+            if tgt in TARGET_MAP:
+                self.target = TARGET_MAP[tgt]
+            else:
+                self.target = generate_py_target(
+                    self.app_config_data.get("custom_targets", {}), tgt)
+
+        else:
+            self.target = tgt
+        self.target = deepcopy(self.target)
+        self.target_labels = self.target.labels
 
         self.cumulative_overrides = {key: ConfigCumulativeOverride(key)
-                                     for key in
-                                     Target.cumulative_attributes}
+                                     for key in CUMULATIVE_ATTRIBUTES}
 
         self._process_config_and_overrides(self.app_config_data, {}, "app",
                                            "application")
-        self.target_labels = Target.get_target(self.target).get_labels()
         self.config_errors = None
 
     def add_config_files(self, flist):
@@ -498,7 +506,7 @@ class Config(object):
                                                                      label)))))
 
         for cumulatives in self.cumulative_overrides.itervalues():
-            cumulatives.update_target(Target.get_target(self.target))
+            cumulatives.update_target(self.target)
 
         return params
 
@@ -517,10 +525,10 @@ class Config(object):
 
         Arguments: None
         """
-        params, json_data = {}, Target.get_json_target_data()
+        params, json_data = {}, self.target.json_data
         resolution_order = [e[0] for e
                             in sorted(
-                                Target.get_target(self.target).resolution_order,
+                                self.target.resolution_order,
                                 key=lambda e: e[1], reverse=True)]
         for tname in resolution_order:
             # Read the target data directly from its description
@@ -536,9 +544,11 @@ class Config(object):
                 # in the target inheritance tree, raise an error We need to use
                 # 'defined_by[7:]' to remove the "target:" prefix from
                 # defined_by
+                rel_names = [tgt for tgt, _ in
+                             get_resolution_order(self.target.json_data, tname,
+                                                  [])]
                 if (full_name not in params) or \
-                   (params[full_name].defined_by[7:] not in
-                    Target.get_target(tname).resolution_order_names):
+                   (params[full_name].defined_by[7:] not in rel_names):
                     raise ConfigException(
                         "Attempt to override undefined parameter '%s' in '%s'"
                         % (name,
@@ -669,15 +679,14 @@ class Config(object):
         params, _ = self.get_config_data()
         self._check_required_parameters(params)
         self.cumulative_overrides['features']\
-            .update_target(Target.get_target(self.target))
-        features = Target.get_target(self.target).features
+            .update_target(self.target)
 
-        for feature in features:
+        for feature in self.target.features:
             if feature not in self.__allowed_features:
                 raise ConfigException(
                     "Feature '%s' is not a supported features" % feature)
 
-        return features
+        return self.target.features
 
     def validate_config(self):
         """ Validate configuration settings. This either returns True or
