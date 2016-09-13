@@ -273,6 +273,27 @@ def get_mbed_official_release(version):
     return mbed_official_release
 
 
+def detect_toolchain(target_name):
+    """ Detect which toolchain would be appropriate to use for this target
+
+    This should return the default toolchain of a target if it is installed, and
+    any other toolchain that is installed if it is not.
+
+    Positional Arguments:
+    target_name - The name of the target that will be compiled for
+    """
+    target = TARGET_MAP[target_name]
+    default_toolchain = TOOLCHAIN_CLASSES[target.default_toolchain]
+    if default_toolchain.check_executable():
+        return target.default_toolchain
+    else:
+        for toolchain in target.supported_toolchains:
+            print toolchain
+            if TOOLCHAIN_CLASSES[toolchain].check_executable():
+                return toolchain
+        return None
+
+
 def prepare_toolchain(src_paths, target, toolchain_name,
                       macros=None, options=None, clean=False, jobs=1,
                       notify=None, silent=False, verbose=False,

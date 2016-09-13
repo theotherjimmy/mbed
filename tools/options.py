@@ -65,6 +65,10 @@ def get_default_options_parser(add_clean=True, add_options=True,
     parser.add_argument("--ldflags", default=[], action="append",
                         help="Extra flags to provide to the linker")
 
+    parser.add_argument("--auto", default=False, action="store_true",
+                        help="Automatically detect the toolchain to use from"
+                        " the specified target target")
+
     if add_clean:
         parser.add_argument("-c", "--clean", action="store_true", default=False,
                             help="clean the build directory")

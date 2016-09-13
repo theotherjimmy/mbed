@@ -43,6 +43,8 @@ from tools.targets import TARGET_MAP
 from tools.options import get_default_options_parser
 from tools.build_api import build_project
 from tools.build_api import mcu_toolchain_matrix
+from tools.build_api import detect_toolchain
+from tools.test_api import get_autodetected_MUTS_list
 from utils import argparse_filestring_type
 from utils import argparse_many
 from utils import argparse_dir_not_parent
@@ -206,13 +208,25 @@ if __name__ == '__main__':
 
     # Target
     if options.mcu is None :
-        args_error(parser, "argument -m/--mcu is required")
-    mcu = options.mcu[0]
+        if options.auto:
+            connected_mcus = get_autodetected_MUTS_list()
+            if connected_mcus:
+                mcu = connected_mcus.values()[0]['mcu']
+            else:
+                args_error(parser,"--auto: Could not detect any targets")
+        else:
+            args_error(parser, "argument -m/--mcu is required")
+    else:
+        mcu = options.mcu[0]
 
     # Toolchain
     if options.tool is None:
-        args_error(parser, "argument -t/--tool is required")
-    toolchain = options.tool[0]
+        if options.auto:
+            toolchain = detect_toolchain(mcu)
+        else:
+            args_error(parser, "argument -t/--tool is required")
+    else:
+        toolchain = options.tool[0]
 
     if (options.program is None) and (not options.source_dir):
         args_error(parser, "one of -p, -n, or --source is required")
