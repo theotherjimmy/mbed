@@ -196,44 +196,47 @@ def export_project(src_paths, export_path, target, ide,
                                   notify=notify, silent=silent, verbose=verbose,
                                   extra_verbose=extra_verbose, config=config,
                                   build_profile=build_profile)
-    # The first path will give the name to the library
-    if name is None:
-        name = basename(normpath(abspath(src_paths[0])))
+    try:
+        # The first path will give the name to the library
+        if name is None:
+            name = basename(normpath(abspath(src_paths[0])))
 
-    # Call unified scan_resources
-    resource_dict = {loc: scan_resources(path, toolchain, inc_dirs=inc_dirs)
-                     for loc, path in src_paths.iteritems()}
-    resources = Resources()
-    toolchain.build_dir = export_path
-    config_header = toolchain.get_config_header()
-    resources.headers.append(config_header)
-    resources.file_basepath[config_header] = dirname(config_header)
+        # Call unified scan_resources
+        resource_dict = {loc: scan_resources(path, toolchain, inc_dirs=inc_dirs)
+                        for loc, path in src_paths.iteritems()}
+        resources = Resources()
+        toolchain.build_dir = export_path
+        config_header = toolchain.get_config_header()
+        resources.headers.append(config_header)
+        resources.file_basepath[config_header] = dirname(config_header)
 
-    if zip_proj:
-        subtract_basepath(resources, export_path)
-        for loc, res in resource_dict.iteritems():
-            temp = copy.deepcopy(res)
-            subtract_basepath(temp, export_path, loc)
-            resources.add(temp)
-    else:
-        for _, res in resource_dict.iteritems():
-            resources.add(res)
-
-    # Change linker script if specified
-    if linker_script is not None:
-        resources.linker_script = linker_script
-
-    files, exporter = generate_project_files(resources, export_path,
-                                             target, name, toolchain, ide,
-                                             macros=macros)
-    files.append(config_header)
-    if zip_proj:
-        if isinstance(zip_proj, basestring):
-            zip_export(join(export_path, zip_proj), name, resource_dict, files, inc_repos)
+        if zip_proj:
+            subtract_basepath(resources, export_path)
+            for loc, res in resource_dict.iteritems():
+                temp = copy.deepcopy(res)
+                subtract_basepath(temp, export_path, loc)
+                resources.add(temp)
         else:
-            zip_export(zip_proj, name, resource_dict, files, inc_repos)
+            for _, res in resource_dict.iteritems():
+                resources.add(res)
 
-    return exporter
+        # Change linker script if specified
+        if linker_script is not None:
+            resources.linker_script = linker_script
+
+        files, exporter = generate_project_files(resources, export_path,
+                                                target, name, toolchain, ide,
+                                                macros=macros)
+        files.append(config_header)
+        if zip_proj:
+            if isinstance(zip_proj, basestring):
+                zip_export(join(export_path, zip_proj), name, resource_dict, files, inc_repos)
+            else:
+                zip_export(zip_proj, name, resource_dict, files, inc_repos)
+
+        return exporter
+    except Exception as e:
+        toolchain.tool_error(str(e))
 
 
 def print_results(successes, failures, skips=None):
