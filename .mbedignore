@@ -1,0 +1,9 @@
+rtos/*
+features/FEATURE_CLIENT/*
+features/FEATURE_COMMON_PAL/*
+features/FEATURE_UVISOR/*
+features/frameworks/*
+features/net/*
+features/netsocket/*
+features/storage/*
+events/*
