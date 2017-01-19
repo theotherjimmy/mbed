@@ -1,0 +1,115 @@
+/*
+ * Copyright (c) 2016 ARM Limited. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ * Licensed under the Apache License, Version 2.0 (the License); you may
+ * not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an AS IS BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+#include "toolchain.h"
+
+#if defined(__ICCARM__)
+#define MBED_TOOLCHAIN_IAR
+#elif defined(__CC_ARM)
+#define MBED_TOOLCHAIN_ARM
+#elif defined(__GNUC__) || defined(__clang__)
+#define MBED_TOOLCHAIN_GCC_ARM
+#else
+#error "Unsupported toolchain"
+#endif
+
+
+void SystemInit(void);
+
+#ifdef MBED_TOOLCHAIN_GCC_ARM
+#define MBED_INTERRUPT_STACK        (&__stack)
+void _start(void);
+extern char __stack;
+extern char __etext;
+extern char __data_start__;
+extern char __data_end__;
+#endif
+
+#ifdef MBED_TOOLCHAIN_IAR
+#define MBED_INTERRUPT_STACK        (&__stack)
+void __iar_program_start(void);
+extern char __stack;
+#endif
+
+#ifdef MBED_TOOLCHAIN_ARM
+extern char Image$$HEAP$$ZI$$Limit;
+#define MBED_INTERRUPT_STACK        (&Image$$HEAP$$ZI$$Limit)
+void __main(void);
+#endif
+
+void Reset_Handler()
+{
+    SystemInit();
+
+#ifdef MBED_TOOLCHAIN_GCC_ARM
+    char *source = &__etext;
+    char *dest = &__data_start__;
+    char *end = &__data_end__;
+    while (dest != end) {
+        *dest = *source;
+        source++;
+        dest++;
+    }
+#endif
+
+#ifdef MBED_TOOLCHAIN_IAR
+    __iar_program_start();
+#endif
+
+#ifdef MBED_TOOLCHAIN_GCC_ARM
+    _start();
+#endif
+
+#ifdef MBED_TOOLCHAIN_ARM
+    __main();
+#endif
+}
+
+/* Core interrupts */
+{% for irq in core_irq_list[2:] %}
+    {% if irq.name is not none %}
+MBED_WEAK void {{ (irq.name + "_Handler").ljust(26) }} (void) {}
+    {% endif %}
+{% endfor %}
+
+/* External interrupts */
+{% for irq in irq_list %}
+    {% if irq.name is not none %}
+MBED_WEAK void {{ (irq.name + "_IRQHandler").ljust(26) }} (void) {}
+    {% endif %}
+{% endfor %}
+
+MBED_SECTION(".vector_rom")
+const void * const vector_table[] = {
+    (void*)MBED_INTERRUPT_STACK      , /* Top of boot/interrupt stack */
+    (void*)Reset_Handler             , /* Reset Handler */
+{% for irq in core_irq_list[2:] %}
+    {% if irq.name is none %}
+    (void*){{ "0".ljust(26) }}, /* Reserved */
+    {% else %}
+    (void*){{ (irq.name + "_Handler").ljust(26) }}, /* {{ irq.desc }} */
+    {% endif %}
+{% endfor %}
+
+    /* External interrupts */
+{% for irq in irq_list %}
+    {% if irq.name is none %}
+    (void*){{ "0".ljust(26) }} /* Reserved */
+    {% else %}
+    (void*){{ (irq.name + "_IRQHandler").ljust(26) }}, /* {{ irq.number + 16 }}: {{ irq.desc }} */
+    {% endif %}
+{% endfor %}
+};
+
