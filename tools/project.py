@@ -67,7 +67,7 @@ def setup_project(ide, target, program=None, source_dir=None, build=None, export
 
 
 def export(target, ide, build=None, src=None, macros=None, project_id=None,
-           zip_proj=False, build_profile=None, export_path=None, silent=False):
+           zip_proj=False, export_path=None, silent=False):
     """Do an export of a project.
 
     Positional arguments:
@@ -85,13 +85,14 @@ def export(target, ide, build=None, src=None, macros=None, project_id=None,
     Returns an object of type Exporter (tools/exports/exporters.py)
     """
     project_dir, name, src, lib = setup_project(ide, target, program=project_id,
-                                                source_dir=src, build=build, export_path=export_path)
+                                                source_dir=src, build=build,
+                                                export_path=export_path)
 
     zip_name = name+".zip" if zip_proj else None
 
     return export_project(src, project_dir, target, ide, name=name,
                           macros=macros, libraries_paths=lib, zip_proj=zip_name,
-                          build_profile=build_profile, silent=silent)
+                          silent=silent)
 
 
 def main():
@@ -169,12 +170,6 @@ def main():
                         dest="macros",
                         help="Add a macro definition")
 
-    parser.add_argument("--profile", dest="profile", action="append",
-                        type=argparse_profile_filestring_type,
-                        help="Build profile to use. Can be either path to json" \
-                        "file or one of the default one ({})".format(", ".join(list_profiles())),
-                        default=[])
-
     parser.add_argument("--update-packs",
                         dest="update_packs",
                         action="store_true",
@@ -235,13 +230,11 @@ def main():
     exporter, toolchain_name = get_exporter_toolchain(options.ide)
     if options.mcu not in exporter.TARGETS:
         args_error(parser, "%s not supported by %s"%(options.mcu,options.ide))
-    profile = extract_profile(parser, options, toolchain_name, fallback="debug")
     if options.clean:
         rmtree(BUILD_DIR)
     export(options.mcu, options.ide, build=options.build,
            src=options.source_dir, macros=options.macros,
-           project_id=options.program, zip_proj=zip_proj,
-           build_profile=profile)
+           project_id=options.program, zip_proj=zip_proj)
 
 
 if __name__ == "__main__":

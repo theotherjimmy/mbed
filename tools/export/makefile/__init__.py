@@ -53,10 +53,10 @@ class Makefile(Exporter):
         libraries = [self.prepare_lib(basename(lib)) for lib
                      in self.resources.libraries]
         sys_libs = [self.prepare_sys_lib(lib) for lib
-                    in self.toolchain.sys_libs]
+                    in self.toolchains['develop'].sys_libs]
 
         ctx = {
-            'name': self.project_name,
+            'project_name': self.project_name,
             'to_be_compiled': to_be_compiled,
             'object_files': self.resources.objects,
             'include_paths': list(set(self.resources.inc_dirs)),
@@ -69,27 +69,29 @@ class Makefile(Exporter):
                       if (basename(dirname(dirname(self.export_dir)))
                           == "projectfiles")
                       else [".."]),
-            'cc_cmd': " ".join(["\'" + part + "\'" for part
-                                in ([basename(self.toolchain.cc[0])] +
-                                    self.toolchain.cc[1:])]),
-            'cppc_cmd': " ".join(["\'" + part + "\'" for part
-                                  in ([basename(self.toolchain.cppc[0])] +
-                                      self.toolchain.cppc[1:])]),
-            'asm_cmd': " ".join(["\'" + part + "\'" for part
-                                in ([basename(self.toolchain.asm[0])] +
-                                    self.toolchain.asm[1:])]),
-            'ld_cmd': "\'" + basename(self.toolchain.ld[0]) + "\'",
-            'elf2bin_cmd': "\'" + basename(self.toolchain.elf2bin) + "\'",
-            'link_script_ext': self.toolchain.LINKER_EXT,
+            'ld_cmd': "\'" + basename(self.toolchains['develop'].ld[0]) + "\'",
+            'elf2bin_cmd': "\'" + basename(self.toolchains['develop'].elf2bin) + "\'",
+            'link_script_ext': self.toolchains['develop'].LINKER_EXT,
             'link_script_option': self.LINK_SCRIPT_OPTION,
             'user_library_flag': self.USER_LIBRARY_FLAG,
+            'cc_cmd': "\'" + basename(self.toolchains['develop'].cc[0]) + "\'",
+            'cppc_cmd': "\'" + basename(self.toolchains['develop'].cppc[0]) + "\'",
+            'asm_cmd': "\'" + basename(self.toolchains['develop'].asm[0]) + "\'",
+            'profiles': {},
         }
+        for name, toolchain in self.toolchains.iteritems():
+            ctx['profiles'][name] = {
+                'c_flags': toolchain.cc[1:],
+                'cxx_flags': toolchain.cppc[1:],
+                'asm_flags': toolchain.asm[1:]
+            }
+            for key, flags in self.flags(toolchain).iteritems():
+                ctx['profiles'][name][key] = ctx['profiles'][name].get(key, []) + flags
 
-        if hasattr(self.toolchain, "preproc"):
+        if hasattr(self.toolchains['develop'], "preproc"):
             ctx['pp_cmd'] = " ".join(["\'" + part + "\'" for part
-                                      in ([basename(self.toolchain.preproc[0])] +
-                                          self.toolchain.preproc[1:] + 
-                                          self.toolchain.ld[1:])])
+                                      in ([basename(self.toolchains['develop'].preproc[0])] +
+                                          self.toolchains['develop'].preproc[1:])])
         else:
             ctx['pp_cmd'] = None
 
@@ -104,14 +106,13 @@ class Makefile(Exporter):
         for key in ['include_paths', 'library_paths', 'hex_files',
                     'to_be_compiled']:
             ctx[key] = sorted(ctx[key])
-        ctx.update(self.flags)
 
         for templatefile in \
             ['makefile/%s_%s.tmpl' % (self.TEMPLATE,
                                       self.target.lower())] + \
             ['makefile/%s_%s.tmpl' % (self.TEMPLATE,
                                       label.lower()) for label
-             in self.toolchain.target.extra_labels] +\
+             in self.toolchains['develop'].target.extra_labels] +\
             ['makefile/%s.tmpl' % self.TEMPLATE]:
             try:
                 self.gen_file(templatefile, ctx, 'Makefile')

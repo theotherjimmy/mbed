@@ -100,7 +100,7 @@ class IAR(Exporter):
         srcs = self.resources.headers + self.resources.s_sources + \
                self.resources.c_sources + self.resources.cpp_sources + \
                self.resources.objects + self.resources.libraries
-        flags = self.flags
+        flags = self.flags(self.toolchains['develop'])
         c_flags = list(set(flags['common_flags']
                                     + flags['c_flags']
                                     + flags['cxx_flags']))

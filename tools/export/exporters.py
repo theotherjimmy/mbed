@@ -40,7 +40,7 @@ class Exporter(object):
     TOOLCHAIN = None
 
 
-    def __init__(self, target, export_dir, project_name, toolchain,
+    def __init__(self, target, export_dir, project_name, toolchains,
                  extra_symbols=None, resources=None):
         """Initialize an instance of class exporter
         Positional arguments:
@@ -56,7 +56,7 @@ class Exporter(object):
         self.export_dir = export_dir
         self.target = target
         self.project_name = project_name
-        self.toolchain = toolchain
+        self.toolchains = toolchains
         jinja_loader = FileSystemLoader(os.path.dirname(os.path.abspath(__file__)))
         self.jinja_environment = Environment(loader=jinja_loader)
         self.resources = resources
@@ -70,14 +70,13 @@ class Exporter(object):
 
     def add_config(self):
         """Add the containgin directory of mbed_config.h to include dirs"""
-        config = self.toolchain.get_config_header()
+        config = self.toolchains['develop'].get_config_header()
         if config:
             self.resources.inc_dirs.append(
                 dirname(relpath(config,
                                 self.resources.file_basepath[config])))
 
-    @property
-    def flags(self):
+    def flags(self, toolchain):
         """Returns a dictionary of toolchain flags.
         Keys of the dictionary are:
         cxx_flags    - c++ flags
@@ -86,19 +85,19 @@ class Exporter(object):
         asm_flags    - assembler flags
         common_flags - common options
         """
-        config_header = self.toolchain.get_config_header()
+        config_header = toolchain.get_config_header()
         flags = {key + "_flags": copy.deepcopy(value) for key, value
-                 in self.toolchain.flags.iteritems()}
-        asm_defines = ["-D" + symbol for symbol in self.toolchain.get_symbols(True)]
-        c_defines = ["-D" + symbol for symbol in self.toolchain.get_symbols()]
+                 in toolchain.flags.iteritems()}
+        asm_defines = ["-D" + symbol for symbol in toolchain.get_symbols(True)]
+        c_defines = ["-D" + symbol for symbol in toolchain.get_symbols()]
         flags['asm_flags'] += asm_defines
         flags['c_flags'] += c_defines
         flags['cxx_flags'] += c_defines
         if config_header:
             config_header = relpath(config_header,
                                     self.resources.file_basepath[config_header])
-            flags['c_flags'] += self.toolchain.get_config_option(config_header)
-            flags['cxx_flags'] += self.toolchain.get_config_option(
+            flags['c_flags'] += toolchain.get_config_option(config_header)
+            flags['cxx_flags'] += toolchain.get_config_option(
                 config_header)
         return flags
 

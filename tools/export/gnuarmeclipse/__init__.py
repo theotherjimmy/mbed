@@ -38,9 +38,9 @@ from tools.options import list_profiles
 from tools.targets import TARGET_MAP
 from tools.utils import NotSupportedException
 from tools.build_api import prepare_toolchain
+from tools.utils import dropext
 
 # =============================================================================
-
 
 class UID:
     """
@@ -57,7 +57,6 @@ u = UID()
 
 # =============================================================================
 
-
 class GNUARMEclipse(Exporter):
     NAME = 'GNU ARM Eclipse'
     TOOLCHAIN = 'GCC_ARM'
@@ -67,57 +66,6 @@ class GNUARMEclipse(Exporter):
                if 'GCC_ARM' in obj.supported_toolchains]
 
     # override
-    @property
-    def flags(self):
-        """Returns a dictionary of toolchain flags.
-        Keys of the dictionary are:
-        cxx_flags    - c++ flags
-        c_flags      - c flags
-        ld_flags     - linker flags
-        asm_flags    - assembler flags
-        common_flags - common options
-
-        The difference from the parent function is that it does not
-        add macro definitions, since they are passed separately.
-        """
-
-        config_header = self.toolchain.get_config_header()
-        flags = {key + "_flags": copy.deepcopy(value) for key, value
-                 in self.toolchain.flags.iteritems()}
-        if config_header:
-            config_header = relpath(config_header,
-                                    self.resources.file_basepath[config_header])
-            flags['c_flags'] += self.toolchain.get_config_option(config_header)
-            flags['cxx_flags'] += self.toolchain.get_config_option(
-                config_header)
-        return flags
-
-    def toolchain_flags(self, toolchain):
-        """Returns a dictionary of toolchain flags.
-        Keys of the dictionary are:
-        cxx_flags    - c++ flags
-        c_flags      - c flags
-        ld_flags     - linker flags
-        asm_flags    - assembler flags
-        common_flags - common options
-
-        The difference from the above is that it takes a parameter.
-        """
-
-        # Note: use the config options from the currently selected toolchain.
-        config_header = self.toolchain.get_config_header()
-
-        flags = {key + "_flags": copy.deepcopy(value) for key, value
-                 in toolchain.flags.iteritems()}
-        if config_header:
-            config_header = relpath(config_header,
-                                    self.resources.file_basepath[config_header])
-            header_options = self.toolchain.get_config_option(config_header)
-            flags['c_flags'] += header_options
-            flags['cxx_flags'] += header_options
-        return flags
-
-    # override
     def generate(self):
         """
         Generate the .project and .cproject files.
@@ -125,97 +73,44 @@ class GNUARMEclipse(Exporter):
         if not self.resources.linker_script:
             raise NotSupportedException("No linker script found.")
 
-        print
-        print 'Create a GNU ARM Eclipse C++ managed project'
-        print 'Project name: {0}'.format(self.project_name)
-        print 'Target: {0}'.format(self.toolchain.target.name)
-        print 'Toolchain: {0}'.format(self.TOOLCHAIN)
-
         self.resources.win_to_unix()
 
-        # TODO: use some logger to display additional info if verbose
+        libraries = [dropext(basename(lib))[3:] for lib
+                     in self.resources.libraries]
 
-        libraries = []
-        # print 'libraries'
-        # print self.resources.libraries
-        for lib in self.resources.libraries:
-            l, _ = splitext(basename(lib))
-            libraries.append(l[3:])
-
-        self.system_libraries = [
-            'stdc++', 'supc++', 'm', 'c', 'gcc', 'nosys'
-        ]
-
-        # Read in all profiles, we'll extract compiler options.
-        profiles = self.get_all_profiles()
-
-        profile_ids = [s.lower() for s in profiles]
-        profile_ids.sort()
+        self.system_libraries = ['stdc++', 'supc++', 'm', 'c', 'gcc', 'nosys']
 
         # TODO: get the list from existing .cproject
-        build_folders = [s.capitalize() for s in profile_ids]
+        build_folders = [s.capitalize() for s in self.toolchains.keys()]
         build_folders.append('BUILD')
-        # print build_folders
 
-        objects = [self.filter_dot(s) for s in self.resources.objects]
-        for bf in build_folders:
-            objects = [o for o in objects if not o.startswith(bf + '/')]
-        # print 'objects'
-        # print objects
+        objects = [self.filter_dot(s) for s in self.resources.objects if
+                   not any(s.startswith(bf + "/") for bf in build_folders)]
 
         self.compute_exclusions()
 
-        self.include_path = [
-            self.filter_dot(s) for s in self.resources.inc_dirs]
-        print 'Include folders: {0}'.format(len(self.include_path))
+        include_path = [self.filter_dot(s) for s in self.resources.inc_dirs]
 
-        self.as_defines = self.toolchain.get_symbols(True)
-        self.c_defines = self.toolchain.get_symbols()
-        self.cpp_defines = self.c_defines
-        print 'Symbols: {0}'.format(len(self.c_defines))
+        ld_script = self.filter_dot(self.resources.linker_script)
 
-        self.ld_script = self.filter_dot(
-            self.resources.linker_script)
-        print 'Linker script: {0}'.format(self.ld_script)
+        jinja_ctx = {
+            'name': self.project_name,
 
-        self.options = {}
-        for id in profile_ids:
+            # Compiler & linker command line options
+            'options': {},
 
-            # There are 4 categories of options, a category common too
+            # Must be an object with an `id` property, which
+            # will be called repeatedly, to generate multiple UIDs.
+            'u': u,
+        }
+        for name, toolchain in self.toolchains.iteritems():
+
+            # There are 5 categories of options: a category common to
             # all tools and a specific category for each of the tools.
-            opts = {}
-            opts['common'] = {}
-            opts['as'] = {}
-            opts['c'] = {}
-            opts['cpp'] = {}
-            opts['ld'] = {}
+            opts = {'common': {}, 'as': {}, 'c': {}, 'cpp': {}, 'ld': {},
+                    'id': name, 'name': name.capitalize()}
 
-            opts['id'] = id
-            opts['name'] = opts['id'].capitalize()
-
-            print
-            print 'Build configuration: {0}'.format(opts['name'])
-
-            profile = profiles[id]
-            profile_toolchain = profile[self.TOOLCHAIN]
-
-            # A small hack, do not bother with src_path again,
-            # pass an empty string to avoid crashing.
-            src_paths = ['']
-            target_name = self.toolchain.target.name
-            toolchain = prepare_toolchain(
-                src_paths, target_name, self.TOOLCHAIN, build_profile=profile_toolchain)
-
-            # Hack to fill in build_dir
-            toolchain.build_dir = self.toolchain.build_dir
-
-            flags = self.toolchain_flags(toolchain)
-
-            print 'Common flags:', ' '.join(flags['common_flags'])
-            print 'C++ flags:', ' '.join(flags['cxx_flags'])
-            print 'C flags:', ' '.join(flags['c_flags'])
-            print 'ASM flags:', ' '.join(flags['asm_flags'])
-            print 'Linker flags:', ' '.join(flags['ld_flags'])
+            flags = self.flags(toolchain)
 
             # Most GNU ARM Eclipse options have a parent,
             # either debug or release.
@@ -226,13 +121,12 @@ class GNUARMEclipse(Exporter):
 
             self.process_options(opts, flags)
 
-            opts['as']['defines'] = self.as_defines
-            opts['c']['defines'] = self.c_defines
-            opts['cpp']['defines'] = self.cpp_defines
+            opts['as']['defines'] = toolchain.get_symbols(True)
+            opts['c']['defines'] = toolchain.get_symbols()
+            opts['cpp']['defines'] = opts['c']['defines']
 
-            opts['common']['include_paths'] = self.include_path
-            opts['common']['excluded_folders'] = '|'.join(
-                self.excluded_folders)
+            opts['common']['include_paths'] = include_path
+            opts['common']['excluded_folders'] = '|'.join(self.excluded_folders)
 
             opts['ld']['library_paths'] = [
                 self.filter_dot(s) for s in self.resources.lib_dirs]
@@ -240,7 +134,7 @@ class GNUARMEclipse(Exporter):
             opts['ld']['object_files'] = objects
             opts['ld']['user_libraries'] = libraries
             opts['ld']['system_libraries'] = self.system_libraries
-            opts['ld']['script'] = self.ld_script
+            opts['ld']['script'] = ld_script
 
             # Unique IDs used in multiple places.
             # Those used only once are implemented with {{u.id}}.
@@ -253,38 +147,15 @@ class GNUARMEclipse(Exporter):
 
             opts['uid'] = uid
 
-            self.options[id] = opts
+            jinja_ctx['options'][name] = opts
 
-        jinja_ctx = {
-            'name': self.project_name,
 
-            # Compiler & linker command line options
-            'options': self.options,
-
-            # Must be an object with an `id` property, which
-            # will be called repeatedly, to generate multiple UIDs.
-            'u': u,
-        }
-
-        # TODO: it would be good to have jinja stop if one of the
-        # expected context values is not defined.
         self.gen_file('gnuarmeclipse/.project.tmpl', jinja_ctx,
                       '.project', trim_blocks=True, lstrip_blocks=True)
         self.gen_file('gnuarmeclipse/.cproject.tmpl', jinja_ctx,
                       '.cproject', trim_blocks=True, lstrip_blocks=True)
         self.gen_file('gnuarmeclipse/makefile.targets.tmpl', jinja_ctx,
                       'makefile.targets', trim_blocks=True, lstrip_blocks=True)
-
-        if not exists('.mbedignore'):
-            print
-            print 'Create .mbedignore'
-            with open('.mbedignore', 'w') as f:
-                for bf in build_folders:
-                    print bf + '/'
-                    f.write(bf + '/\n')
-
-        print
-        print 'Done. Import the \'{0}\' project in Eclipse.'.format(self.project_name)
 
     # override
     @staticmethod
@@ -339,8 +210,6 @@ class GNUARMEclipse(Exporter):
         if ret_code != 0:
             ret_string += "FAILURE\n"
 
-        print "%s\n%s\n%s\n%s" % (stdout_string, out, err_string, ret_string)
-
         if log_name:
             # Write the output to the log file
             with open(log_name, 'w+') as f:
@@ -372,29 +241,6 @@ class GNUARMEclipse(Exporter):
 
         # Seems like something went wrong.
         return -1
-
-   # -------------------------------------------------------------------------
-
-    @staticmethod
-    def get_all_profiles():
-        tools_path = dirname(dirname(dirname(__file__)))
-        file_names = [join(tools_path, "profiles", fn) for fn in os.listdir(
-            join(tools_path, "profiles")) if fn.endswith(".json")]
-
-        # print file_names
-
-        profile_names = [basename(fn).replace(".json", "")
-                         for fn in file_names]
-        # print profile_names
-
-        profiles = {}
-
-        for fn in file_names:
-            content = load(open(fn))
-            profile_name = basename(fn).replace(".json", "")
-            profiles[profile_name] = content
-
-        return profiles
 
     # -------------------------------------------------------------------------
     # Process source files/folders exclusions.
@@ -465,8 +311,6 @@ class GNUARMEclipse(Exporter):
         # print 'excludings'
         self.excluded_folders = ['BUILD']
         self.recurse_excludings(self.source_tree)
-
-        print 'Source folders: {0}, with {1} exclusions'.format(len(source_folders), len(self.excluded_folders))
 
     def add_source_folder_to_tree(self, path, is_used=False):
         """
@@ -616,7 +460,7 @@ class GNUARMEclipse(Exporter):
         self.remove_option(flags['common_flags'], '-MMD')
 
         # As 'plan B', get the CPU from the target definition.
-        core = self.toolchain.target.core
+        core = self.toolchains['develop'].target.core
 
         opts['common']['arm.target.family'] = None
 

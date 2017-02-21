@@ -154,7 +154,7 @@ class Uvision(Exporter):
 
     def format_flags(self):
         """Format toolchain flags for Uvision"""
-        flags = copy.deepcopy(self.flags)
+        flags = copy.deepcopy(self.flags(self.toolchains['develop']))
         # to be preprocessed with armcc
         asm_flag_string = '--cpreproc --cpreproc_opts=-D__ASSERT_MSG,' + \
                           ",".join(flags['asm_flags'])

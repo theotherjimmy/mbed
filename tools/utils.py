@@ -259,6 +259,11 @@ def split_path(path):
     name, ext = splitext(has_ext)
     return base, name, ext
 
+def dropext(path):
+    """Drop the extension of the basename of a file"""
+    _, name, __ = split(path)
+    return name
+
 
 def get_path_depth(path):
     """ Given a path, return the number of directory levels present.
@@ -514,3 +519,16 @@ def print_large_string(large_string):
         else:
             end_index = ((string_part + 1) * string_limit) - 1
             print large_string[start_index:end_index],
+
+def parse_profile(tc_name, files):
+    """Parse a profile from a list of files"""
+    profile = {'c': [], 'cxx': [], 'ld': [], 'common': [], 'asm': []}
+    for filename in files:
+        contents = json.load(open(filename))
+        try:
+            for key in profile.iterkeys():
+                profile[key] += contents[tc_name][key]
+        except KeyError:
+            raise ToolException("Toolchain {} is not supported by profile {}"
+                                .format(tc_name, filename))
+    return profile

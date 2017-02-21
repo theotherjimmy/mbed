@@ -57,23 +57,24 @@ class EmBitz(Exporter):
         if self.resources.linker_script is None:
             self.resources.linker_script = ''
 
+        flags = self.flags(self.toolchains['develop'])
         ctx = {
             'name': self.project_name,
             'target': self.target,
-            'toolchain': self.toolchain.name,
+            'toolchain': self.toolchains['develop'].name,
             'source_files': source_files,
             'include_paths': self.resources.inc_dirs,
             'script_file': self.resources.linker_script,
             'library_paths': self.resources.lib_dirs,
             'libraries': libraries,
-            'symbols': self.toolchain.get_symbols(),
+            'symbols': self.toolchains['develop'].get_symbols(),
             'object_files': self.resources.objects,
-            'sys_libs': self.toolchain.sys_libs,
-            'cc_org': (self.flags['common_flags'] +
-                       self._remove_symbols(self.flags['c_flags'])),
-            'ld_org': self.flags['ld_flags'],
-            'cppc_org': (self.flags['common_flags'] +
-                         self._remove_symbols(self.flags['cxx_flags']))
+            'sys_libs': self.toolchains['develop'].sys_libs,
+            'cc_org': (flags['common_flags'] +
+                       self._remove_symbols(flags['c_flags'])),
+            'ld_org': flags['ld_flags'],
+            'cppc_org': (flags['common_flags'] +
+                         self._remove_symbols(flags['cxx_flags']))
         }
 
         self.gen_file('embitz/eix.tmpl', ctx, '%s.eix' % self.project_name)

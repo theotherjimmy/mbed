@@ -79,7 +79,7 @@ class Sw4STM32(Exporter):
     def generate(self):
         fp_hardware = "no"
         fp_abi = "soft"
-        core = self.toolchain.target.core
+        core = self.toolchains['develop'].target.core
         if core == "Cortex-M4F" or core == "Cortex-M7F":
             fp_hardware = "fpv4-sp-d16"
             fp_abi = "soft-fp"
@@ -99,7 +99,7 @@ class Sw4STM32(Exporter):
             'library_paths': self.resources.lib_dirs,
             'object_files': self.resources.objects,
             'libraries': libraries,
-            'symbols': self.toolchain.get_symbols(),
+            'symbols': self.toolchains['develop'].get_symbols(),
             'board_name': self.BOARDS[self.target.upper()]['name'],
             'mcu_name': self.BOARDS[self.target.upper()]['mcuId'],
             'debug_config_uid': self.__generate_uid(),

@@ -14,7 +14,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from json import load
 from os.path import join, dirname
 from os import listdir
 from argparse import ArgumentParser
@@ -23,7 +22,7 @@ from tools.targets import TARGET_NAMES
 from tools.utils import argparse_force_uppercase_type, \
     argparse_lowercase_hyphen_type, argparse_many, \
     argparse_filestring_type, args_error, argparse_profile_filestring_type,\
-    argparse_deprecate
+    argparse_deprecate, parse_profile, ToolException
 
 FLAGS_DEPRECATION_MESSAGE = "Please use the --profile argument instead.\n"\
                             "Documentation may be found in "\
@@ -108,16 +107,9 @@ def extract_profile(parser, options, toolchain, fallback="develop"):
     options - The parsed command line arguments
     toolchain - the toolchain that the profile should be extracted for
     """
-    profile = {'c': [], 'cxx': [], 'ld': [], 'common': [], 'asm': []}
     filenames = options.profile or [join(dirname(__file__), "profiles",
                                          fallback + ".json")]
-    for filename in filenames:
-        contents = load(open(filename))
-        try:
-            for key in profile.iterkeys():
-                profile[key] += contents[toolchain][key]
-        except KeyError:
-            args_error(parser, ("argument --profile: toolchain {} is not"
-                                " supported by profile {}").format(toolchain,
-                                                                   filename))
-    return profile
+    try:
+        return parse_profile(toolchain, filenames)
+    except ToolException as exc:
+        args_error(parser, ("argument --profile: {}").format(str(exc)))

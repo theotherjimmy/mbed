@@ -2,7 +2,7 @@
 import sys
 from os.path import join, abspath, dirname, exists
 from os.path import basename, relpath, normpath, splitext
-from os import makedirs, walk
+from os import makedirs, walk, listdir
 ROOT = abspath(join(dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
 import copy
@@ -13,6 +13,8 @@ from tools.build_api import prepare_toolchain
 from tools.build_api import scan_resources
 from tools.export import EXPORTERS
 from tools.toolchains import Resources
+from tools.utils import parse_profile
+from tools.paths import TOOLS
 
 
 def get_exporter_toolchain(ide):
@@ -136,8 +138,7 @@ def zip_export(file_name, prefix, resources, project_files, inc_repos):
 def export_project(src_paths, export_path, target, ide, libraries_paths=None,
                    linker_script=None, notify=None, verbose=False, name=None,
                    inc_dirs=None, jobs=1, silent=False, extra_verbose=False,
-                   config=None, macros=None, zip_proj=None, inc_repos=False,
-                   build_profile=None):
+                   config=None, macros=None, zip_proj=None, inc_repos=False):
     """Generates a project file and creates a zip archive if specified
 
     Positional Arguments:
@@ -185,11 +186,23 @@ def export_project(src_paths, export_path, target, ide, libraries_paths=None,
 
     _, toolchain_name = get_exporter_toolchain(ide)
 
-    # Pass all params to the unified prepare_resources()
-    toolchain = prepare_toolchain(paths, target, toolchain_name, macros=macros,
-                                  jobs=jobs, notify=notify, silent=silent,
-                                  verbose=verbose, extra_verbose=extra_verbose,
-                                  config=config, build_profile=build_profile)
+    toolchains = {}
+    for filename in listdir(join(TOOLS, "profiles")):
+        if filename.endswith(".json"):
+            profile_name, _ = splitext(filename)
+            build_profile = parse_profile(toolchain_name,
+                                          [join(TOOLS, "profiles", filename)])
+            toolchain = prepare_toolchain(paths, target, toolchain_name,
+                                          macros=macros, jobs=jobs,
+                                          notify=notify, silent=silent,
+                                          verbose=verbose,
+                                          extra_verbose=extra_verbose,
+                                          config=config,
+                                          build_profile=build_profile)
+            toolchains[profile_name] = toolchain
+
+    toolchain = toolchains["develop"]
+
     # The first path will give the name to the library
     if name is None:
         name = basename(normpath(abspath(src_paths[0])))
@@ -200,6 +213,9 @@ def export_project(src_paths, export_path, target, ide, libraries_paths=None,
     resources = Resources()
     toolchain.build_dir = export_path
     config_header = toolchain.get_config_header()
+    for tc in toolchains.values():
+        tc.config_processed = True
+        tc.config_file = config_header
     resources.headers.append(config_header)
     resources.file_basepath[config_header] = dirname(config_header)
 
@@ -218,7 +234,7 @@ def export_project(src_paths, export_path, target, ide, libraries_paths=None,
         resources.linker_script = linker_script
 
     files, exporter = generate_project_files(resources, export_path,
-                                             target, name, toolchain, ide,
+                                             target, name, toolchains, ide,
                                              macros=macros)
     files.append(config_header)
     if zip_proj:

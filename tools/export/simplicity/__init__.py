@@ -148,7 +148,7 @@ class SimplicityV3(Exporter):
                 libraries.append(l[3:])
 
         defines = []
-        for define in self.toolchain.get_symbols():
+        for define in self.toolchains['develop'].get_symbols():
             if '=' in define:
                 keyval = define.split('=')
                 defines.append( (keyval[0], keyval[1]) )
@@ -171,7 +171,7 @@ class SimplicityV3(Exporter):
             'kit': self.KITS[self.target],
             'loopcount': 0
         }
-        ctx.update(self.flags)
+        ctx.update(self.flags(self.toolchains['develop']))
 
         ## Strip main folder from include paths because ssproj is not capable of handling it
         if '.' in ctx['include_paths']:

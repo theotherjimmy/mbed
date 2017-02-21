@@ -70,7 +70,7 @@ class AtmelStudio(Exporter):
             'library_paths': self.resources.lib_dirs,
             'linker_script': self.resources.linker_script,
             'libraries': libraries,
-            'symbols': self.toolchain.get_symbols(),
+            'symbols': self.toolchains['develop'].get_symbols(),
             'solution_uuid': solution_uuid.upper(),
             'project_uuid': project_uuid.upper()
         }
