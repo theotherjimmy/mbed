@@ -19,7 +19,7 @@ from copy import deepcopy
 import os
 import sys
 from collections import namedtuple
-from os.path import splitext
+from os.path import splitext, relpath
 from intelhex import IntelHex
 # Implementation of mbed configuration mechanism
 from tools.utils import json_file_to_dict, intelhex_offset
@@ -378,20 +378,20 @@ class Config(object):
         top_level_dirs may be None (in this case, the constructor will not
         search for a configuration file).
         """
-        app_config_location = app_config
-        if app_config_location is None:
+        self.app_config_location = app_config
+        if self.app_config_location is None:
             for directory in top_level_dirs or []:
                 full_path = os.path.join(directory, self.__mbed_app_config_name)
                 if os.path.isfile(full_path):
-                    if app_config_location is not None:
+                    if self.app_config_location is not None:
                         raise ConfigException("Duplicate '%s' file in '%s' and '%s'"
                                               % (self.__mbed_app_config_name,
-                                                 app_config_location, full_path))
+                                                 self.app_config_location, full_path))
                     else:
-                        app_config_location = full_path
+                        self.app_config_location = full_path
         try:
-            self.app_config_data = json_file_to_dict(app_config_location) \
-                                   if app_config_location else {}
+            self.app_config_data = json_file_to_dict(self.app_config_location) \
+                                   if self.app_config_location else {}
         except ValueError as exc:
             sys.stderr.write(str(exc) + "\n")
             self.app_config_data = {}
@@ -511,6 +511,11 @@ class Config(object):
         if start > rom_size:
             raise ConfigException("Not enough memory on device to fit all "
                                   "application regions")
+
+    @property
+    def report(self):
+        return {'app_config': self.app_config_location,
+                'library_configs': map(relpath, self.processed_configs.keys())}
 
     def _process_config_and_overrides(self, data, params, unit_name, unit_kind):
         """Process "config_parameters" and "target_config_overrides" into a

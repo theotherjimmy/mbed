@@ -23,6 +23,7 @@ import json
 from time import sleep
 from shutil import copy
 from os.path import join, abspath, dirname
+from json import load, dump
 
 # Be sure that the tools directory is in the search path
 ROOT = abspath(join(dirname(__file__), ".."))
@@ -236,6 +237,10 @@ if __name__ == '__main__':
                            %(toolchain,search_path))
 
     # Test
+    try:
+        metadata_blob = load(open(".build_metadata.json"))
+    except (IOError, ValueError):
+        metadata_blob = {}
     for test_no in p:
         test = Test(test_no)
         if options.automated is not None:    test.automated = options.automated
@@ -274,6 +279,7 @@ if __name__ == '__main__':
                                      clean=options.clean,
                                      verbose=options.verbose,
                                      notify=notify,
+                                     report=metadata_blob,
                                      silent=options.silent,
                                      macros=options.macros,
                                      jobs=options.jobs,
@@ -329,3 +335,5 @@ if __name__ == '__main__':
                 print "[ERROR] %s" % str(e)
             
             sys.exit(1)
+        dump(metadata_blob, open(".build_metadata.json", "wb"), indent=4,
+             separators=(',', ': '))

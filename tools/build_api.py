@@ -105,7 +105,7 @@ def add_result_to_report(report, result):
     target = result["target_name"]
     toolchain = result["toolchain_name"]
     id_name = result['id']
-    result_wrap = {0: result}
+    result_wrap = result
     report[target][toolchain][id_name].append(result_wrap)
 
 def get_config(src_paths, target, toolchain_name):
@@ -549,6 +549,8 @@ def build_project(src_paths, build_path, target, toolchain_name,
             cur_result["output"] = toolchain.get_output() + memap_table
             cur_result["result"] = "OK"
             cur_result["memory_usage"] = toolchain.map_outputs
+            cur_result["elf"] = res
+            cur_result.update(toolchain.report)
 
             add_result_to_report(report, cur_result)
 
