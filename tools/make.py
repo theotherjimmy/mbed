@@ -23,6 +23,7 @@ import json
 from time import sleep
 from shutil import copy
 from os.path import join, abspath, dirname
+from json import load, dump
 
 # Be sure that the tools directory is in the search path
 ROOT = abspath(join(dirname(__file__), ".."))
@@ -51,6 +52,18 @@ from utils import argparse_many
 from utils import argparse_dir_not_parent
 from tools.toolchains import mbedToolchain, TOOLCHAIN_CLASSES, TOOLCHAIN_PATHS
 from tools.settings import CLI_COLOR_MAP
+
+def merge_metadata(filename, toolchain_report):
+    try:
+        metadata = load(open(filename))
+    except (IOError, ValueError):
+        metadata = {'builds': []}
+    for tgt in toolchain_report.values():
+        for tc in tgt.values():
+            for project in tc.values():
+                for build in project:
+                    metadata['builds'].append(build[0])
+    dump(metadata, open(filename, "wb"), indent=4, separators=(',', ': '))
 
 if __name__ == '__main__':
     # Parse Options
@@ -173,6 +186,11 @@ if __name__ == '__main__':
                       default=False,
                       help="Link with mbed test library")
 
+    parser.add_argument("--metadata",
+                        dest="metadata",
+                        default=None,
+                        help="Dump metadata to this file")
+
     # Specify a different linker script
     parser.add_argument("-l", "--linker", dest="linker_script",
                       type=argparse_filestring_type,
@@ -236,6 +254,7 @@ if __name__ == '__main__':
                            %(toolchain,search_path))
 
     # Test
+    metadata_blob = {} if options.metadata else None
     for test_no in p:
         test = Test(test_no)
         if options.automated is not None:    test.automated = options.automated
@@ -274,6 +293,7 @@ if __name__ == '__main__':
                                      clean=options.clean,
                                      verbose=options.verbose,
                                      notify=notify,
+                                     report=metadata_blob,
                                      silent=options.silent,
                                      macros=options.macros,
                                      jobs=options.jobs,
@@ -329,3 +349,5 @@ if __name__ == '__main__':
                 print "[ERROR] %s" % str(e)
             
             sys.exit(1)
+    if options.metadata:
+        merge_metadata(options.metadata, metadata_blob)
