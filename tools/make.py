@@ -186,10 +186,10 @@ if __name__ == '__main__':
                       default=False,
                       help="Link with mbed test library")
 
-    parser.add_argument("--metadata",
-                        dest="metadata",
+    parser.add_argument("--build-data",
+                        dest="build_data",
                         default=None,
-                        help="Dump metadata to this file")
+                        help="Dump build_data to this file")
 
     # Specify a different linker script
     parser.add_argument("-l", "--linker", dest="linker_script",
@@ -254,7 +254,7 @@ if __name__ == '__main__':
                            %(toolchain,search_path))
 
     # Test
-    metadata_blob = {} if options.metadata else None
+    build_data_blob = {} if options.build_data else None
     for test_no in p:
         test = Test(test_no)
         if options.automated is not None:    test.automated = options.automated
@@ -293,7 +293,7 @@ if __name__ == '__main__':
                                      clean=options.clean,
                                      verbose=options.verbose,
                                      notify=notify,
-                                     report=metadata_blob,
+                                     report=build_data_blob,
                                      silent=options.silent,
                                      macros=options.macros,
                                      jobs=options.jobs,
