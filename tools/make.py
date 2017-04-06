@@ -47,23 +47,12 @@ from tools.options import get_default_options_parser
 from tools.options import extract_profile
 from tools.build_api import build_project
 from tools.build_api import mcu_toolchain_matrix
+from tools.build_api import merge_build_data
 from utils import argparse_filestring_type
 from utils import argparse_many
 from utils import argparse_dir_not_parent
 from tools.toolchains import mbedToolchain, TOOLCHAIN_CLASSES, TOOLCHAIN_PATHS
 from tools.settings import CLI_COLOR_MAP
-
-def merge_metadata(filename, toolchain_report):
-    try:
-        metadata = load(open(filename))
-    except (IOError, ValueError):
-        metadata = {'builds': []}
-    for tgt in toolchain_report.values():
-        for tc in tgt.values():
-            for project in tc.values():
-                for build in project:
-                    metadata['builds'].append(build[0])
-    dump(metadata, open(filename, "wb"), indent=4, separators=(',', ': '))
 
 if __name__ == '__main__':
     # Parse Options
