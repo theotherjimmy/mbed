@@ -339,4 +339,4 @@ if __name__ == '__main__':
             
             sys.exit(1)
     if options.metadata:
-        merge_metadata(options.metadata, metadata_blob)
+        merge_build_data(options.metadata, metadata_blob, "application")
