@@ -332,7 +332,9 @@ class mbedToolchain:
         self.map_outputs = list()   # Place to store memmap scan results in JSON like data structures
 
         # uVisor spepcific rules
-        if 'UVISOR' in self.target.features and 'UVISOR_SUPPORTED' in self.target.extra_labels:
+        if (hasattr(self.target, 'features') and
+            'UVISOR' in self.target.features and
+            'UVISOR_SUPPORTED' in self.target.extra_labels):
             self.target.core = re.sub(r"F$", '', self.target.core)
 
         # Stats cache is used to reduce the amount of IO requests to stat
@@ -422,7 +424,7 @@ class mbedToolchain:
                     self.asm_symbols.extend(mbedToolchain.CORTEX_SYMBOLS[self.target.core])
 
                 # Add target's symbols
-                self.asm_symbols += self.target.macros
+                self.asm_symbols += self.config.macros
                 # Add extra symbols passed via 'macros' parameter
                 self.asm_symbols += self.macros
             return list(set(self.asm_symbols))  # Return only unique symbols
@@ -443,11 +445,11 @@ class mbedToolchain:
                     self.cxx_symbols.append('MBED_USERNAME=' + MBED_ORG_USER)
 
                 # Add target's symbols
-                self.cxx_symbols += self.target.macros
+                self.cxx_symbols += self.config.macros
                 # Add target's hardware
-                self.cxx_symbols += ["DEVICE_" + data + "=1" for data in self.target.device_has]
+                self.cxx_symbols += ["DEVICE_" + data + "=1" for data in self.config.device_has]
                 # Add target's features
-                self.cxx_symbols += ["FEATURE_" + data + "=1" for data in self.target.features]
+                self.cxx_symbols += ["FEATURE_" + data + "=1" for data in self.config.features]
                 # Add extra symbols passed via 'macros' parameter
                 self.cxx_symbols += self.macros
 
@@ -467,7 +469,7 @@ class mbedToolchain:
             toolchain_labels.remove('mbedToolchain')
             self.labels = {
                 'TARGET': self.target.labels,
-                'FEATURE': self.target.features,
+                'FEATURE': self.config.features,
                 'TOOLCHAIN': toolchain_labels
             }
 

@@ -17,24 +17,127 @@ limitations under the License.
 
 from copy import deepcopy
 import os
-from os.path import dirname, abspath
-import sys
-from collections import namedtuple
+from os.path import dirname, abspath, exists, join
 from os.path import splitext
+import sys
+from collections import namedtuple, OrderedDict
 from intelhex import IntelHex
 from jinja2 import FileSystemLoader, StrictUndefined
 from jinja2.environment import Environment
-# Implementation of mbed configuration mechanism
+from json import load
+from jsonschema import Draft4Validator
+
 from tools.utils import json_file_to_dict, intelhex_offset
 from tools.arm_pack_manager import Cache
 from tools.targets import CUMULATIVE_ATTRIBUTES, TARGET_MAP, \
     generate_py_target, get_resolution_order
 
-# Base class for all configuration exceptions
 class ConfigException(Exception):
     """Config system only exception. Makes it easier to distinguish config
     errors"""
     pass
+
+
+def unit_display_name(unit_name, unit_kind, label=None):
+    """Return the name displayed for a unit when interrogating the origin
+    and the last set place of a parameter
+
+    Positional arguments:
+    unit_name - the unit (target/library/application) that defines this
+                parameter
+    unit_kind - the kind of the unit ("target", "library" or "application")
+
+    Keyword arguments:
+    label - the name of the label in the 'target_config_overrides' section
+    """
+    if unit_kind == "target":
+        return "target:" + unit_name
+    elif unit_kind == "application":
+        return "application%s" % ("[%s]" % label if label else "")
+    else: # library
+        return "library:%s%s" % (unit_name, "[%s]" % label if label else "")
+
+
+def parameter_full_name(name, unit_name, unit_kind, label=None,
+                        allow_prefix=True):
+    """Return the full (prefixed) name of a parameter. If the parameter
+    already has a prefix, check if it is valid
+
+    Positional arguments:
+    name - the simple (unqualified) name of the parameter
+    unit_name - the unit (target/library/application) that defines this
+                parameter
+    unit_kind - the kind of the unit ("target", "library" or "application")
+
+    Keyword arguments:
+    label - the name of the label in the 'target_config_overrides' section
+    allow_prefix - True to allow the original name to have a prefix, False
+                    otherwise
+    """
+    if "." not in name:
+        if unit_kind == "target":
+            prefix = "target."
+        elif unit_kind == "application":
+            prefix = "app."
+        else:
+            prefix = unit_name + '.'
+        return prefix + name
+
+    if not allow_prefix:
+        raise ConfigException("Invalid parameter name '%s' in '%s'" %
+                              (name, unit_display_name(
+                                  unit_name, unit_kind, label)))
+    try:
+        prefix, _ = name.split(".")
+    except ValueError:
+        raise ConfigException("Invalid parameter name '%s' in '%s'" %
+                              (name, unit_display_name(
+                                  unit_name, unit_kind, label)))
+
+    if  ((unit_kind == "library" and prefix != unit_name) or
+         (unit_kind == "target" and prefix != "target")):
+        raise ConfigException(
+            "Invalid prefix '%s' for parameter name '%s' in '%s'" %
+            (prefix, name, unit_display_name(
+                unit_name, unit_kind, label)))
+    return name
+
+
+def sanitize(name):
+    """ "Sanitize" a name so that it is a valid C macro name. Currently it
+    simply replaces '.' and '-' with '_'.
+
+    Positional arguments:
+    name - the name to make into a valid C macro
+    """
+    return name.replace('.', '_').replace('-', '_')
+
+
+class ConfigMacro(object):
+    """ A representation of a configuration macro. It handles both macros
+    without a value (MACRO) and with a value (MACRO=VALUE)
+    """
+    def __init__(self, name, unit_name, unit_kind):
+        """Construct a ConfigMacro object
+
+        Positional arguments:
+        name - the macro's name
+        unit_name - the location where the macro was defined
+        unit_kind - the type of macro this is
+        """
+        self.name = name
+        self.defined_by = unit_display_name(unit_name, unit_kind)
+        if "=" in name:
+            tmp = name.split("=")
+            if len(tmp) != 2:
+                raise ValueError("Invalid macro definition '%s' in '%s'" %
+                                 (name, self.defined_by))
+            self.macro_name = tmp[0]
+            self.macro_value = tmp[1]
+        else:
+            self.macro_name = name
+            self.macro_value = None
+
 
 class ConfigParameter(object):
     """This class keeps information about a single configuration parameter"""
@@ -49,92 +152,15 @@ class ConfigParameter(object):
                     parameter
         unit_ kind - the kind of the unit ("target", "library" or "application")
         """
-        self.name = self.get_full_name(name, unit_name, unit_kind,
-                                       allow_prefix=False)
-        self.defined_by = self.get_display_name(unit_name, unit_kind)
-        self.set_value(data.get("value", None), unit_name, unit_kind)
+        self.name = parameter_full_name(name, unit_name, unit_kind,
+                                        allow_prefix=False)
+        self.defined_by = unit_display_name(unit_name, unit_kind)
         self.help_text = data.get("help", None)
         self.required = data.get("required", False)
         self.macro_name = data.get("macro_name", "MBED_CONF_%s" %
-                                   self.sanitize(self.name.upper()))
-        self.config_errors = []
-
-    @staticmethod
-    def get_full_name(name, unit_name, unit_kind, label=None,
-                      allow_prefix=True):
-        """Return the full (prefixed) name of a parameter. If the parameter
-        already has a prefix, check if it is valid
-
-        Positional arguments:
-        name - the simple (unqualified) name of the parameter
-        unit_name - the unit (target/library/application) that defines this
-                    parameter
-        unit_kind - the kind of the unit ("target", "library" or "application")
-
-        Keyword arguments:
-        label - the name of the label in the 'target_config_overrides' section
-        allow_prefix - True to allow the original name to have a prefix, False
-                       otherwise
-        """
-        if name.find('.') == -1: # the name is not prefixed
-            if unit_kind == "target":
-                prefix = "target."
-            elif unit_kind == "application":
-                prefix = "app."
-            else:
-                prefix = unit_name + '.'
-            return prefix + name
-        # The name has a prefix, so check if it is valid
-        if not allow_prefix:
-            raise ConfigException("Invalid parameter name '%s' in '%s'" %
-                                  (name, ConfigParameter.get_display_name(
-                                      unit_name, unit_kind, label)))
-        temp = name.split(".")
-        # Check if the parameter syntax is correct (must be
-        # unit_name.parameter_name)
-        if len(temp) != 2:
-            raise ConfigException("Invalid parameter name '%s' in '%s'" %
-                                  (name, ConfigParameter.get_display_name(
-                                      unit_name, unit_kind, label)))
-        prefix = temp[0]
-        # Check if the given parameter prefix matches the expected prefix
-        if (unit_kind == "library" and prefix != unit_name) or \
-           (unit_kind == "target" and prefix != "target"):
-            raise ConfigException(
-                "Invalid prefix '%s' for parameter name '%s' in '%s'" %
-                (prefix, name, ConfigParameter.get_display_name(
-                    unit_name, unit_kind, label)))
-        return name
-
-    @staticmethod
-    def get_display_name(unit_name, unit_kind, label=None):
-        """Return the name displayed for a unit when interrogating the origin
-        and the last set place of a parameter
-
-        Positional arguments:
-        unit_name - the unit (target/library/application) that defines this
-                    parameter
-        unit_kind - the kind of the unit ("target", "library" or "application")
-
-        Keyword arguments:
-        label - the name of the label in the 'target_config_overrides' section
-        """
-        if unit_kind == "target":
-            return "target:" + unit_name
-        elif unit_kind == "application":
-            return "application%s" % ("[%s]" % label if label else "")
-        else: # library
-            return "library:%s%s" % (unit_name, "[%s]" % label if label else "")
-
-    @staticmethod
-    def sanitize(name):
-        """ "Sanitize" a name so that it is a valid C macro name. Currently it
-        simply replaces '.' and '-' with '_'.
-
-        Positional arguments:
-        name - the name to make into a valid C macro
-        """
-        return name.replace('.', '_').replace('-', '_')
+                                   sanitize(self.name.upper()))
+        self.set_by = None
+        self.set_value(data.get("value", None), unit_name, unit_kind)
 
     def set_value(self, value, unit_name, unit_kind, label=None):
         """ Sets a value for this parameter, remember the place where it was
@@ -152,7 +178,7 @@ class ConfigParameter(object):
                (optional)
         """
         self.value = int(value) if isinstance(value, bool) else value
-        self.set_by = self.get_display_name(unit_name, unit_kind, label)
+        self.set_by = unit_display_name(unit_name, unit_kind, label)
 
     def __str__(self):
         """Return the string representation of this configuration parameter
@@ -165,51 +191,10 @@ class ConfigParameter(object):
         else:
             return '%s has no value' % self.name
 
-    def get_verbose_description(self):
-        """Return a verbose description of this configuration parameter as a
-        string
-
-        Arguments: None
-        """
-        desc = "Name: %s%s\n" % \
-               (self.name, " (required parameter)" if self.required else "")
-        if self.help_text:
-            desc += "    Description: %s\n" % self.help_text
-        desc += "    Defined by: %s\n" % self.defined_by
-        if not self.value:
-            return desc + "    No value set"
-        desc += "    Macro name: %s\n" % self.macro_name
-        desc += "    Value: %s (set by %s)" % (self.value, self.set_by)
-        return desc
-
-class ConfigMacro(object):
-    """ A representation of a configuration macro. It handles both macros
-    without a value (MACRO) and with a value (MACRO=VALUE)
-    """
-    def __init__(self, name, unit_name, unit_kind):
-        """Construct a ConfigMacro object
-
-        Positional arguments:
-        name - the macro's name
-        unit_name - the location where the macro was defined
-        unit_kind - the type of macro this is
-        """
-        self.name = name
-        self.defined_by = ConfigParameter.get_display_name(unit_name, unit_kind)
-        if name.find("=") != -1:
-            tmp = name.split("=")
-            if len(tmp) != 2:
-                raise ValueError("Invalid macro definition '%s' in '%s'" %
-                                 (name, self.defined_by))
-            self.macro_name = tmp[0]
-            self.macro_value = tmp[1]
-        else:
-            self.macro_name = name
-            self.macro_value = None
 
 class ConfigCumulativeOverride(object):
     """Representation of overrides for cumulative attributes"""
-    def __init__(self, name, additions=None, removals=None, strict=False):
+    def __init__(self, name):
         """Construct a ConfigCumulativeOverride object
 
         Positional arguments:
@@ -222,15 +207,9 @@ class ConfigCumulativeOverride(object):
                  that does not exist should error
         """
         self.name = name
-        if additions:
-            self.additions = set(additions)
-        else:
-            self.additions = set()
-        if removals:
-            self.removals = set(removals)
-        else:
-            self.removals = set()
-        self.strict = strict
+        self.additions = set()
+        self.removals = set()
+        self.strict = False
 
     def remove_cumulative_overrides(self, overrides):
         """Extend the list of override removals.
@@ -274,11 +253,10 @@ class ConfigCumulativeOverride(object):
         self.add_cumulative_overrides(overrides)
         self.strict = True
 
-    def update_target(self, target):
+    def get_value(self, target):
         """Update the attributes of a target based on this override"""
-        setattr(target, self.name,
-                list((set(getattr(target, self.name, []))
-                      | self.additions) - self.removals))
+        return list((set(getattr(target, self.name, []))
+                     | self.additions) - self.removals)
 
 
 def _process_config_parameters(data, params, unit_name, unit_kind):
@@ -293,12 +271,12 @@ def _process_config_parameters(data, params, unit_name, unit_kind):
     unit_kind - the kind of the unit ("target", "library" or "application")
     """
     for name, val in data.items():
-        full_name = ConfigParameter.get_full_name(name, unit_name, unit_kind)
+        full_name = parameter_full_name(name, unit_name, unit_kind)
         # If the parameter was already defined, raise an error
         if full_name in params:
             raise ConfigException(
                 "Parameter name '%s' defined in both '%s' and '%s'" %
-                (name, ConfigParameter.get_display_name(unit_name, unit_kind),
+                (name, unit_display_name(unit_name, unit_kind),
                  params[full_name].defined_by))
         # Otherwise add it to the list of known parameters
         # If "val" is not a dictionary, this is a shortcut definition,
@@ -325,7 +303,7 @@ def _process_macros(mlist, macros, unit_name, unit_kind):
            (macros[macro.macro_name].name != mname):
             # Found an incompatible definition of the macro in another module,
             # so raise an error
-            full_unit_name = ConfigParameter.get_display_name(unit_name,
+            full_unit_name = unit_display_name(unit_name,
                                                               unit_kind)
             raise ConfigException(
                 ("Macro '%s' defined in both '%s' and '%s'"
@@ -334,12 +312,6 @@ def _process_macros(mlist, macros, unit_name, unit_kind):
                 " with incompatible values")
         macros[macro.macro_name] = macro
 
-
-def check_dict_types(dict, type_dict, dict_loc):
-    for key, value in dict.iteritems():
-        if not isinstance(value, type_dict[key]):
-            raise ConfigException("The value of %s.%s is not of type %s" %
-                                  (dict_loc, key, type_dict[key].__name__))
 
 Region = namedtuple("Region", "name start size active filename")
 
@@ -351,16 +323,12 @@ class Config(object):
     __mbed_app_config_name = "mbed_app.json"
     __mbed_lib_config_name = "mbed_lib.json"
 
-    # Allowed keys in configuration dictionaries, and their types
-    # (targets can have any kind of keys, so this validation is not applicable
-    # to them)
-    __allowed_keys = {
-        "library": {"name": str, "config": dict, "target_overrides": dict,
-                    "macros": list, "__config_path": str},
-        "application": {"config": dict, "target_overrides": dict,
-                        "macros": list, "__config_path": str,
-                        "artifact_name": str}
-    }
+    APP_SCHEMA = Draft4Validator(
+        load(open(join(dirname(__file__), "mbed_app.schema"))),
+        types={"object": (OrderedDict)})
+    LIB_SCHEMA = Draft4Validator(
+        load(open(join(dirname(__file__), "mbed_lib.schema"))),
+        types={"object": (OrderedDict)})
 
     __unused_overrides = set(["target.bootloader_img", "target.restrict_size"])
 
@@ -388,6 +356,8 @@ class Config(object):
         top_level_dirs may be None (in this case, the constructor will not
         search for a configuration file).
         """
+        self.cumulative_overrides = {key: ConfigCumulativeOverride(key)
+                                     for key in CUMULATIVE_ATTRIBUTES}
         config_errors = []
         app_config_location = app_config
         if app_config_location is None:
@@ -402,22 +372,18 @@ class Config(object):
                         app_config_location = full_path
         try:
             self.app_config_data = json_file_to_dict(app_config_location) \
-                                   if app_config_location else {}
+                                   if app_config_location else OrderedDict()
         except ValueError as exc:
-            self.app_config_data = {}
+            self.app_config_data = OrderedDict()
             config_errors.append(
                 ConfigException("Could not parse mbed app configuration from %s"
                                 % app_config_location))
 
-        # Check the keys in the application configuration data
-        unknown_keys = set(self.app_config_data.keys()) - \
-                       set(self.__allowed_keys["application"].keys())
-        if unknown_keys:
-            raise ConfigException("Unknown key(s) '%s' in %s" %
-                                  (",".join(unknown_keys),
-                                   self.__mbed_app_config_name))
-        check_dict_types(self.app_config_data, self.__allowed_keys["application"],
-                         "app-config")
+        if not self.APP_SCHEMA.is_valid(self.app_config_data):
+            raise ConfigException(
+                "\n".join(str(err) for err in
+                          self.APP_SCHEMA.iter_errors(self.app_config_data)))
+
         # Update the list of targets with the ones defined in the application
         # config, if applicable
         self.lib_config_data = {}
@@ -429,14 +395,11 @@ class Config(object):
             else:
                 self.target = generate_py_target(
                     self.app_config_data.get("custom_targets", {}), tgt)
-
         else:
             self.target = tgt
         self.target = deepcopy(self.target)
         self.target_labels = self.target.labels
 
-        self.cumulative_overrides = {key: ConfigCumulativeOverride(key)
-                                     for key in CUMULATIVE_ATTRIBUTES}
 
         self._process_config_and_overrides(self.app_config_data, {}, "app",
                                            "application")
@@ -478,6 +441,12 @@ class Config(object):
                        self.lib_config_data[cfg["name"]]["__config_path"]))
             self.lib_config_data[cfg["name"]] = cfg
 
+    def __getattr__(self, attrname):
+        if attrname in self.cumulative_overrides:
+            return self.cumulative_overrides[attrname].get_value(self.target)
+        else:
+            return getattr(self.target, attrname)
+
     @property
     def has_regions(self):
         """Does this config have regions defined?"""
@@ -506,6 +475,8 @@ class Config(object):
                                   "build a bootloader project")
         if 'target.bootloader_img' in target_overrides:
             filename = target_overrides['target.bootloader_img']
+            if not exists(filename):
+                raise ConfigException("Bootloader %s not found" % filename)
             part = intelhex_offset(filename, offset=rom_start)
             if part.minaddr() != rom_start:
                 raise ConfigException("bootloader executable does not "
@@ -550,7 +521,7 @@ class Config(object):
                         in overrides.iterkeys())):
                     raise ConfigException(
                         "Target override 'target.extra_labels' in " +
-                        ConfigParameter.get_display_name(unit_name, unit_kind,
+                        unit_display_name(unit_name, unit_kind,
                                                          label) +
                         " is only allowed at the application level")
 
@@ -589,7 +560,7 @@ class Config(object):
                 # Consider the others as overrides
                 for name, val in overrides.items():
                     # Get the full name of the parameter
-                    full_name = ConfigParameter.get_full_name(name, unit_name,
+                    full_name = parameter_full_name(name, unit_name,
                                                               unit_kind, label)
                     if full_name in params:
                         params[full_name].set_value(val, unit_name, unit_kind,
@@ -602,12 +573,9 @@ class Config(object):
                                 "Attempt to override undefined parameter" +
                                 (" '%s' in '%s'"
                                  % (full_name,
-                                    ConfigParameter.get_display_name(unit_name,
+                                    unit_display_name(unit_name,
                                                                      unit_kind,
                                                                      label)))))
-
-        for cumulatives in self.cumulative_overrides.itervalues():
-            cumulatives.update_target(self.target)
 
         return params
 
@@ -639,7 +607,7 @@ class Config(object):
                                        tname, "target")
             # Then process overrides
             for name, val in target_data.get("overrides", {}).items():
-                full_name = ConfigParameter.get_full_name(name, tname, "target")
+                full_name = parameter_full_name(name, tname, "target")
                 # If the parameter name is not defined or if there isn't a path
                 # from this target to the target where the parameter was defined
                 # in the target inheritance tree, raise an error We need to use
@@ -655,7 +623,7 @@ class Config(object):
                     raise ConfigException(
                         "Attempt to override undefined parameter '%s' in '%s'"
                         % (name,
-                           ConfigParameter.get_display_name(tname, "target")))
+                           unit_display_name(tname, "target")))
                 # Otherwise update the value of the parameter
                 params[full_name].set_value(val, tname, "target")
         return params
@@ -669,12 +637,11 @@ class Config(object):
         """
         all_params, macros = {}, {}
         for lib_name, lib_data in self.lib_config_data.items():
-            unknown_keys = (set(lib_data.keys()) -
-                            set(self.__allowed_keys["library"].keys()))
-            if unknown_keys:
-                raise ConfigException("Unknown key(s) '%s' in %s" %
-                                      (",".join(unknown_keys), lib_name))
-            check_dict_types(lib_data, self.__allowed_keys["library"], lib_name)
+            print("Validating Config %s" % lib_name)
+            if not self.LIB_SCHEMA.is_valid(lib_data):
+                raise ConfigException(
+                    "\n".join(str(err) for err in
+                              self.LIB_SCHEMA.iter_errors(lib_data)))
             all_params.update(self._process_config_and_overrides(lib_data, {},
                                                                  lib_name,
                                                                  "library"))
@@ -783,15 +750,14 @@ class Config(object):
         """
         params, _ = self.get_config_data()
         self._check_required_parameters(params)
-        self.cumulative_overrides['features']\
-            .update_target(self.target)
+        features = self.cumulative_overrides['features'].get_value(self.target)
 
-        for feature in self.target.features:
+        for feature in features:
             if feature not in self.__allowed_features:
                 raise ConfigException(
                     "Feature '%s' is not a supported features" % feature)
 
-        return self.target.features
+        return features
 
     def validate_config(self):
         """ Validate configuration settings. This either returns True or

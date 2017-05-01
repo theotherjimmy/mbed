@@ -1,0 +1,98 @@
+{
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "artifact_name": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9\\-_]+$"
+        },
+        "config": {
+            "type": "object",
+            "additionalProperties": false,
+            "patternProperties": {
+                "^[a-z\\-]+$": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "help": {"type": "string"},
+                        "value": {
+                            "anyOf": [
+                                {"type": "string"},
+                                {"type": "number"},
+                                {"type": "boolean"}
+                            ]
+                        },
+                        "macro_name": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9\\_]$"
+                        },
+                        "required": {"type": "boolean"}
+                    }
+                }
+            }
+        },
+        "target_overrides": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "target.bootloader_img": {"type": "string"},
+                "target.restrict_size": {
+                    "anyOf": [
+                        {"type": "number"},
+                        {"type": "string",
+                         "pattern": "^((0[0-7]+)|(0x[0-9a-fA-F]+)|([1-9][0-9]*))$"
+                        }
+                    ]
+                }
+            },
+            "patternProperties": {
+                "^((\\*)|([A-Za-z0-9\\-_]+))$": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "patternProperties":{
+                        "^target\\.macros(_(add|remove))?$": {
+                            "type": "array",
+                            "uniqueItems": true,
+                            "items": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z0-9_]+(=[A-Za-z0-9_])?$"
+                            }
+                        },
+                        "^target\\.(features|device_has)(_(add|remove))?$": {
+                            "type": "array",
+                            "uniqueItems": true,
+                            "items": {
+                                "type": "string",
+                                "pattern": "^[A-Z0-9_]+$"
+                            }
+                        },
+                        "^target\\.extra_labes(_(add|remove))?$": {
+                            "type": "array",
+                            "uniqueItems": true,
+                            "items": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z0-9\\-_]+$"
+                            }
+                        },
+                        "^([a-z0-9]+)\\.([a-z0-9]+)$": {
+                            "anyOf": [
+                                {"type": "string"},
+                                {"type": "number"},
+                                {"type": "boolean"}
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "macros": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_]+(=[A-Za-z0-9_])?$"
+            }
+        }
+    }
+}
