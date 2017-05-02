@@ -113,30 +113,6 @@ def sanitize(name):
     return name.replace('.', '_').replace('-', '_')
 
 
-class ConfigMacro(object):
-    """ A representation of a configuration macro. It handles both macros
-    without a value (MACRO) and with a value (MACRO=VALUE)
-    """
-    def __init__(self, name, unit_name, unit_kind):
-        """Construct a ConfigMacro object
-
-        Positional arguments:
-        name - the macro's name
-        unit_name - the location where the macro was defined
-        unit_kind - the type of macro this is
-        """
-        self.name = name
-        self.defined_by = unit_display_name(unit_name, unit_kind)
-        if "=" in name:
-            tmp = name.split("=")
-            if len(tmp) != 2:
-                raise ValueError("Invalid macro definition '%s' in '%s'" %
-                                 (name, self.defined_by))
-            self.macro_name = tmp[0]
-            self.macro_value = tmp[1]
-        else:
-            self.macro_name = name
-            self.macro_value = None
 
 
 class ConfigParameter(object):
@@ -192,10 +168,10 @@ class ConfigParameter(object):
             return '%s has no value' % self.name
 
 
-class ConfigCumulativeOverride(object):
+class CumulativeOverride(object):
     """Representation of overrides for cumulative attributes"""
     def __init__(self, name):
-        """Construct a ConfigCumulativeOverride object
+        """Construct a CumulativeOverride object
 
         Positional arguments:
         name - the name of the config file this came from ?
@@ -286,6 +262,8 @@ def _process_config_parameters(data, params, unit_name, unit_kind):
                                             unit_kind)
     return params
 
+ConfigMacro = namedtuple("ConfigMacro",
+                         "name defined_by macro_name macro_value")
 
 def _process_macros(mlist, macros, unit_name, unit_kind):
     """Process a macro definition and check for incompatible duplicate
@@ -298,13 +276,19 @@ def _process_macros(mlist, macros, unit_name, unit_kind):
     unit_kind - the kind of the unit ("library" or "application")
     """
     for mname in mlist:
-        macro = ConfigMacro(mname, unit_name, unit_kind)
-        if (macro.macro_name in macros) and \
-           (macros[macro.macro_name].name != mname):
-            # Found an incompatible definition of the macro in another module,
-            # so raise an error
-            full_unit_name = unit_display_name(unit_name,
-                                                              unit_kind)
+        defined_by = unit_display_name(unit_name, unit_kind)
+        if "=" in mname:
+            try:
+                macro_name, macro_value = mname.split("=")
+                macro = ConfigMacro(mname, defined_by, macro_name, macro_value)
+            except ValueError:
+                raise ValueError("Invalid macro definition '%s' in '%s'" %
+                                 (mname, defined_by))
+        else:
+            macro = ConfigMacro(mname, defined_by, mname, None)
+        if  ((macro.macro_name in macros) and
+             (macros[macro.macro_name].name != mname)):
+            full_unit_name = unit_display_name(unit_name, unit_kind)
             raise ConfigException(
                 ("Macro '%s' defined in both '%s' and '%s'"
                  % (macro.macro_name, macros[macro.macro_name].defined_by,
@@ -356,7 +340,7 @@ class Config(object):
         top_level_dirs may be None (in this case, the constructor will not
         search for a configuration file).
         """
-        self.cumulative_overrides = {key: ConfigCumulativeOverride(key)
+        self.cumulative_overrides = {key: CumulativeOverride(key)
                                      for key in CUMULATIVE_ATTRIBUTES}
         config_errors = []
         app_config_location = app_config
@@ -401,8 +385,8 @@ class Config(object):
         self.target_labels = self.target.labels
 
 
-        self._process_config_and_overrides(self.app_config_data, {}, "app",
-                                           "application")
+        self.process_config_and_overrides(self.app_config_data, {}, "app",
+                                          "application")
         self.config_errors = config_errors
 
     def add_config_files(self, flist):
@@ -411,35 +395,24 @@ class Config(object):
         Positional arguments:
         flist - a list of files to add to this configuration
         """
+        new_configs = False
         for config_file in flist:
-            if not config_file.endswith(self.__mbed_lib_config_name):
-                continue
             full_path = os.path.normpath(os.path.abspath(config_file))
-            # Check that we didn't already process this file
-            if self.processed_configs.has_key(full_path):
+            if  (not config_file.endswith(self.__mbed_lib_config_name) or
+                 full_path in self.processed_configs):
                 continue
             self.processed_configs[full_path] = True
-            # Read the library configuration and add a "__full_config_path"
-            # attribute to it
             try:
                 cfg = json_file_to_dict(config_file)
             except ValueError as exc:
                 sys.stderr.write(str(exc) + "\n")
                 continue
-
             cfg["__config_path"] = full_path
-
-            if "name" not in cfg:
-                raise ConfigException(
-                    "Library configured at %s has no name field." % full_path)
-            # If there's already a configuration for a module with the same
-            # name, exit with error
-            if self.lib_config_data.has_key(cfg["name"]):
-                raise ConfigException(
-                    "Library name '%s' is not unique (defined in '%s' and '%s')"
-                    % (cfg["name"], full_path,
-                       self.lib_config_data[cfg["name"]]["__config_path"]))
             self.lib_config_data[cfg["name"]] = cfg
+            new_configs = True
+        if new_configs:
+            self.cumulative_overrides = {key: CumulativeOverride(key)
+                                        for key in CUMULATIVE_ATTRIBUTES}
 
     def __getattr__(self, attrname):
         if attrname in self.cumulative_overrides:
@@ -498,7 +471,7 @@ class Config(object):
             raise ConfigException("Not enough memory on device to fit all "
                                   "application regions")
 
-    def _process_config_and_overrides(self, data, params, unit_name, unit_kind):
+    def process_config_and_overrides(self, data, params, unit_name, unit_kind):
         """Process "config_parameters" and "target_config_overrides" into a
         given dictionary
 
@@ -525,57 +498,36 @@ class Config(object):
                                                          label) +
                         " is only allowed at the application level")
 
-                # Parse out cumulative overrides
                 for attr, cumulatives in self.cumulative_overrides.iteritems():
                     if 'target.'+attr in overrides:
                         key = 'target.' + attr
-                        if not isinstance(overrides[key], list):
-                            raise ConfigException(
-                                "The value of %s.%s is not of type %s" %
-                                (unit_name, "target_overrides." + key,
-                                 "list"))
                         cumulatives.strict_cumulative_overrides(overrides[key])
-                        del overrides[key]
 
                     if 'target.'+attr+'_add' in overrides:
                         key = 'target.' + attr + "_add"
-                        if not isinstance(overrides[key], list):
-                            raise ConfigException(
-                                "The value of %s.%s is not of type %s" %
-                                (unit_name, "target_overrides." + key,
-                                 "list"))
                         cumulatives.add_cumulative_overrides(overrides[key])
-                        del overrides[key]
 
                     if 'target.'+attr+'_remove' in overrides:
                         key = 'target.' + attr + "_remove"
-                        if not isinstance(overrides[key], list):
-                            raise ConfigException(
-                                "The value of %s.%s is not of type %s" %
-                                (unit_name, "target_overrides." + key,
-                                 "list"))
                         cumulatives.remove_cumulative_overrides(overrides[key])
-                        del overrides[key]
 
-                # Consider the others as overrides
                 for name, val in overrides.items():
-                    # Get the full name of the parameter
-                    full_name = parameter_full_name(name, unit_name,
-                                                              unit_kind, label)
+                    full_name = parameter_full_name(
+                        name, unit_name, unit_kind, label)
                     if full_name in params:
-                        params[full_name].set_value(val, unit_name, unit_kind,
-                                                    label)
-                    elif name in self.__unused_overrides:
+                        params[full_name].set_value(
+                            val, unit_name, unit_kind, label)
+                    elif (name in self.__unused_overrides or
+                          name.startswith("target.")):
                         pass
                     else:
                         self.config_errors.append(
                             ConfigException(
-                                "Attempt to override undefined parameter" +
-                                (" '%s' in '%s'"
+                                ("Attempt to override undefined parameter"
+                                 " '%s' in '%s'"
                                  % (full_name,
-                                    unit_display_name(unit_name,
-                                                                     unit_kind,
-                                                                     label)))))
+                                    unit_display_name(
+                                        unit_name, unit_kind, label)))))
 
         return params
 
@@ -586,13 +538,13 @@ class Config(object):
         reversed, so that we first look at the top level target (the parent),
         then its direct children, then the children of those children and so on,
         until we reach self.target
-        TODO: this might not work so well in some multiple inheritance scenarios
+
         At each step, look at two keys of the target data:
-          - config_parameters: used to define new configuration parameters
-          - config_overrides: used to override already defined configuration
-                              parameters
+          - config: used to define new configuration parameters
+          - overrides: used to override already defined configuration parameters
 
         Arguments: None
+        return: parameters
         """
         params, json_data = {}, self.target.json_data
         resolution_order = [e[0] for e
@@ -637,14 +589,13 @@ class Config(object):
         """
         all_params, macros = {}, {}
         for lib_name, lib_data in self.lib_config_data.items():
-            print("Validating Config %s" % lib_name)
             if not self.LIB_SCHEMA.is_valid(lib_data):
                 raise ConfigException(
                     "\n".join(str(err) for err in
                               self.LIB_SCHEMA.iter_errors(lib_data)))
-            all_params.update(self._process_config_and_overrides(lib_data, {},
-                                                                 lib_name,
-                                                                 "library"))
+            all_params.update(self.process_config_and_overrides(lib_data, {},
+                                                                lib_name,
+                                                                "library"))
             _process_macros(lib_data.get("macros", []), macros, lib_name,
                             "library")
         return all_params, macros
@@ -660,11 +611,8 @@ class Config(object):
         macros - the list of macros defined in the configuration
         """
         app_cfg = self.app_config_data
-        # The application can have a "config_parameters" and a
-        # "target_config_overrides" section just like a library
-        self._process_config_and_overrides(app_cfg, params, "app",
-                                           "application")
-        # The application can also defined macros
+        self.process_config_and_overrides(app_cfg, params, "app",
+                                          "application")
         _process_macros(app_cfg.get("macros", []), macros, "app",
                         "application")
 
@@ -784,15 +732,11 @@ class Config(object):
         Positional arguments:
         resources - the resources object to load from and expand
         """
-        # Update configuration files until added features creates no changes
         prev_features = set()
         self.validate_config()
         while True:
-            # Add/update the configuration with any .json files found while
-            # scanning
             self.add_config_files(resources.json_files)
 
-            # Add features while we find new ones
             features = set(self.get_features())
             if features == prev_features:
                 break

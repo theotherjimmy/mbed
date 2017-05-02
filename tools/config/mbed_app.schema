@@ -53,11 +53,7 @@
                     "patternProperties":{
                         "^target\\.macros(_(add|remove))?$": {
                             "type": "array",
-                            "uniqueItems": true,
-                            "items": {
-                                "type": "string",
-                                "pattern": "^[A-Za-z0-9_]+(=[A-Za-z0-9_])?$"
-                            }
+                            "uniqueItems": true
                         },
                         "^target\\.(features|device_has)(_(add|remove))?$": {
                             "type": "array",
@@ -75,7 +71,7 @@
                                 "pattern": "^[A-Za-z0-9\\-_]+$"
                             }
                         },
-                        "^([a-z0-9]+)\\.([a-z0-9]+)$": {
+                        "^(?!target)([a-zA-Z0-9\\-_]+)\\.([a-z0-9\\-_]+)$": {
                             "anyOf": [
                                 {"type": "string"},
                                 {"type": "number"},

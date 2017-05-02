@@ -8,6 +8,7 @@
             "uniqueItems": true
         }
     },
+    "required": ["name"],
     "properties": {
         "__config_path": {"type": "string"},
         "name": {
@@ -63,7 +64,7 @@
                                 "pattern": "^[A-Z0-9_]+$"
                             }
                         },
-                        "^(([a-z0-9\\-_]+)\\.)?([a-z0-9\\-]+)$": {
+                        "^(?!target)(([a-z0-9\\-_]+)\\.)?([a-z0-9\\-]+)$": {
                             "anyOf": [
                                 {"type": "string"},
                                 {"type": "number"},
