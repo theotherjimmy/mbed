@@ -11,24 +11,30 @@
             "type": "object",
             "additionalProperties": false,
             "patternProperties": {
-                "^[a-z\\-]+$": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                        "help": {"type": "string"},
-                        "value": {
-                            "anyOf": [
-                                {"type": "string"},
-                                {"type": "number"},
-                                {"type": "boolean"}
-                            ]
-                        },
-                        "macro_name": {
-                            "type": "string",
-                            "pattern": "^[A-Za-z0-9\\_]$"
-                        },
-                        "required": {"type": "boolean"}
-                    }
+                "^[a-z0-9\\-_]+$": {
+                    "anyOf": [
+                        {"type": "number"},
+                        {"type": "boolean"},
+                        {"type": "string"},
+                        {"type": "object",
+                         "additionalProperties": false,
+                         "properties": {
+                             "help": {"type": "string"},
+                             "value": {
+                                 "anyOf": [
+                                     {"type": "string"},
+                                     {"type": "number"},
+                                     {"type": "boolean"}
+                                 ]
+                             },
+                             "macro_name": {
+                                 "type": "string",
+                                 "pattern": "^[A-Za-z0-9\\_]$"
+                             },
+                             "required": {"type": "boolean"}
+                         }
+                        }
+                    ]
                 }
             }
         },
@@ -49,13 +55,16 @@
             "patternProperties": {
                 "^((\\*)|([A-Za-z0-9\\-_]+))$": {
                     "type": "object",
-                    "additionalProperties": false,
                     "patternProperties":{
-                        "^target\\.macros(_(add|remove))?$": {
+                        "^target\\.macros(_(add|remove))?": {
                             "type": "array",
-                            "uniqueItems": true
+                            "uniqueItems": true,
+                            "items": {
+                                "type": "string",
+                                "pattern" : "^[A-Za-z0-9_](=.+)?$"
+                            }
                         },
-                        "^target\\.(features|device_has)(_(add|remove))?$": {
+                        "^target\\.(device_has|features)(_(add|remove))?$": {
                             "type": "array",
                             "uniqueItems": true,
                             "items": {
@@ -63,32 +72,28 @@
                                 "pattern": "^[A-Z0-9_]+$"
                             }
                         },
-                        "^target\\.extra_labes(_(add|remove))?$": {
+                        "^target\\.extra_labels(_(add|remove))?$": {
                             "type": "array",
                             "uniqueItems": true,
                             "items": {
                                 "type": "string",
                                 "pattern": "^[A-Za-z0-9\\-_]+$"
                             }
-                        },
-                        "^(?!target)([a-zA-Z0-9\\-_]+)\\.([a-z0-9\\-_]+)$": {
-                            "anyOf": [
-                                {"type": "string"},
-                                {"type": "number"},
-                                {"type": "boolean"}
-                            ]
                         }
+                    },
+                    "additionalProperties":{
+                        "anyOf": [
+                            {"type": "string"},
+                            {"type": "number"},
+                            {"type": "boolean"}
+                        ]
                     }
                 }
             }
         },
         "macros": {
             "type": "array",
-            "uniqueItems": true,
-            "items": {
-                "type": "string",
-                "pattern": "^[A-Za-z0-9_]+(=[A-Za-z0-9_])?$"
-            }
+            "uniqueItems": true
         }
     }
 }

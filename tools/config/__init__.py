@@ -76,12 +76,11 @@ def parameter_full_name(name, unit_name, unit_kind, label=None,
     """
     if "." not in name:
         if unit_kind == "target":
-            prefix = "target."
+            return "target." + name
         elif unit_kind == "application":
-            prefix = "app."
+            return "app." + name
         else:
-            prefix = unit_name + '.'
-        return prefix + name
+            return unit_name + '.' + name
 
     if not allow_prefix:
         raise ConfigException("Invalid parameter name '%s' in '%s'" %
@@ -94,7 +93,8 @@ def parameter_full_name(name, unit_name, unit_kind, label=None,
                               (name, unit_display_name(
                                   unit_name, unit_kind, label)))
 
-    if  ((unit_kind == "library" and prefix != unit_name) or
+    if  ((unit_kind == "library" and prefix != unit_name
+          and prefix != "target") or
          (unit_kind == "target" and prefix != "target")):
         raise ConfigException(
             "Invalid prefix '%s' for parameter name '%s' in '%s'" %
@@ -194,11 +194,12 @@ class CumulativeOverride(object):
         overrides - a list of names that, when the override is evaluated, will
                     be removed
         """
-        for override in overrides:
-            if override in self.additions:
-                raise ConfigException(
-                    "Configuration conflict. The %s %s both added and removed."
-                    % (self.name[:-1], override))
+        overrides = set(overrides)
+        added_and_removed = overrides.intersection(self.additions)
+        if len(added_and_removed) > 0:
+            raise ConfigException(
+                "Configuration conflict. The values %s are both added and removed from %s."
+                % (", ".join(added_and_removed), self.name))
 
         self.removals |= set(overrides)
 
@@ -209,12 +210,12 @@ class CumulativeOverride(object):
         overrides - a list of a names that, when the override is evaluated, will
                     be added to the list
         """
-        for override in overrides:
-            if override in self.removals or \
-               (self.strict and override not in self.additions):
-                raise ConfigException(
-                    "Configuration conflict. The %s %s both added and removed."
-                    % (self.name[:-1], override))
+        overrides = set(overrides)
+        added_and_removed = overrides.intersection(self.removals)
+        if len(added_and_removed) > 0:
+            raise ConfigException(
+                "Configuration conflict. The values %s are both added and removed from %s."
+                % (", ".join(added_and_removed), self.name))
 
         self.additions |= set(overrides)
 
@@ -230,7 +231,7 @@ class CumulativeOverride(object):
         self.strict = True
 
     def get_value(self, target):
-        """Update the attributes of a target based on this override"""
+        """Get the overridden version of this property"""
         return list((set(getattr(target, self.name, []))
                      | self.additions) - self.removals)
 
@@ -309,10 +310,10 @@ class Config(object):
 
     APP_SCHEMA = Draft4Validator(
         load(open(join(dirname(__file__), "mbed_app.schema"))),
-        types={"object": (OrderedDict)})
+        types={"object": (OrderedDict, dict)})
     LIB_SCHEMA = Draft4Validator(
         load(open(join(dirname(__file__), "mbed_lib.schema"))),
-        types={"object": (OrderedDict)})
+        types={"object": (OrderedDict, dict)})
 
     __unused_overrides = set(["target.bootloader_img", "target.restrict_size"])
 
@@ -408,6 +409,9 @@ class Config(object):
                 sys.stderr.write(str(exc) + "\n")
                 continue
             cfg["__config_path"] = full_path
+            if cfg["name"] in self.lib_config_data:
+                raise ConfigException(
+                    "Library name '%s' is not unique." % cfg["name"])
             self.lib_config_data[cfg["name"]] = cfg
             new_configs = True
         if new_configs:

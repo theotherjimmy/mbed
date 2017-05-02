@@ -8,7 +8,6 @@
             "uniqueItems": true
         }
     },
-    "required": ["name"],
     "properties": {
         "__config_path": {"type": "string"},
         "name": {
@@ -19,10 +18,11 @@
             "type": "object",
             "additionalProperties": false,
             "patternProperties": {
-                "^[a-z0-9\\-_]+$": {
+                "^[a-zA-Z0-9\\-_]+$": {
                     "anyOf": [
                         {"type": "number"},
                         {"type": "boolean"},
+                        {"type": "string"},
                         {"type": "object",
                          "additionalProperties": false,
                          "properties": {
@@ -64,7 +64,7 @@
                                 "pattern": "^[A-Z0-9_]+$"
                             }
                         },
-                        "^(?!target)(([a-z0-9\\-_]+)\\.)?([a-z0-9\\-]+)$": {
+                        "^(([a-z0-9\\-_]+)\\.)?([a-z0-9\\-]+)$": {
                             "anyOf": [
                                 {"type": "string"},
                                 {"type": "number"},

@@ -40,11 +40,9 @@ def test_tree(full_name, name):
     if "test_data" in sys.modules:
        del sys.modules["test_data"]
     import test_data
-    # If the test defines custom targets, they must exist in a file called
-    # "targets.json" in the test's directory.
     if os.path.isfile(os.path.join(full_name, "targets.json")):
         set_targets_json_location(os.path.join(full_name, "targets.json"))
-    else: # uset the regular set of targets
+    else:
         set_targets_json_location()
     for target, expected in test_data.expected_results.items():
         sys.stdout.write("%s:'%s'(%s) " % (name, expected["desc"], target))
