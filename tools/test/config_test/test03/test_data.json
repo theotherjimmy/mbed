@@ -1,7 +1,4 @@
-# Similar to test1, but this time B2 attempt to override base1_1. Since B2 doesn't directly inherit
-# from B1, this must raise an error
-
-expected_results = {
+{
     "f": {
         "desc": "attempt to override undefined parameter in inherited target",
         "exception_msg": "Attempt to override undefined parameter 'base1_1' in 'target:b2'"
