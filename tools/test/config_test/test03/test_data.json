@@ -1,8 +1,4 @@
 {
-    "f": {
-        "desc": "attempt to override undefined parameter in inherited target",
-        "exception_msg": "Attempt to override undefined parameter 'base1_1' in 'target:b2'"
-    },
     "d1": {
         "desc": "single target inheritance again",
         "target.base1_1": "v_base1_1_d1",
