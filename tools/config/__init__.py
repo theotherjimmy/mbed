@@ -374,24 +374,13 @@ class Config(object):
                                          for key in CUMULATIVE_ATTRIBUTES}
     @property
     def macros(self):
-        self.get_config_data()
+        self.config_data
         return self.cumulative_overrides["macros"].get_value(self.target)
 
     @property
     def device_has(self):
-        self.get_config_data()
+        self.config_data
         return self.cumulative_overrides["device_has"].get_value(self.target)
-
-    @property
-    def has_regions(self):
-        """Does this config have regions defined?"""
-        if 'target_overrides' in self.app_config_data:
-            target_overrides = self.app_config_data['target_overrides'].get(
-                self.target.name, {})
-            return ('target.bootloader_img' in target_overrides or
-                    'target.restrict_size' in target_overrides)
-        else:
-            return False
 
     @property
     def features(self):
@@ -403,6 +392,63 @@ class Config(object):
             return self.app_config_data["artifact_name"]
         else:
             return None
+
+    @property
+    def parameters_as_macros(self):
+        """ Encode the configuration parameters as C macro definitions.
+
+        Positional arguments:
+        params - a dictionary mapping a name to a ConfigParameter
+
+        Return: a list of strings that encode the configuration parameters as
+        C pre-processor macros
+        """
+        return ['%s=%s' % (m.macro_name, m.value) for m
+                in self.params.values() if m.value is not None]
+
+    @property
+    def config_macros_as_macros(self):
+        """ Return the macro definitions generated for a dictionary of
+        ConfigMacros (as returned by get_config_data).
+
+        Positional arguments:
+        params - a dictionary mapping a name to a ConfigMacro instance
+
+        Return: a list of strings that are the C pre-processor macros
+        """
+        return [m.name for m in self._macros.values()]
+
+    @property
+    def config_as_macros(self):
+        """Convert the configuration data to a list of C macros
+
+        Positional arguments:
+        config - configuration data as (ConfigParam instances, ConfigMacro
+                 instances) tuple (as returned by get_config_data())
+        """
+        self._check_required_parameters()
+        return self.config_macros_as_macros + self.parameters_as_macros
+
+    @property
+    def valid(self):
+        """ Validate configuration settings. This either returns True or
+        raises an exception
+        """
+        self.config_data
+        if self.config_errors:
+            raise self.config_errors[0]
+        return True
+
+    @property
+    def has_regions(self):
+        """Does this config have regions defined?"""
+        if 'target_overrides' in self.app_config_data:
+            target_overrides = self.app_config_data['target_overrides'].get(
+                self.target.name, {})
+            return ('target.bootloader_img' in target_overrides or
+                    'target.restrict_size' in target_overrides)
+        else:
+            return False
 
     @property
     def regions(self):
@@ -443,7 +489,6 @@ class Config(object):
         if start > rom_size:
             raise ConfigException("Not enough memory on device to fit all "
                                   "application regions")
-
 
     def add_unit_config(self, data, unit_name, unit_kind):
         """Process a "config" section in a config file
@@ -499,12 +544,10 @@ class Config(object):
 
 
     def do_unit_overrides(self, data, unit_name, unit_kind):
-        """Process "config_parameters" and "target_config_overrides" into a
-        given dictionary
+        """Process "target_overrides" section of a config file
 
         Positional arguments:
         data - the configuration data of the library/appliation
-        params - storage for the discovered configuration parameters
         unit_name - the unit (library/application) that defines this parameter
         unit_kind - the kind of the unit ("library" or "application")
         """
@@ -541,13 +584,15 @@ class Config(object):
                 except KeyError:
                     self.config_errors.append(
                         ConfigException(
-                            ("Attempt to override undefined parameter"
-                             " '%s' in '%s'"
-                             % (full_name,
-                                unit_display_name(
-                                    unit_name, unit_kind, label)))))
+                            "Attempt to override undefined parameter"
+                            " '%s' in '%s'"
+                            % (full_name,
+                               unit_display_name(unit_name, unit_kind, label))))
 
     def unit_config_then_overrides(self, data, name, kind):
+        """Process all of the data a unit could have: adding config parameters,
+        overriding config parameters and adding macros.
+        """
         if data.get("config", {}):
             self.add_unit_config(data["config"], name, kind)
         if data.get("target_overrides", {}):
@@ -555,7 +600,8 @@ class Config(object):
         if data.get("macros", {}):
             self.add_unit_macros(data["macros"], name, kind)
 
-    def get_target_config_data(self):
+    @property
+    def target_config_data(self):
         """Read and interpret configuration data defined by targets.
 
         We consider the resolution order for our target and sort it by level
@@ -579,8 +625,10 @@ class Config(object):
                 to_yield["target_overrides"] = {tname: target_data["overrides"]}
             yield (to_yield, tname, "target")
 
-    def get_config_data(self):
-        """ Return the configuration data in two parts: (params, macros)
+    @property
+    def config_data(self):
+        """Finalize and return the configuration data in two parts:
+        (params, macros)
         params - a dictionary with mapping a name to a ConfigParam
         macros - the list of macros defined with "macros" in libraries and in
                  the application (as ConfigMacro instances)
@@ -589,7 +637,7 @@ class Config(object):
         """
         if not self.params:
             self.config_errors = []
-            for data, name, kind in (list(self.get_target_config_data()) +
+            for data, name, kind in (list(self.target_config_data) +
                                      [(data, name, "library") for name, data
                                       in self.lib_config_data.items()] +
                                      [(self.app_config_data, "app",
@@ -606,45 +654,12 @@ class Config(object):
         NOTE: This function does not return. Instead, it throws a
         ConfigException when any of the required parameters are missing values
         """
+        self.config_data
         for param in self.params.values():
             if param.required and (param.value is None):
                 raise ConfigException(
                     "Required parameter '%s' defined by '%s' has no value"
                     % (param.name, param.defined_by))
-
-    def parameters_to_macros(self):
-        """ Encode the configuration parameters as C macro definitions.
-
-        Positional arguments:
-        params - a dictionary mapping a name to a ConfigParameter
-
-        Return: a list of strings that encode the configuration parameters as
-        C pre-processor macros
-        """
-        return ['%s=%s' % (m.macro_name, m.value) for m
-                in self.params.values() if m.value is not None]
-
-    def config_macros_to_macros(self):
-        """ Return the macro definitions generated for a dictionary of
-        ConfigMacros (as returned by get_config_data).
-
-        Positional arguments:
-        params - a dictionary mapping a name to a ConfigMacro instance
-
-        Return: a list of strings that are the C pre-processor macros
-        """
-        return [m.name for m in self._macros.values()]
-
-    def config_to_macros(self):
-        """Convert the configuration data to a list of C macros
-
-        Positional arguments:
-        config - configuration data as (ConfigParam instances, ConfigMacro
-                 instances) tuple (as returned by get_config_data())
-        """
-        self._check_required_parameters()
-        return self.config_macros_to_macros() + self.parameters_to_macros()
-
 
     def get_features(self):
         """ Extract any features from the configuration data
@@ -661,26 +676,17 @@ class Config(object):
 
         return features
 
-    def validate_config(self):
-        """ Validate configuration settings. This either returns True or
-        raises an exception
-
-        Arguments: None
-        """
-        self.get_config_data()
-        if self.config_errors:
-            raise self.config_errors[0]
-        return True
-
     def load_resources(self, resources):
         """ Load configuration data from a Resources instance and expand it
         based on defined features.
 
         Positional arguments:
         resources - the resources object to load from and expand
+
+        Side effects:
+        updates the resources object to include all of the files in the features
         """
         prev_features = set()
-        self.validate_config()
         while True:
             self.add_config_files(resources.json_files)
 
@@ -693,9 +699,7 @@ class Config(object):
                     resources.add(resources.features[feature])
 
             prev_features = features
-        self.validate_config()
-
-        return resources
+        assert self.valid
 
     def get_config_data_header(self, fname=None):
         """ Convert the configuration data to the content of a C header file,

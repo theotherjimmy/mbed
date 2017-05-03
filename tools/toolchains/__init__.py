@@ -282,8 +282,6 @@ class mbedToolchain:
         # This will hold the initialized config object
         self.config = None
 
-        # This will hold the configuration data (as returned by Config.get_config_data())
-        self.config_data = None
 
         # This will hold the location of the configuration file or None if there's no configuration available
         self.config_file = None
@@ -1105,10 +1103,6 @@ class mbedToolchain:
         # about sections + summary
         return memap.mem_report
 
-    # Set the configuration data
-    def set_config_data(self, config_data):
-        self.config_data = config_data
-
     # Creates the configuration header if needed:
     # - if there is no configuration data, "mbed_config.h" is not create (or deleted if it exists).
     # - if there is configuration data and "mbed_config.h" does not exist, it is created.
@@ -1392,7 +1386,7 @@ class mbedToolchain:
 
     # Return the list of macros geenrated by the build system
     def get_config_macros(self):
-        return self.config.config_to_macros() if self.config_data else []
+        return self.config.config_as_macros if self.config.config_data else []
 
 from tools.settings import ARM_PATH
 from tools.settings import GCC_ARM_PATH

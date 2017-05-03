@@ -27,7 +27,7 @@ def compare_config(cfg, expected):
     try:
         for k in cfg:
             if cfg[k].value != expected[k]:
-                return "'%s': expected '%s', got '%s'" % (k, expected[k], cfg[k].value)
+                return "'%s': expected '%r', got '%r'" % (k, expected[k], cfg[k].value)
     except KeyError:
         return "Unexpected key '%s' in configuration data" % k
     for k in expected:
@@ -48,7 +48,6 @@ def test_tree(full_name, name):
         err_msg = None
         try:
             cfg, macros, features = get_config(full_name, target, "GCC_ARM")
-            macros = Config.config_macros_to_macros(macros)
         except ConfigException as e:
             err_msg = e.message
         if err_msg:
