@@ -68,7 +68,7 @@
                                 "pattern": "^[A-Z0-9_]+$"
                             }
                         },
-                        "^target\\.extra_labels(_(add|remove))?$": {
+                        "^target\\.extra_labels_(add|remove)$": {
                             "type": "array",
                             "uniqueItems": true,
                             "items": {
