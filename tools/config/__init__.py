@@ -336,7 +336,7 @@ class Config(object):
         self.target = deepcopy(self.target)
 
 
-        self.do_unit_overrides(self.app_config_data, "app", "application")
+        self._override_config(self.app_config_data, "app", "application")
         self.config_errors = config_errors
 
     def add_config_files(self, flist):
@@ -345,7 +345,7 @@ class Config(object):
         Positional arguments:
         flist - a list of files to add to this configuration
         """
-        new_configs = False
+        wipe_cache = False
         for config_file in flist:
             full_path = os.path.normpath(os.path.abspath(config_file))
             if  (not config_file.endswith(self.lib_config_name) or
@@ -366,8 +366,8 @@ class Config(object):
                 raise ConfigException(
                     "Library name '%s' is not unique." % cfg["name"])
             self.lib_config_data[cfg["name"]] = cfg
-            new_configs = True
-        if new_configs:
+            wipe_cache = True
+        if wipe_cache:
             self._macros = {}
             self.params = {}
             self.cumulative_overrides = {key: CumulativeOverride(key)
@@ -490,7 +490,7 @@ class Config(object):
             raise ConfigException("Not enough memory on device to fit all "
                                   "application regions")
 
-    def add_unit_config(self, data, unit_name, unit_kind):
+    def _add_unit_config(self, data, unit_name, unit_kind):
         """Process a "config" section in a config file
 
         Positional arguments:
@@ -510,13 +510,12 @@ class Config(object):
         self.params.update(new_params)
 
 
-    def add_unit_macros(self, mlist, unit_name, unit_kind):
+    def _add_unit_macros(self, mlist, unit_name, unit_kind):
         """Process a macro definition and check for incompatible duplicate
         definitions.
 
         Positional arguments:
         mlist - list of macro names to process
-        macros - dictionary with currently discovered macros
         unit_name - the unit (library/application) that defines this macro
         unit_kind - the kind of the unit ("library" or "application")
         """
@@ -543,7 +542,7 @@ class Config(object):
             self._macros[macro.macro_name] = macro
 
 
-    def do_unit_overrides(self, data, unit_name, unit_kind):
+    def _override_config(self, data, unit_name, unit_kind):
         """Process "target_overrides" section of a config file
 
         Positional arguments:
@@ -594,11 +593,11 @@ class Config(object):
         overriding config parameters and adding macros.
         """
         if data.get("config", {}):
-            self.add_unit_config(data["config"], name, kind)
+            self._add_unit_config(data["config"], name, kind)
         if data.get("target_overrides", {}):
-            self.do_unit_overrides(data["target_overrides"], name, kind)
+            self._override_config(data["target_overrides"], name, kind)
         if data.get("macros", {}):
-            self.add_unit_macros(data["macros"], name, kind)
+            self._add_unit_macros(data["macros"], name, kind)
 
     @property
     def target_config_data(self):
@@ -634,6 +633,9 @@ class Config(object):
                  the application (as ConfigMacro instances)
 
         Arguments: None
+
+        Just calls unit_config_then_overrides on the correct units in the right
+        order
         """
         if not self.params:
             self.config_errors = []
