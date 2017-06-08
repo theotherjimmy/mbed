@@ -480,6 +480,11 @@ class SingleTestRunner(object):
                 tt_test_id = "%s::%s::%s" % (toolchain, target, test_id)    # For logging only
 
                 project_name = self.opts_firmware_global_name if self.opts_firmware_global_name else None
+                if not TOOLCHAIN_CLASSES[toolchain].check_executable():
+                    search_path = TOOLCHAIN_PATHS[toolchain] or "No path set"
+                    raise Exception("Could not find executable for %s.\n"
+                                    "Currently set search path: %s"
+                                    % (toolchain, search_path))
                 try:
                     path = build_project(test.source_dir,
                                      join(build_dir, test_id),
