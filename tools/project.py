@@ -187,6 +187,10 @@ def main():
                         dest="app_config",
                         default=None)
 
+    parser.add_argument("-z", "--zip",
+                        action="store_true",
+                        default=False)
+
     options = parser.parse_args()
 
     # Print available tests in order and exit
@@ -236,7 +240,7 @@ def main():
         if exists(EXPORT_DIR):
             rmtree(EXPORT_DIR)
 
-    zip_proj = not bool(options.source_dir)
+    zip_proj = not bool(options.source_dir) or options.zip
 
     if (options.program is None) and (not options.source_dir):
         args_error(parser, "one of -p, -n, or --source is required")

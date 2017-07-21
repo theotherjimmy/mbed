@@ -33,6 +33,7 @@ from tools.export import embitz, coide, kds, simplicity, atmelstudio, mcuxpresso
 from tools.export import sw4stm32, e2studio, zip, cmsis, uvision, cdt, vscode
 from tools.export import gnuarmeclipse
 from tools.export import qtcreator
+from tools.export import cmsis_pack
 from tools.targets import TARGET_NAMES
 
 EXPORTERS = {
@@ -61,7 +62,10 @@ EXPORTERS = {
     'qtcreator': qtcreator.QtCreator,
     'vscode_gcc_arm' : vscode.VSCodeGcc,
     'vscode_iar' : vscode.VSCodeIAR,
-    'vscode_armc5' : vscode.VSCodeArmc5
+    'vscode_armc5' : vscode.VSCodeArmc5,
+    'cmsis-pack_gcc_arm' : cmsis_pack.GccArm,
+    'cmsis-pack_iar' : cmsis_pack.IAR,
+    'cmsis-pack_armc5' : cmsis_pack.Armc5,
 }
 
 ERROR_MESSAGE_UNSUPPORTED_TOOLCHAIN = """
@@ -221,7 +225,7 @@ def zip_export(file_name, prefix, resources, project_files, inc_repos):
     """
     with zipfile.ZipFile(file_name, "w") as zip_file:
         for prj_file in project_files:
-            zip_file.write(prj_file, join(prefix, basename(prj_file)))
+            zip_file.write(prj_file, basename(prj_file))
         for loc, res in resources.iteritems():
             to_zip = (
                 res.headers + res.s_sources + res.c_sources +\
@@ -240,11 +244,11 @@ def zip_export(file_name, prefix, resources, project_files, inc_repos):
                 if source:
                     zip_file.write(
                         source,
-                        join(prefix, loc,
+                        join(loc,
                              relpath(source, res.file_basepath[source])))
             for source in res.lib_builds:
                 target_dir, _ = splitext(source)
-                dest = join(prefix, loc,
+                dest = join(loc,
                             relpath(target_dir, res.file_basepath[source]),
                             ".bld", "bldrc")
                 zip_file.write(source, dest)
