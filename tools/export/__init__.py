@@ -201,7 +201,7 @@ def zip_export(file_name, prefix, resources, project_files, inc_repos, notify):
                 if source:
                     zip_file.write(
                         source,
-                        join(prefix, loc,
+                        join(loc,
                              relpath(source, res.file_basepath[source])))
                     notify.progress("Zipping", source,
                                     100 * (zipped / total_files))
@@ -209,7 +209,7 @@ def zip_export(file_name, prefix, resources, project_files, inc_repos, notify):
         for lib, res in resources.items():
             for source in res.lib_builds:
                 target_dir, _ = splitext(source)
-                dest = join(prefix, loc,
+                dest = join(loc,
                             relpath(target_dir, res.file_basepath[source]),
                             ".bld", "bldrc")
                 zip_file.write(source, dest)

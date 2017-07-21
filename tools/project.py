@@ -298,6 +298,12 @@ def get_args(argv):
               "(eg. ./main.cpp)")
     )
 
+    parser.add_argument(
+        "-z", "--zip",
+        action="store_true",
+        default=False,
+    )
+
     return parser.parse_args(argv), parser
 
 
@@ -352,7 +358,7 @@ def main():
                 src=options.source_dir,
                 macros=options.macros,
                 project_id=options.program,
-                zip_proj=not bool(options.source_dir),
+                zip_proj=not bool(options.source_dir) or options.zip,
                 build_profile=profile,
                 app_config=options.app_config,
                 export_path=options.build_dir,

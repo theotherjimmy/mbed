@@ -61,8 +61,7 @@ class LazyDict(object):
     def __getitem__(self, key):
         if  (key not in self.eager
              and key in self.lazy):
-            self.eager[key] = self.lazy[key]()
-            del self.lazy[key]
+            self.eager[key] = self.lazy.pop(key)()
         return self.eager[key]
 
     def __setitem__(self, key, value):
@@ -70,9 +69,9 @@ class LazyDict(object):
 
     def __delitem__(self, key):
         if key in self.eager:
-            del self.eager[key]
+            self.eager.pop(key)
         else:
-            del self.lazy[key]
+            self.lazy.pop(key)
 
     def __contains__(self, key):
         return key in self.eager or key in self.lazy
@@ -291,6 +290,7 @@ class Resources:
 
         def to_apply(feature, base=base, dot=dot):
             feature.relative_to(base, dot)
+            return feature
         self.features.apply(to_apply)
 
         if self.linker_script is not None:
@@ -306,6 +306,7 @@ class Resources:
 
         def to_apply(feature):
             feature.win_to_unix()
+            return feature
         self.features.apply(to_apply)
 
         if self.linker_script is not None:
@@ -704,6 +705,9 @@ class mbedToolchain:
             for file in files:
                 file_path = join(root, file)
                 self._add_file(file_path, resources, base_path)
+        for dir in resources.inc_dirs:
+            if not any(h.startswith(dir) for h in resources.headers):
+                resources.inc_dirs.remove(dir)
 
     # A helper function for both scan_resources and _add_dir. _add_file adds one file
     # (*file_path*) to the resources object based on the file type.
