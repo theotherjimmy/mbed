@@ -58,7 +58,7 @@ class CMSISPack(Exporter):
 
         ctx = {
             'linker_script': self.resources.linker_script,
-            'include_paths': list(set(join(p, "") for p in self.resources.inc_dirs)),
+            'include_paths': list(set(join(p, "") for p in self.resources.inc_dirs if p)),
             'object_files': self.resources.objects,
             'c_files' : self.resources.c_sources,
             's_files' : self.resources.s_sources,
@@ -66,15 +66,7 @@ class CMSISPack(Exporter):
             'headers' : self.resources.headers,
             'hex_files': self.resources.hex_files,
             'libraries': self.resources.libraries,
-            'cc_cmd': " ".join(["\'" + part + "\'" for part
-                                in ([basename(self.toolchain.cc[0])] +
-                                    self.toolchain.cc[1:])]),
-            'cppc_cmd': " ".join(["\'" + part + "\'" for part
-                                  in ([basename(self.toolchain.cppc[0])] +
-                                      self.toolchain.cppc[1:])]),
-            'asm_cmd': " ".join(["\'" + part + "\'" for part
-                                in ([basename(self.toolchain.asm[0])] +
-                                    self.toolchain.asm[1:])]),
+            'preinclude': self.toolchain.get_config_header(),
             'device_name': dev.dname,
             'dependent_pack': dev.pack_url,
             'target': self.target,
@@ -86,7 +78,7 @@ class CMSISPack(Exporter):
         for feature, res in self.resources.features.iteritems():
             ctx['features'][feature] = {
                 'object_files': res.objects,
-                'include_paths': list(set(join(p, "") for p in res.inc_dirs)),
+                'include_paths': list(set(join(p, "") for p in res.inc_dirs if p)),
                 'hex_files': res.hex_files,
                 'object_files': res.objects,
                 'c_files' : res.c_sources,
