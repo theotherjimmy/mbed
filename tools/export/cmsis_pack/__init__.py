@@ -44,6 +44,14 @@ class CMSISPack(Exporter):
         "LPC4088Code.binary_hook"
     ])
 
+    @staticmethod
+    def symbol_parse(sym):
+        if "=" in sym:
+            name, value = sym.split("=")
+            return name, value
+        else:
+            return sym, None
+
     def generate(self):
         """Generate the pdsc file
 
@@ -56,7 +64,10 @@ class CMSISPack(Exporter):
 
         dev = DeviceCMSIS(self.target)
 
+        symbols = map(self.symbol_parse, self.toolchain.get_symbols())
+
         ctx = {
+            'syms': symbols,
             'linker_script': self.resources.linker_script,
             'include_paths': list(set(join(p, "") for p in self.resources.inc_dirs if p)),
             'object_files': self.resources.objects,
