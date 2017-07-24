@@ -23,6 +23,11 @@
   <components>
     <component Cclass="mbed OS" Cgroup="Core" Cversion="5.5.4" condition="Everything">
       <description></description>
+      <RTE_Components_h>
+        {%- for name, value in syms %}
+#define {{name}} {% if value %} {{value}} {% endif %}
+        {%- endfor -%}
+      </RTE_Components_h>
       <files>
         <file name="{{preinclude|escape}}" category="preInclude"/>
         {%- for src in c_files %}
