@@ -26,10 +26,10 @@
       <RTE_Components_h>
         {%- for name, value in syms %}
 #define {{name}} {% if value %} {{value}} {% endif %}
-        {%- endfor -%}
+        {%- endfor %}
+#include "{{preinclude}}"
       </RTE_Components_h>
       <files>
-        <file name="{{preinclude|escape}}" category="preInclude"/>
         {%- for src in c_files %}
         <file name="{{src|escape}}" category="sourceC"/>
         {%- endfor -%}
