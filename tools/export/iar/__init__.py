@@ -132,6 +132,11 @@ class IAR(Exporter):
             'ewp': sep+self.project_name + ".ewp",
             'debugger': debugger
         }
+        if self.resources.hex_files:
+            ctx['hex_file'] = self.format_file(self.resources.hex_files[0])
+        else:
+            ctx['hex_file'] = None
+
         ctx.update(flags)
 
         self.gen_file('iar/eww.tmpl', ctx, self.project_name + ".eww")
