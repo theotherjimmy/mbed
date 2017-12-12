@@ -22,7 +22,7 @@ import sys
 from subprocess import check_output, CalledProcessError, Popen, PIPE
 import shutil
 from jinja2.exceptions import TemplateNotFound
-from tools.export.exporters import Exporter, filter_supported
+from tools.export.exporters import Exporter, apply_supported_whitelist
 from tools.export.cmsis import DeviceCMSIS
 from tools.utils import NotSupportedException
 from tools.targets import TARGET_MAP
@@ -105,21 +105,31 @@ class CMSISPack(Exporter):
 
 class GccArm(CMSISPack):
     """GCC ARM specific makefile target"""
-    TARGETS = filter_supported("GCC_ARM", CMSISPack.POST_BINARY_WHITELIST)
+
+    @classmethod
+    def is_target_supported(cls, target_name):
+        target = TARGET_MAP[target_name]
+        apply_supported_whitelist("GCC_ARM", CMSISPack.POST_BINARY_WHITELIST, target)
     NAME = 'CMSIS-Pack-GCC-ARM'
     TOOLCHAIN = "GCC_ARM"
     COMPILER_REQUIREMENT = "GCC"
 
 class Armc5(CMSISPack):
     """ARM Compiler 5 specific makefile target"""
-    TARGETS = filter_supported("ARM", CMSISPack.POST_BINARY_WHITELIST)
+    @classmethod
+    def is_target_supported(cls, target_name):
+        target = TARGET_MAP[target_name]
+        apply_supported_whitelist("ARM", CMSISPack.POST_BINARY_WHITELIST, target)
     NAME = 'CMSIS-Pack-ARMc5'
     TOOLCHAIN = "ARM"
     COMPILER_REQUIREMENT = "ARMCC"
 
 class IAR(CMSISPack):
     """IAR specific makefile target"""
-    TARGETS = filter_supported("IAR", CMSISPack.POST_BINARY_WHITELIST)
+    @classmethod
+    def is_target_supported(cls, target_name):
+        target = TARGET_MAP[target_name]
+        apply_supported_whitelist("IAR", CMSISPack.POST_BINARY_WHITELIST, target)
     NAME = 'CMSIS-Pack-IAR'
     TOOLCHAIN = "IAR"
     COMPILER_REQUIREMENT = "IAR"
