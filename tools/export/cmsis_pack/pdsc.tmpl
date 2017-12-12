@@ -18,8 +18,6 @@
       <require condition="Everything"/>
     </condition>
   </conditions>
-  <extensions>
-  </extensions>
   <components>
     <component Cclass="mbed OS" Cgroup="Core" Cversion="5.5.4" condition="Everything">
       <description></description>
@@ -39,9 +37,6 @@
         {%- for src in cpp_files %}
         <file name="{{src|escape}}" category="sourceCpp"/>
         {%- endfor -%}
-        {%- for src in headers %}
-        <file name="{{src|escape}}" category="header"/>
-        {%- endfor -%}
         {%- for src in include_paths %}
         <file name="{{src|escape}}" category="include"/>
         {%- endfor -%}
@@ -52,6 +47,7 @@
         <file name="{{src|escape}}" category="library"/>
         {%- endfor -%}
         <file name="{{linker_script}}" category="linkerScript"/>
+        <file name="mbed.h" category="header"/>
       </files>
     </component>
     {%- for feature, data in features.iteritems() %}
@@ -66,9 +62,6 @@
         {%- endfor -%}
         {%- for src in data.cpp_files %}
         <file name="{{src|escape}}" category="sourceCpp"/>
-        {%- endfor -%}
-        {%- for src in data.headers %}
-        <file name="{{src|escape}}" category="header"/>
         {%- endfor -%}
         {%- for src in data.include_paths %}
         <file name="{{src|escape}}" category="include"/>
