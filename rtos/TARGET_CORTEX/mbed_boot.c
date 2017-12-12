@@ -171,6 +171,7 @@
 #include "mbed_error.h"
 #include "mbed_critical.h"
 #include "mbed_rtx_conf.h"
+#include "RTX_Config.h"
 #if defined(__IAR_SYSTEMS_ICC__ ) && (__VER__ >= 8000000)
 #include <DLib_Threads.h>
 #endif
@@ -423,6 +424,59 @@ void __rt_entry (void) {
     mbed_sdk_init();
     _platform_post_stackheap_init();
     mbed_start_main();
+}
+
+#define LIBSPACE_SIZE 96
+
+//lint -esym(714,__user_perthread_libspace,_mutex_*) "Referenced by C library"
+//lint -esym(765,__user_perthread_libspace,_mutex_*) "Global scope"
+//lint -esym(9003, os_libspace*) "variables 'os_libspace*' defined at module scope"
+
+// Memory for libspace
+static uint32_t os_libspace[OS_THREAD_LIBSPACE_NUM+1][LIBSPACE_SIZE/4] \
+__attribute__((section(".bss.os")));
+
+// Thread IDs for libspace
+static osThreadId_t os_libspace_id[OS_THREAD_LIBSPACE_NUM] \
+__attribute__((section(".bss.os")));
+
+// Check if Kernel has been started
+static uint32_t os_kernel_is_active (void) {
+  static uint8_t os_kernel_active = 0U;
+
+  if (os_kernel_active == 0U) {
+    if (osKernelGetState() > osKernelReady) {
+      os_kernel_active = 1U;
+    }
+  }
+  return (uint32_t)os_kernel_active;
+}
+
+// Provide libspace for current thread
+void *__user_perthread_libspace (void);
+void *__user_perthread_libspace (void) {
+  osThreadId_t id;
+  uint32_t     n;
+
+  if (os_kernel_is_active() != 0U) {
+    id = osThreadGetId();
+    for (n = 0U; n < (uint32_t)OS_THREAD_LIBSPACE_NUM; n++) {
+      if (os_libspace_id[n] == NULL) {
+        os_libspace_id[n] = id;
+      }
+      if (os_libspace_id[n] == id) {
+        break;
+      }
+    }
+    if (n == (uint32_t)OS_THREAD_LIBSPACE_NUM) {
+      (void)osRtxErrorNotify(osRtxErrorClibSpace, id);
+    }
+  } else {
+    n = OS_THREAD_LIBSPACE_NUM;
+  }
+
+  //lint -e{9087} "cast between pointers to different object types"
+  return (void *)&os_libspace[n][0];
 }
 
 typedef void *mutex;
