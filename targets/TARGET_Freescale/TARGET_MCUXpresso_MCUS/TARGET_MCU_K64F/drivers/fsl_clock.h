@@ -31,7 +31,6 @@
 #ifndef _FSL_CLOCK_H_
 #define _FSL_CLOCK_H_
 
-#include "core_cmSecureAccess.h"
 #include "fsl_common.h"
 
 #ifdef FEATURE_UVISOR
@@ -58,6 +57,30 @@
     __FSL_CLOCK_SECURE_WRITE(addr, (__FSL_CLOCK_SECURE_READ(addr) & ~(mask)) | ((val) & (mask)))
 
 #else
+
+#define SECURE_WRITE(address, value) \
+    *(address) = (value)
+
+#define SECURE_READ(address) \
+    (*(address))
+
+#define SECURE_BITS_GET(address, mask) \
+    (*(address) & (mask))
+
+#define SECURE_BITS_CHECK(address, mask) \
+    ((*(address) & (mask)) == (mask))
+
+#define SECURE_BITS_SET(address, mask) \
+    *(address) |= (mask)
+
+#define SECURE_BITS_CLEAR(address, mask) \
+    *(address) &= ~(mask)
+
+#define SECURE_BITS_SET_VALUE(address, mask, value) \
+    *(address) = (*(address) & ~(mask)) | ((value) & (mask))
+
+#define SECURE_BITS_TOGGLE(address, mask) \
+    *(address) ^= (mask)
 
 /* Fallback implementation. */
 #define __FSL_CLOCK_SECURE_WRITE(addr, val) \
