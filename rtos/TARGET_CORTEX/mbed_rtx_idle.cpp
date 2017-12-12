@@ -29,7 +29,7 @@
 #include <new>
 #include "rtx_os.h"
 extern "C" {
-#include "rtx_lib.h"
+//#include "rtx_lib.h"
 }
 
 using namespace mbed;

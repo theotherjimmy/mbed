@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include "cmsis_os2.h"
 #include "mbed_rtos1_types.h"
+#include "mbed_rtx_conf.h"
 #include "mbed_rtos_storage.h"
 #include "platform/Callback.h"
 #include "platform/mbed_toolchain.h"
