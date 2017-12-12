@@ -194,6 +194,8 @@ class ARM(mbedToolchain):
         Side Effects:
         This method MAY write a new scatter file to disk
         """
+        if not scatter_file:
+            return None
         with open(scatter_file, "rb") as input:
             lines = input.readlines()
             if  (lines[0].startswith(self.SHEBANG) or
