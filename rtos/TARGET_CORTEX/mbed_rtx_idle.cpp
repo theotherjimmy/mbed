@@ -24,13 +24,13 @@
 #include "platform/mbed_sleep.h"
 #include "TimerEvent.h"
 #include "lp_ticker_api.h"
-#include "rtx_core_cm.h"
+//#include "rtx_core_cm.h"
 #include "mbed_critical.h"
 #include "mbed_assert.h"
 #include <new>
 #include "rtx_os.h"
 extern "C" {
-#include "rtx_lib.h"
+//#include "rtx_lib.h"
 }
 
 using namespace mbed;
