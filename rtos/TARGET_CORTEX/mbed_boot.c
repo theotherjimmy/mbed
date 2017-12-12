@@ -150,7 +150,7 @@
  *
  *
  * ARM Memory layout
- * -Block of memory from end of region "RW_IRAM1" to define INITIAL_SP used to setup interrupt
+ * -Block of memory from end of region "ARM_LIB_HEAP" to define INITIAL_SP used to setup interrupt
  *      stack and heap in the function set_stack_heap()
  * -ISR_STACK_SIZE can be overridden to be larger or smaller
  *
@@ -239,8 +239,8 @@ osMutexAttr_t             singleton_mutex_attr;
     #if defined(__ICCARM__)
         #error "Heap should already be defined for IAR"
     #elif defined(__CC_ARM) || (defined (__ARMCC_VERSION) && (__ARMCC_VERSION >= 6010050))
-        extern uint32_t          Image$$RW_IRAM1$$ZI$$Limit[];
-        #define HEAP_START      ((unsigned char*)Image$$RW_IRAM1$$ZI$$Limit)
+        extern uint32_t          Image$$ARM_LIB_HEAP$$ZI$$Limit[];
+        #define HEAP_START      ((unsigned char*)Image$$ARM_LIB_HEAP$$ZI$$Limit)
         #define HEAP_SIZE       ((uint32_t)((uint32_t)INITIAL_SP - (uint32_t)HEAP_START))
     #elif defined(__GNUC__)
         extern uint32_t         __end__[];

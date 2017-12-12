@@ -1,0 +1,3 @@
+device/TOOLCHAIN_ARM_STD/startup_mk64f12.S
+device/system_mk64f12.c
+device/system_mk64f12.h

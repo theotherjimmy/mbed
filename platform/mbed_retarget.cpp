@@ -520,11 +520,11 @@ extern "C" long PREFIX(_flen)(FILEHANDLE fh) {
     return size;
 }
 
-extern "C" char Image$$RW_IRAM1$$ZI$$Limit[];
+extern "C" char Image$$ARM_LIB_HEAP$$ZI$$Limit[];
 
 extern "C" MBED_WEAK __value_in_regs struct __initial_stackheap _mbed_user_setup_stackheap(uint32_t R0, uint32_t R1, uint32_t R2, uint32_t R3)
 {
-    uint32_t zi_limit = (uint32_t)Image$$RW_IRAM1$$ZI$$Limit;
+    uint32_t zi_limit = (uint32_t)Image$$ARM_LIB_HEAP$$ZI$$Limit;
     uint32_t sp_limit = __current_sp();
 
     zi_limit = (zi_limit + 7) & ~0x7;    // ensure zi_limit is 8-byte aligned
