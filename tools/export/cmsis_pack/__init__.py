@@ -19,7 +19,6 @@ from os.path import splitext, basename, relpath, join, abspath, dirname,\
 from os import remove
 from datetime import datetime
 import sys
-from subprocess import check_output, CalledProcessError, Popen, PIPE
 import shutil
 from jinja2.exceptions import TemplateNotFound
 from tools.export.exporters import Exporter, apply_supported_whitelist
@@ -109,7 +108,7 @@ class GccArm(CMSISPack):
     @classmethod
     def is_target_supported(cls, target_name):
         target = TARGET_MAP[target_name]
-        apply_supported_whitelist("GCC_ARM", CMSISPack.POST_BINARY_WHITELIST, target)
+        return apply_supported_whitelist("GCC_ARM", CMSISPack.POST_BINARY_WHITELIST, target)
     NAME = 'CMSIS-Pack-GCC-ARM'
     TOOLCHAIN = "GCC_ARM"
     COMPILER_REQUIREMENT = "GCC"
@@ -119,7 +118,7 @@ class Armc5(CMSISPack):
     @classmethod
     def is_target_supported(cls, target_name):
         target = TARGET_MAP[target_name]
-        apply_supported_whitelist("ARM", CMSISPack.POST_BINARY_WHITELIST, target)
+        return apply_supported_whitelist("ARM", CMSISPack.POST_BINARY_WHITELIST, target)
     NAME = 'CMSIS-Pack-ARMc5'
     TOOLCHAIN = "ARM"
     COMPILER_REQUIREMENT = "ARMCC"
@@ -129,7 +128,7 @@ class IAR(CMSISPack):
     @classmethod
     def is_target_supported(cls, target_name):
         target = TARGET_MAP[target_name]
-        apply_supported_whitelist("IAR", CMSISPack.POST_BINARY_WHITELIST, target)
+        return apply_supported_whitelist("IAR", CMSISPack.POST_BINARY_WHITELIST, target)
     NAME = 'CMSIS-Pack-IAR'
     TOOLCHAIN = "IAR"
     COMPILER_REQUIREMENT = "IAR"
