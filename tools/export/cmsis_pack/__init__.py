@@ -1,3 +1,4 @@
+#include "RTE_Components.h"
 """
 mbed SDK
 Copyright (c) 2011-2016 ARM Limited
@@ -57,9 +58,7 @@ class CMSISPack(Exporter):
 
         Note: subclasses should not need to override this method
         """
-        if not self.resources.linker_script:
-            raise NotSupportedException("No linker script found.")
-
+        self.static_files = ()
         self.resources.win_to_unix()
 
         dev = DeviceCMSIS(self.target)
@@ -87,6 +86,9 @@ class CMSISPack(Exporter):
             'features': {},
             'api_headers': []
         }
+        if "UVISOR" in self.resources.features:
+            del self.resources.features["UVISOR"]
+
         for feature, res in self.resources.features.iteritems():
             ctx['features'][feature] = {
                 'object_files': res.objects,
@@ -101,7 +103,7 @@ class CMSISPack(Exporter):
                 'linker_script': res.linker_script,
             }
 
-        self.gen_file(self.TEMPLATE_FILE, ctx, 'MBED.%s_%s.pdsc' % (self.target.upper(), self.TOOLCHAIN.upper()))
+        self.gen_file(self.TEMPLATE_FILE, ctx, 'MBED.MbedOS.pdsc')
 
 
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <package schemaVersion="1.3" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="PACK.xsd">
   <vendor>MBED</vendor>
-  <name>{{target}}_{{toolchain}}</name>
+  <name>MbedOS</name>
   <description> TODO: Fill later </description>
   <url>developer.mbed.org/pack</url>
   <releases>
@@ -9,9 +9,8 @@
   </releases>
   <conditions>
     <condition id="Everything">
-      <require Dname="{{device_name}}"/>
-      <require Tcompiler="{{compreq}}"/>
-      <deny Cclass="CMSIS" Cgroup="RTOS"/>
+      <require Cclass="CMSIS" Cgroup="RTOS2" Cvendor="ARM"/>
+      <require Cclass="mbed OS" Cgroup="HAL"/>
     </condition>
     <condition id="Everything-and-mbed">
       <require Cclass="mbed OS" Cgroup="Core" Cversion="5.5.4"/>
@@ -19,12 +18,9 @@
     </condition>
   </conditions>
   <components>
-    <component Cclass="mbed OS" Cgroup="Core" Cversion="5.5.4" condition="Everything">
+    <component Cclass="mbed OS" Cgroup="Core" Cversion="5.6.7" condition="Everything">
       <description></description>
       <RTE_Components_h>
-        {%- for name, value in syms %}
-#define {{name}} {% if value %} {{value}} {% endif %}
-        {%- endfor %}
 #include "{{preinclude}}"
 #define RTE_CMSIS_RTOS_RTX_CONFIG_H "mbed_rtx_conf.h"
       </RTE_Components_h>
