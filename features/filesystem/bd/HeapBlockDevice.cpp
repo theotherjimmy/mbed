@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "RTE_Components.h"
 #include "HeapBlockDevice.h"
 
 

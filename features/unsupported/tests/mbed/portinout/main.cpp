@@ -1,4 +1,5 @@
 #include "test_env.h"
+#include "RTE_Components.h"
 
 #if !DEVICE_PORTINOUT
   #error [NOT_SUPPORTED] PortInOut is not supported

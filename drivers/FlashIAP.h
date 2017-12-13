@@ -21,6 +21,7 @@
  */
 #ifndef MBED_FLASHIAP_H
 #define MBED_FLASHIAP_H
+#include "RTE_Components.h"
 
 #if defined (DEVICE_FLASH) || defined(DOXYGEN_ONLY)
 

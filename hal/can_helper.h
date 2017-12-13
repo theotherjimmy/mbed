@@ -19,6 +19,7 @@
 #ifndef MBED_CAN_HELPER_H
 #define MBED_CAN_HELPER_H
 
+#include "RTE_Components.h"
 #if DEVICE_CAN
 
 #ifdef __cplusplus

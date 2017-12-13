@@ -20,6 +20,7 @@
 #define MBED_SLEEP_API_H
 
 #include "device.h"
+#include "RTE_Components.h"
 
 #if DEVICE_SLEEP
 

@@ -17,6 +17,7 @@
 #define MBED_INTERRUPTIN_H
 
 #include "platform/platform.h"
+#include "RTE_Components.h"
 
 #if defined (DEVICE_INTERRUPTIN) || defined(DOXYGEN_ONLY)
 

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "drivers/Ethernet.h"
+#include "RTE_Components.h"
 
 #if DEVICE_ETHERNET
 

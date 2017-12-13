@@ -17,6 +17,7 @@
 #ifndef MBED_GAP_ADVERTISING_DATA_H__
 #define MBED_GAP_ADVERTISING_DATA_H__
 
+#include "RTE_Components.h"
 #include <stdint.h>
 #include <string.h>
 

@@ -15,6 +15,7 @@
  */
 #ifndef MBED_EMAC_STACK_MEM_H
 #define MBED_EMAC_STACK_MEM_H
+#include "RTE_Components.h"
 
 #if DEVICE_EMAC
 

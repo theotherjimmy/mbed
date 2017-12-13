@@ -18,6 +18,7 @@
 #ifndef LFS_UTIL_H
 #define LFS_UTIL_H
 
+#include "RTE_Components.h"
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>

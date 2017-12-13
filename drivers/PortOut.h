@@ -16,6 +16,7 @@
 #ifndef MBED_PORTOUT_H
 #define MBED_PORTOUT_H
 
+#include "RTE_Components.h"
 #include "platform/platform.h"
 
 #if defined (DEVICE_PORTOUT) || defined(DOXYGEN_ONLY)

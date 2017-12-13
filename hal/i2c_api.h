@@ -19,6 +19,7 @@
 #ifndef MBED_I2C_API_H
 #define MBED_I2C_API_H
 
+#include "RTE_Components.h"
 #include "device.h"
 #include "hal/buffer.h"
 

@@ -1,5 +1,6 @@
 #include "mbed.h"
 #include "test_env.h"
+#include "RTE_Components.h"
 
 #if !DEVICE_RTC
   #error [NOT_SUPPORTED] RTC is not supported

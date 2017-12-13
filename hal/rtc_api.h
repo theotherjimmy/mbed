@@ -20,6 +20,7 @@
 #define MBED_RTC_API_H
 
 #include "device.h"
+#include "RTE_Components.h"
 
 #if DEVICE_RTC
 

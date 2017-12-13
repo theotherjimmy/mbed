@@ -21,6 +21,7 @@
 
 #include <stddef.h>
 #include "device.h"
+#include "RTE_Components.h"
 
 #if DEVICE_TRNG
 

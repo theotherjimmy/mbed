@@ -1,4 +1,5 @@
 #include "mbed.h"
+#include "RTE_Components.h"
 
 #if !DEVICE_SPI
   #error [NOT_SUPPORTED] SPI is not supported

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "drivers/I2C.h"
+#include "RTE_Components.h"
 
 #if DEVICE_I2C
 

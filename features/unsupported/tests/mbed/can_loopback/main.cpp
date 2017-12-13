@@ -1,5 +1,6 @@
 #include "mbed.h"
 #include "test_env.h"
+#include "RTE_Components.h"
 
 #if !DEVICE_CAN
   #error [NOT_SUPPORTED] CAN not supported

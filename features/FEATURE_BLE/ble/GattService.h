@@ -17,6 +17,7 @@
 #ifndef MBED_GATT_SERVICE_H__
 #define MBED_GATT_SERVICE_H__
 
+#include "RTE_Components.h"
 #include "UUID.h"
 #include "GattCharacteristic.h"
 

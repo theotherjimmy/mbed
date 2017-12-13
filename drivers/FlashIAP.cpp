@@ -23,6 +23,7 @@
 #include <string.h>
 #include "FlashIAP.h"
 #include "mbed_assert.h"
+#include "RTE_Components.h"
 
 
 #ifdef DEVICE_FLASH

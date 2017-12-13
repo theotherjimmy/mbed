@@ -17,6 +17,7 @@
 #define MBED_PORTIN_H
 
 #include "platform/platform.h"
+#include "RTE_Components.h"
 
 #if defined (DEVICE_PORTIN) || defined(DOXYGEN_ONLY)
 

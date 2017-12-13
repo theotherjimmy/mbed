@@ -17,6 +17,7 @@
  *  This file is part of mbed TLS (https://tls.mbed.org)
  */
 
+#include "RTE_Components.h"
 #if defined(DEVICE_TRNG)
 #define MBEDTLS_ENTROPY_HARDWARE_ALT
 #endif

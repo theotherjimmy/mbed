@@ -16,6 +16,7 @@
 #ifndef MBED_LOWPOWERTICKER_H
 #define MBED_LOWPOWERTICKER_H
 
+#include "RTE_Components.h"
 #include "platform/platform.h"
 #include "drivers/Ticker.h"
 #include "platform/NonCopyable.h"

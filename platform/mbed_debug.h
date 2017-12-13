@@ -23,6 +23,7 @@
  */
 #ifndef MBED_DEBUG_H
 #define MBED_DEBUG_H
+#include "RTE_Components.h"
 #if DEVICE_STDIO_MESSAGES
 #include <stdio.h>
 #include <stdarg.h>

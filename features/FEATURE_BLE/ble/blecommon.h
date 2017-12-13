@@ -17,6 +17,7 @@
 #ifndef MBED_BLE_COMMON_H__
 #define MBED_BLE_COMMON_H__
 
+#include "RTE_Components.h"
 #ifdef __cplusplus
 extern "C" {
 #endif

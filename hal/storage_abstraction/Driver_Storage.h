@@ -21,6 +21,7 @@
 #ifndef __DRIVER_STORAGE_H
 #define __DRIVER_STORAGE_H
 
+#include "RTE_Components.h"
 #include <stdint.h>
 
 /****** This file has been deprecated since mbed-os-5.5 *****/

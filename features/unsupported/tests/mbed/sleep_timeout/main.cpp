@@ -1,4 +1,5 @@
 #include "mbed.h"
+#include "RTE_Components.h"
 
 #if !DEVICE_SLEEP
   #error [NOT_SUPPORTED] Sleep is not supported

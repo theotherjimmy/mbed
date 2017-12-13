@@ -17,6 +17,7 @@
 #define MBED_ANALOGIN_H
 
 #include "platform/platform.h"
+#include "RTE_Components.h"
 
 #if defined (DEVICE_ANALOGIN) || defined(DOXYGEN_ONLY)
 

@@ -1,5 +1,6 @@
 #include "mbed.h"
 #include "test_env.h"
+#include "RTE_Components.h"
 
 #if !DEVICE_I2C || !DEVICE_I2C_ASYNCH
   #error [NOT_SUPPORTED] I2C ASYNCH is not supported

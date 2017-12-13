@@ -1,6 +1,7 @@
 #include "mbed.h"
 #include "test_env.h"
 #include <stdio.h>
+#include "RTE_Components.h"
 
 #if !DEVICE_I2C
   #error [NOT_SUPPORTED] I2C is not supported

@@ -26,6 +26,7 @@
 
 #include <stdarg.h>
 
+#include "RTE_Components.h"
 #include "device.h"
 
 /* Mbed interface mac address

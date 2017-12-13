@@ -15,6 +15,7 @@
  */
 
 #include "nsapi.h"
+#include "RTE_Components.h"
 #include "mbed_interface.h"
 #include "mbed_assert.h"
 #include <stdio.h>

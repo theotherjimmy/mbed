@@ -17,6 +17,7 @@
 #ifndef MBED_BLOCK_DEVICE_H
 #define MBED_BLOCK_DEVICE_H
 
+#include "RTE_Components.h"
 #include <stdint.h>
 
 

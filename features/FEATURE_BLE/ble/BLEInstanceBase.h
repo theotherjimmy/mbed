@@ -21,6 +21,7 @@
 #ifndef MBED_BLE_DEVICE_INSTANCE_BASE__
 #define MBED_BLE_DEVICE_INSTANCE_BASE__
 
+#include "RTE_Components.h"
 #include "Gap.h"
 #include "ble/SecurityManager.h"
 #include "ble/BLE.h"

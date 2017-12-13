@@ -79,6 +79,7 @@
 extern "C" {
 #endif
 
+#include "RTE_Components.h"
 #include <stdint.h>
 #include <string.h>								/* requierd for memset() in ARM_CFSTORE_HANDLE_INIT() */
 

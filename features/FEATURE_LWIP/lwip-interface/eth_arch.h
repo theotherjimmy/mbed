@@ -24,6 +24,7 @@
 #define ETHARCH_H_
 
 #include "lwip/netif.h"
+#include "RTE_Components.h"
 
 #ifdef __cplusplus
 extern "C" {

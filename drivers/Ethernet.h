@@ -18,6 +18,7 @@
 
 #include "platform/platform.h"
 #include "platform/NonCopyable.h"
+#include "RTE_Components.h"
 
 #if defined (DEVICE_ETHERNET) || defined(DOXYGEN_ONLY)
 

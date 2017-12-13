@@ -16,6 +16,7 @@
 #ifndef MBED_TICKER_H
 #define MBED_TICKER_H
 
+#include "RTE_Components.h"
 #include "drivers/TimerEvent.h"
 #include "platform/Callback.h"
 #include "platform/mbed_toolchain.h"

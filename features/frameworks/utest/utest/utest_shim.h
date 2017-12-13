@@ -22,6 +22,7 @@
 #ifndef UTEST_SHIM_H
 #define UTEST_SHIM_H
 
+#include "RTE_Components.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>

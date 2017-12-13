@@ -16,6 +16,7 @@
 #ifndef MBED_SPISLAVE_H
 #define MBED_SPISLAVE_H
 
+#include "RTE_Components.h"
 #include "platform/platform.h"
 #include "platform/NonCopyable.h"
 

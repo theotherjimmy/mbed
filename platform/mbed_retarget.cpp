@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include <time.h>
+#include "RTE_Components.h"
 #include "mbed_config.h"
 #include "platform/platform.h"
 #include "platform/FilePath.h"

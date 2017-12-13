@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "RTE_Components.h"
 #include "drivers/Timer.h"
 #include "hal/ticker_api.h"
 #include "hal/us_ticker_api.h"

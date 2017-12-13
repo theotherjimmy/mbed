@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "RTE_Components.h"
 #include "mbed_sleep.h"
 #include "mbed_critical.h"
 #include "sleep_api.h"

@@ -6,6 +6,7 @@
 
 #ifndef __CFSTORE_CONFIG_H
 #define __CFSTORE_CONFIG_H
+#include "RTE_Components.h"
 
 /*
  * CFSTORE_CONFIG_BACKEND_FLASH_ENABLED

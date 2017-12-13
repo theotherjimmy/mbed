@@ -1,6 +1,7 @@
 /* mbed Microcontroller Library - SPIHalfDuplex
  * Copyright (c) 2010-2011 ARM Limited. All rights reserved.
  */
+#include "RTE_Components.h"
 #include "SPIHalfDuplex.h"
 
 #if DEVICE_SPI
