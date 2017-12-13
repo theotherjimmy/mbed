@@ -15,6 +15,7 @@
  */
 
 #include <string.h> //memset
+#include "mbed_config.h"
 #include "eventOS_event_timer.h"
 #include "common_functions.h"
 #include "net_interface.h"

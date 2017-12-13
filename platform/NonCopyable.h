@@ -16,6 +16,7 @@
 #ifndef MBED_NONCOPYABLE_H_
 #define MBED_NONCOPYABLE_H_
 
+#include "mbed_config.h"
 #if (!defined(MBED_DEBUG) && (MBED_CONF_PLATFORM_FORCE_NON_COPYABLE_ERROR == 0))
 #include "mbed_toolchain.h"
 #include "mbed_debug.h"

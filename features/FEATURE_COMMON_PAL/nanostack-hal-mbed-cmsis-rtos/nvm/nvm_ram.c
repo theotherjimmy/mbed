@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2016, ARM Limited, All Rights Reserved.
  */
+#include "mbed_config.h"
 
 #ifdef MBED_CONF_NANOSTACK_HAL_NVM_CFSTORE
 #  if MBED_CONF_NANOSTACK_HAL_NVM_CFSTORE

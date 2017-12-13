@@ -1,4 +1,5 @@
 
+#include "mbed_config.h"
 #if (MBED_CONF_TARGET_USB_DEVICE_HSUSBD == 0)
 #define NU_MAX_EPX_BUFSIZE      4096
 #else

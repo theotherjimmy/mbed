@@ -15,6 +15,7 @@
  */
 
 #include "events/mbed_shared_queues.h"
+#include "mbed_config.h"
 #include "mbed.h"
 
 using namespace events;

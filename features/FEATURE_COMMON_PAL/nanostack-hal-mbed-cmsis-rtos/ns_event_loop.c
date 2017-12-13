@@ -3,6 +3,7 @@
  */
 
 #include <mbed_assert.h>
+#include "mbed_config.h"
 #include "cmsis.h"
 #include "cmsis_os2.h"
 #include "mbed_rtos_storage.h"

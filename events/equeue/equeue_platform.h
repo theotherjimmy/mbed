@@ -25,6 +25,7 @@
 extern "C" {
 #endif
 
+#include "mbed_config.h"
 #include <stdbool.h>
 
 // Currently supported platforms

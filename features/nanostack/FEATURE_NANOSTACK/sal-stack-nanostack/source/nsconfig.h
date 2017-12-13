@@ -23,6 +23,7 @@
 #define _NANOSTACK_SOURCE_CONFIG_H
 
 #include "ns_types.h"
+#include "mbed_config.h"
 
 #ifdef __CC_ARM
 #pragma diag_suppress 546 // transfer of control bypasses initialization

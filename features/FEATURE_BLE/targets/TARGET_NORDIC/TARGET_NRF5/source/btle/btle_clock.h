@@ -39,6 +39,7 @@
 #ifndef _BTLE_CLOCK_H_
 #define _BTLE_CLOCK_H_
 
+#include "mbed_config.h"
 #include "nrf5x_lf_clk_helper.h"
 
 /**

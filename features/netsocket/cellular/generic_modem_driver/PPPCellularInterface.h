@@ -16,6 +16,7 @@
 #ifndef PPP_CELLULAR_INTERFACE_
 #define PPP_CELLULAR_INTERFACE_
 
+#include "mbed_config.h"
 #include "CellularBase.h"
 #include "platform/ATCmdParser.h"
 #include "mbed.h"

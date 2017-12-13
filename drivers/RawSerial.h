@@ -17,6 +17,7 @@
 #define MBED_RAW_SERIAL_H
 
 #include "platform/platform.h"
+#include "mbed_config.h"
 
 #if defined (DEVICE_SERIAL) || defined(DOXYGEN_ONLY)
 

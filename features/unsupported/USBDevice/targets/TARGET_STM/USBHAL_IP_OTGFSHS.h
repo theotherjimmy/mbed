@@ -18,6 +18,7 @@
 #ifndef USBHAL_IP_OTGFSHS_H
 #define USBHAL_IP_OTGFSHS_H
 
+#include "mbed_config.h"
 #if defined(TARGET_DISCO_F746NG)
 #if (MBED_CONF_TARGET_USB_SPEED == 1) // Defined in json configuration file
 #define TARGET_DISCO_F746NG_OTG_HS

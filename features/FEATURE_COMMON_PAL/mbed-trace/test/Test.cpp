@@ -6,6 +6,7 @@
  *
  * \brief Unit tests for mbed_trace
  */
+#include "mbed_config.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>

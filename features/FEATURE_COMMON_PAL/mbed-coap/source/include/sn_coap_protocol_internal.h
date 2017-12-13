@@ -24,6 +24,7 @@
 #ifndef SN_COAP_PROTOCOL_INTERNAL_H_
 #define SN_COAP_PROTOCOL_INTERNAL_H_
 
+#include "mbed_config.h"
 #include "ns_list.h"
 #include "sn_coap_header_internal.h"
 #include "mbed-coap/sn_config.h"

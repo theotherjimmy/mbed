@@ -19,6 +19,7 @@
 #ifndef LWIPOPTS_H
 #define LWIPOPTS_H
 
+#include "mbed_config.h"
 #if MBED_CONF_LWIP_ETHERNET_ENABLED
 #include "lwipopts_conf.h"
 #endif

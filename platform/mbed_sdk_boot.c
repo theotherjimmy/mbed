@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "mbed_config.h"
 #include "mbed_toolchain.h"
 #include <stdlib.h>
 #include <stdint.h>

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "PPPCellularInterface.h"
+#include "mbed_config.h"
 
 #if NSAPI_PPP_AVAILABLE
 

@@ -24,6 +24,7 @@
 #ifndef MBED_SLEEP_H
 #define MBED_SLEEP_H
 
+#include "mbed_config.h"
 #include "sleep_api.h"
 #include "mbed_toolchain.h"
 #include <stdbool.h>

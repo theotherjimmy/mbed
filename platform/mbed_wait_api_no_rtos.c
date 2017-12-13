@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "mbed_config.h"
 
 // This implementation of the wait functions will be compiled only
 // if the RTOS is not present.

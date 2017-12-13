@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include <stdio.h>
+#include "mbed_config.h"
 #include "hal/gpio_api.h"
 #include "platform/mbed_wait_api.h"
 #include "platform/mbed_toolchain.h"

@@ -15,6 +15,7 @@
  */
 
 #include <stdlib.h>
+#include "mbed_config.h"
 #include "eventOS_scheduler.h"
 #include "eventOS_event.h"
 #include "net_interface.h"

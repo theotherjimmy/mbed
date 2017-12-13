@@ -48,6 +48,7 @@
 extern "C" {
 #endif
 
+#include "mbed_config.h"
 #ifdef YOTTA_CFG
 #include <stdint.h>
 #include <stddef.h>

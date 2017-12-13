@@ -1,4 +1,5 @@
 #include "mbed_stats.h"
+#include "mbed_config.h"
 #include <string.h>
 #include <stdlib.h>
 #include "mbed_assert.h"

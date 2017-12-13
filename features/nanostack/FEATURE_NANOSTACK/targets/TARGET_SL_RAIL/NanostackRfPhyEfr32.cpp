@@ -17,6 +17,7 @@
 
 #include <string.h>
 
+#include "mbed_config.h"
 #include "mbed.h"
 #include "mbed_sleep.h"
 #include "ns_types.h"

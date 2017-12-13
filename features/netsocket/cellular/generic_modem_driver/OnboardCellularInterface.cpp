@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 #include "OnboardCellularInterface.h"
+#include "mbed_config.h"
 
 #if MODEM_ON_BOARD && MODEM_ON_BOARD_UART && NSAPI_PPP_AVAILABLE
 
