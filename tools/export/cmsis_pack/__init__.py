@@ -32,6 +32,7 @@ class CMSISPack(Exporter):
     system
     """
 
+    TEMPLATE_FILE = "cmsis_pack/pdsc.tmpl"
     DOT_IN_RELATIVE_PATH = False
 
     MBED_CONFIG_HEADER_SUPPORTED = True
@@ -63,7 +64,7 @@ class CMSISPack(Exporter):
 
         dev = DeviceCMSIS(self.target)
 
-        symbols = map(self.symbol_parse, self.toolchain.get_symbols())
+        symbols = sorted(map(self.symbol_parse, self.toolchain.get_symbols()))
 
         ctx = {
             'syms': symbols,
@@ -83,7 +84,8 @@ class CMSISPack(Exporter):
             'toolchain': self.TOOLCHAIN,
             'time': datetime.now().isoformat(),
             'compreq': self.COMPILER_REQUIREMENT,
-            'features': {}
+            'features': {},
+            'api_headers': []
         }
         for feature, res in self.resources.features.iteritems():
             ctx['features'][feature] = {
@@ -96,10 +98,11 @@ class CMSISPack(Exporter):
                 'cpp_files' : res.cpp_sources,
                 'headers' : res.headers,
                 'libraries': res.libraries,
-                'linker_script': res.linker_script
+                'linker_script': res.linker_script,
             }
 
-        self.gen_file("cmsis_pack/pdsc.tmpl", ctx, 'MBED.%s_%s.pdsc' % (self.target.upper(), self.TOOLCHAIN.upper()))
+        self.gen_file(self.TEMPLATE_FILE, ctx, 'MBED.%s_%s.pdsc' % (self.target.upper(), self.TOOLCHAIN.upper()))
+
 
 
 class GccArm(CMSISPack):
@@ -132,3 +135,7 @@ class IAR(CMSISPack):
     NAME = 'CMSIS-Pack-IAR'
     TOOLCHAIN = "IAR"
     COMPILER_REQUIREMENT = "IAR"
+
+class DevPack(Armc5):
+    TEMPLATE_FILE = "cmsis_pack/pdsc-device.tmpl"
+

@@ -26,6 +26,7 @@
 #define {{name}} {% if value %} {{value}} {% endif %}
         {%- endfor %}
 #include "{{preinclude}}"
+#define RTE_CMSIS_RTOS_RTX_CONFIG_H "mbed_rtx_conf.h"
       </RTE_Components_h>
       <files>
         {%- for src in c_files %}

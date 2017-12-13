@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package schemaVersion="1.3" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="PACK.xsd">
+  <vendor>MBED</vendor>
+  <name>HAL_{{target}}_{{toolchain}}</name>
+  <description>Mbed OS HAL implementation for {{target}} and {{toolchain}}</description>
+  <url>os.mbed.com/pack</url>
+  <releases>
+    <release version="5.6.7">Generated {{time}}</release>
+  </releases>
+  <conditions>
+    <condition id="Everything">
+      <require Dname="{{device_name}}"/>
+      <require Tcompiler="{{compreq}}"/>
+    </condition>
+  </conditions>
+  <components>
+    <component Cclass="mbed OS" Cgroup="HAL" Cversion="5.6.7" condition="Everything">
+      <description></description>
+      <RTE_Components_h>
+        {%- for name, value in syms %}
+#define {{name}} {% if value %} {{value}} {% endif %}
+        {%- endfor %}
+      </RTE_Components_h>
+      <files>
+        {%- for src in c_files %}
+        <file name="{{src|escape}}" category="sourceC"/>
+        {%- endfor -%}
+        {%- for src in s_files %}
+        <file name="{{src|escape}}" category="sourceAsm"/>
+        {%- endfor -%}
+        {%- for src in cpp_files %}
+        <file name="{{src|escape}}" category="sourceCpp"/>
+        {%- endfor -%}
+        {%- for src in include_paths %}
+        <file name="{{src|escape}}" category="include"/>
+        {%- endfor -%}
+        {%- for src in object_files %}
+        <file name="{{src|escape}}" category="object"/>
+        {%- endfor -%}
+        {%- for src in libraries %}
+        <file name="{{src|escape}}" category="library"/>
+        {%- endfor -%}
+        <file name="{{linker_script}}" category="linkerScript"/>
+        {%- for header in api_headers -%}
+        <file name="{{header|escape}}" category="header"/>
+        {%- endfor -%}
+      </files>
+    </component>
+</package>

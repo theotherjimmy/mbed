@@ -65,7 +65,8 @@ EXPORTERS = {
     'vscode_armc5' : vscode.VSCodeArmc5,
     'cmsis-pack_gcc_arm' : cmsis_pack.GccArm,
     'cmsis-pack_iar' : cmsis_pack.IAR,
-    'cmsis-pack_armc5' : cmsis_pack.Armc5,
+    'cmsis-pack-dev_armc5' : cmsis_pack.DevPack,
+    'cmsis-pack-gen' : cmsis_pack.Armc5,
 }
 
 ERROR_MESSAGE_UNSUPPORTED_TOOLCHAIN = """
