@@ -8,6 +8,5 @@
 #define MBED_CMSIS_H
 
 #include "fsl_device_registers.h"
-#include "cmsis_nvic.h"
 
 #endif

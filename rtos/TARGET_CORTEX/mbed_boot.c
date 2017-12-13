@@ -289,14 +289,17 @@ static void mbed_cpy_nvic(void)
     responsible for correctly handling the vectors.
     */
 #if !defined(__CORTEX_M0) && !defined(__CORTEX_A9)
-#ifdef NVIC_RAM_VECTOR_ADDRESS
-    uint32_t *old_vectors = (uint32_t *)SCB->VTOR;
-    uint32_t *vectors = (uint32_t*)NVIC_RAM_VECTOR_ADDRESS;
-    for (int i = 0; i < NVIC_NUM_VECTORS; i++) {
+		extern uint32_t Image$$VECTOR_RAM$$Base[];  
+		extern uint32_t Image$$RW_m_data$$Base[];
+		uint32_t rw = (uint32_t)Image$$RW_m_data$$Base;
+		uint32_t *old_vectors = (uint32_t *)SCB->VTOR;
+		uint32_t vector_cnt = ((uint32_t)Image$$RW_m_data$$Base - (uint32_t)Image$$VECTOR_RAM$$Base) / 4;
+		uint32_t *vectors = (uint32_t*)Image$$VECTOR_RAM$$Base;
+    
+		for (int i = 0; i < vector_cnt; i++) {
         vectors[i] = old_vectors[i];
     }
-    SCB->VTOR = (uint32_t)NVIC_RAM_VECTOR_ADDRESS;
-#endif /* NVIC_RAM_VECTOR_ADDRESS */
+    SCB->VTOR = (uint32_t)Image$$VECTOR_RAM$$Base;
 #endif /* !defined(__CORTEX_M0) && !defined(__CORTEX_A9) */
 }
 

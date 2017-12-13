@@ -16,7 +16,7 @@
  */
 
 #include "Driver_Storage.h"
-#include "cmsis_nvic.h"
+//#include "cmsis_nvic.h"
 #include "MK64F12.h"
 
 #if defined(MCU_MEM_MAP_VERSION) && ((MCU_MEM_MAP_VERSION > 0x0200u) || ((MCU_MEM_MAP_VERSION == 0x0200u) && (MCU_MEM_MAP_VERSION_MINOR >= 0x0008u)))
