@@ -18,6 +18,7 @@
 #include <string.h>
 
 /* mbed includes */
+#include "mbed_config.h"
 #include "mbed_error.h"
 #include "mbed_interface.h"
 #include "mbed_rtos_storage.h"

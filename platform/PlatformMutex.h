@@ -24,6 +24,7 @@
 #define PLATFORM_MUTEX_H
 
 #include "platform/NonCopyable.h"
+#include "mbed_config.h"
 
 #ifdef MBED_CONF_RTOS_PRESENT
 #include "rtos/Mutex.h"

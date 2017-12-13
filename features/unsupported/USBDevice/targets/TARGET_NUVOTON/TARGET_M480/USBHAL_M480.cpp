@@ -16,6 +16,7 @@
 
 #if defined(TARGET_M480)
 
+#include "mbed_config.h"
 #include "USBHAL.h"
 #include "M480.h"
 #include "pinmap.h"

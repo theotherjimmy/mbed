@@ -23,6 +23,7 @@
  * order to use configuration-store. Application also needs to define storage area start
  * address in flash (CONFIG_HARDWARE_MTD_START_ADDR) and storage size (CONFIG_HARDWARE_MTD_SIZE).
  */
+#include "mbed_config.h"
 #if MBED_CONF_NANOSTACK_HAL_NVM_CFSTORE
 
 #include <stdio.h>

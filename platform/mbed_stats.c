@@ -1,3 +1,4 @@
+#include "mbed_config.h"
 #include "mbed_assert.h"
 #include "mbed_stats.h"
 #include "mbed_power_mgmt.h"

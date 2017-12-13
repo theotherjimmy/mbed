@@ -17,6 +17,7 @@
  * limitations under the License.
  */
 #include "equeue/equeue_platform.h"
+#include "mbed_config.h"
 
 #if defined(EQUEUE_PLATFORM_MBED)
 

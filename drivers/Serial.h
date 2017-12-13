@@ -16,6 +16,7 @@
 #ifndef MBED_SERIAL_H
 #define MBED_SERIAL_H
 
+#include "mbed_config.h"
 #include "platform/platform.h"
 
 #if defined (DEVICE_SERIAL) || defined(DOXYGEN_ONLY)

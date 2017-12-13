@@ -17,6 +17,7 @@
 #ifndef MBED_UARTSERIAL_H
 #define MBED_UARTSERIAL_H
 
+#include "mbed_config.h"
 #include "platform/platform.h"
 
 #if (DEVICE_SERIAL && DEVICE_INTERRUPTIN) || defined(DOXYGEN_ONLY)

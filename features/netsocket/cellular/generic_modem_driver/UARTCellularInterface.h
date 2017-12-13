@@ -16,6 +16,7 @@
 #ifndef UART_CELLULAR_INTERFACE_
 #define UART_CELLULAR_INTERFACE_
 
+#include "mbed_config.h"
 #include "PPPCellularInterface.h"
 #include "UARTSerial.h"
 

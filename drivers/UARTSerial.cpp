@@ -17,6 +17,7 @@
 #if (DEVICE_SERIAL && DEVICE_INTERRUPTIN)
 
 #include <errno.h>
+#include "mbed_config.h"
 #include "UARTSerial.h"
 #include "platform/mbed_poll.h"
 

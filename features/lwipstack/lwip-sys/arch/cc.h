@@ -32,6 +32,7 @@
 #ifndef __CC_H__ 
 #define __CC_H__ 
 
+#include "mbed_config.h"
 #include <stdint.h>
 #include <stddef.h> /* for size_t */
 

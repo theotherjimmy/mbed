@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include <new>
 #include "platform/mbed_assert.h"
+#include "mbed_config.h"
 #ifdef MBED_CONF_RTOS_PRESENT
 #include "cmsis_os2.h"
 #endif

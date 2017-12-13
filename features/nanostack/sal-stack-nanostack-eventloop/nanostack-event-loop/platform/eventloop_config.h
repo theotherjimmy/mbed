@@ -16,6 +16,7 @@
 #ifndef EVENTLOOP_CONFIG_H_
 #define EVENTLOOP_CONFIG_H_
 
+#include "mbed_config.h"
 /*
  * Options can be picked up from mbed-cli JSON configuration, or from
  * Yotta JSON configuration, or from a user configuration file - see below.

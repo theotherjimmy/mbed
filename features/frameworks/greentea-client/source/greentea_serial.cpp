@@ -1,4 +1,5 @@
 #include "greentea-client/greentea_serial.h"
+#include "mbed_config.h"
 
 /**
  * Macros for setting console flow control.

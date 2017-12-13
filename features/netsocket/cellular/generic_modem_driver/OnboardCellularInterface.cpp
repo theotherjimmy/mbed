@@ -16,6 +16,7 @@
 #include "mbed_toolchain.h"
 #include "CellularBase.h"
 #include "OnboardCellularInterface.h"
+#include "mbed_config.h"
 
 #ifndef CELLULAR_DEVICE
 

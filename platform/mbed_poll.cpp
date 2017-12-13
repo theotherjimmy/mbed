@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "mbed_config.h"
 #include "mbed_poll.h"
 #include "FileHandle.h"
 #if MBED_CONF_RTOS_PRESENT

@@ -19,6 +19,7 @@
 #ifndef MBED_SHARED_QUEUES_H
 #define MBED_SHARED_QUEUES_H
 
+#include "mbed_config.h"
 #include "events/EventQueue.h"
 
 namespace mbed {

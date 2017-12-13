@@ -18,6 +18,7 @@
 #error [NOT_SUPPORTED] MODEM_ON_BOARD should be set for this test to be functional
 #endif
 
+#include "mbed_config.h"
 #include "mbed.h"
 #include "gmd_ut_config_header.h"
 #include "greentea-client/test_env.h"
