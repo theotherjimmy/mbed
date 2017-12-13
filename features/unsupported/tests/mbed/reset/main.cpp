@@ -1,4 +1,5 @@
 #include "mbed.h"
+#include "RTE_Components.h"
 
 #if !DEVICE_SEMIHOST
   #error [NOT_SUPPORTED] Semihost not supported

@@ -21,6 +21,7 @@
 #define NSAPI_TYPES_H
 
 #include <stdint.h>
+#include "RTE_Components.h"
 
 #ifdef __cplusplus
 extern "C" {

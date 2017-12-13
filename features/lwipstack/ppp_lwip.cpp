@@ -16,6 +16,7 @@
 
 #include <errno.h>
 #include "platform/FileHandle.h"
+#include "RTE_Components.h"
 #include "platform/mbed_poll.h"
 #include "events/EventQueue.h"
 #include "mbed_trace.h"

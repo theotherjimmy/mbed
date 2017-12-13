@@ -20,6 +20,7 @@
 #define MBED_PORTMAP_H
 
 #include "device.h"
+#include "RTE_Components.h"
 
 #if DEVICE_PORTIN || DEVICE_PORTOUT
 

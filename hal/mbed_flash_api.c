@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "RTE_Components.h"
 #include "hal/flash_api.h"
 
 #if DEVICE_FLASH

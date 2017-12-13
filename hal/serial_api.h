@@ -22,6 +22,7 @@
 #include "device.h"
 #include "hal/buffer.h"
 #include "hal/dma_api.h"
+#include "RTE_Components.h"
 
 #if DEVICE_SERIAL
 

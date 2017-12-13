@@ -21,6 +21,7 @@
 #define MBED_RTC_API_H
 
 #include "device.h"
+#include "RTE_Components.h"
 
 #include <time.h>
 

@@ -19,6 +19,7 @@
 #include "platform/mbed_rtc_time.h"
 #include "platform/SingletonPtr.h"
 #include "platform/PlatformMutex.h"
+#include "RTE_Components.h"
 
 static SingletonPtr<PlatformMutex> _mutex;
 

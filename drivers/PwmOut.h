@@ -17,6 +17,7 @@
 #define MBED_PWMOUT_H
 
 #include "platform/platform.h"
+#include "RTE_Components.h"
 
 #if defined (DEVICE_PWMOUT) || defined(DOXYGEN_ONLY)
 #include "hal/pwmout_api.h"

@@ -25,6 +25,7 @@
 extern "C" {
 #endif
 
+#include "RTE_Components.h"
 #include "mbed_config.h"
 #include <stdbool.h>
 

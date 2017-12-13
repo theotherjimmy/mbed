@@ -1,6 +1,7 @@
 #include "TestHarness.h"
 #include <utility>
 #include "mbed.h"
+#include "RTE_Components.h"
 
 TEST_GROUP(Integer_Constant_Division)
 {

@@ -1,6 +1,7 @@
 /* mbed Microcontroller Library - SerialHalfDuplex
  * Copyright (c) 2010-2011 ARM Limited. All rights reserved.
  */
+#include "RTE_Components.h"
 #include "SerialHalfDuplex.h"
 #include "mbed_critical.h"
 

@@ -17,6 +17,7 @@
 #ifndef MBED_SEMIHOST_H
 #define MBED_SEMIHOST_H
 
+#include "RTE_Components.h"
 #include "device.h"
 #include "platform/mbed_toolchain.h"
 

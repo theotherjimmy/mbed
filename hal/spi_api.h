@@ -19,6 +19,7 @@
 #ifndef MBED_SPI_API_H
 #define MBED_SPI_API_H
 
+#include "RTE_Components.h"
 #include "device.h"
 #include "hal/dma_api.h"
 #include "hal/buffer.h"

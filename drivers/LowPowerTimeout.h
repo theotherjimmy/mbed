@@ -17,6 +17,7 @@
 #define MBED_LOWPOWERTIMEOUT_H
 
 #include "platform/platform.h"
+#include "RTE_Components.h"
 
 #if defined (DEVICE_LPTICKER) || defined(DOXYGEN_ONLY)
 

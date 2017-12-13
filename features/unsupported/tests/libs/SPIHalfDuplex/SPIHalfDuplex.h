@@ -4,6 +4,7 @@
 #ifndef MBED_SPIHALFDUPLEX_H
 #define MBED_SPIHALFDUPLEX_H
 
+#include "RTE_Components.h"
 #include "platform.h"
 
 #if DEVICE_SPI

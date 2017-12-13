@@ -17,6 +17,7 @@
 #include "TestHarness.h"
 #include "mbed.h"
 #include "us_ticker_api.h"
+#include "RTE_Components.h"
 
 /* Low power timer test.
  */

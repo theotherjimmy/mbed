@@ -16,6 +16,7 @@
 #ifndef MBED_CAN_H
 #define MBED_CAN_H
 
+#include "RTE_Components.h"
 #include "platform/platform.h"
 
 #if defined (DEVICE_CAN) || defined(DOXYGEN_ONLY)

@@ -23,6 +23,7 @@
 #define MBED_MBR_BLOCK_DEVICE_H
 
 #include "BlockDevice.h"
+#include "RTE_Components.h"
 #include "mbed.h"
 
 

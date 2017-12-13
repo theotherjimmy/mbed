@@ -1,4 +1,5 @@
 #include "mbed.h"
+#include "RTE_Components.h"
 
 #if !DEVICE_LOCALFILESYSTEM
   #error [NOT_SUPPORTED] LocalFileSystem not supported

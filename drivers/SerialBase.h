@@ -17,6 +17,7 @@
 #define MBED_SERIALBASE_H
 
 #include "platform/platform.h"
+#include "RTE_Components.h"
 
 #if defined (DEVICE_SERIAL) || defined(DOXYGEN_ONLY)
 

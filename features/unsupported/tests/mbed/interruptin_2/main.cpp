@@ -1,4 +1,5 @@
 #include "mbed.h"
+#include "RTE_Components.h"
 
 #if !DEVICE_INTERRUPTIN
   #error [NOT_SUPPORTED] InterruptIn is not supported

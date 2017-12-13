@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include "TestHarness.h"
 #include "mbed.h"
+#include "RTE_Components.h"
 
 /* Serial asynch cross */
 

@@ -17,6 +17,7 @@
 #define MBED_SPI_H
 
 #include "platform/platform.h"
+#include "RTE_Components.h"
 
 #if defined (DEVICE_SPI) || defined(DOXYGEN_ONLY)
 

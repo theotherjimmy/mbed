@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include "TestHarness.h"
 #include "mbed.h"
+#include "RTE_Components.h"
 
 #if !DEVICE_SPI || !DEVICE_SPI_ASYNCH
 #error spi_master_asynch requires asynch SPI

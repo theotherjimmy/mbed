@@ -16,6 +16,7 @@
 #ifndef MBED_SERIAL_H
 #define MBED_SERIAL_H
 
+#include "RTE_Components.h"
 #include "mbed_config.h"
 #include "platform/platform.h"
 

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 #include "cmsis.h"
+#include "RTE_Components.h"
 #include "platform/mbed_semihost_api.h"
 
 #include <stdint.h>

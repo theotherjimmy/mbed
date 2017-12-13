@@ -16,6 +16,8 @@
 
 #include "mbed_assert.h"
 #include "mbed_power_mgmt.h"
+#include "RTE_Components.h"
+#include "mbed_sleep.h"
 #include "mbed_critical.h"
 #include "sleep_api.h"
 #include "mbed_error.h"

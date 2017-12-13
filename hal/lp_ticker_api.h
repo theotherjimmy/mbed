@@ -19,6 +19,7 @@
 #ifndef MBED_LPTICKER_API_H
 #define MBED_LPTICKER_API_H
 
+#include "RTE_Components.h"
 #include "device.h"
 
 #if DEVICE_LPTICKER

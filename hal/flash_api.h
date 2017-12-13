@@ -19,6 +19,7 @@
 #ifndef MBED_FLASH_API_H
 #define MBED_FLASH_API_H
 
+#include "RTE_Components.h"
 #include "device.h"
 #include <stdint.h>
 

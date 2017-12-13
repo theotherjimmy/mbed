@@ -17,6 +17,7 @@
 #define MBED_I2C_SLAVE_H
 
 #include "platform/platform.h"
+#include "RTE_Components.h"
 
 #if defined (DEVICE_I2CSLAVE) || defined(DOXYGEN_ONLY)
 

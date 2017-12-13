@@ -16,6 +16,7 @@
 #ifndef MBED_LOCALFILESYSTEM_H
 #define MBED_LOCALFILESYSTEM_H
 
+#include "RTE_Components.h"
 #include "platform/platform.h"
 
 #if DEVICE_LOCALFILESYSTEM

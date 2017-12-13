@@ -1,4 +1,5 @@
 #include "test_env.h"
+#include "RTE_Components.h"
 
 #if !DEVICE_ANALOGIN
   #error [NOT_SUPPORTED] AnalogIn not supported

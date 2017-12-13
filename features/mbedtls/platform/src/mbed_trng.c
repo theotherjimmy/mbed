@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include "RTE_Components.h"
 #if defined(DEVICE_TRNG)
 
 #include "hal/trng_api.h"

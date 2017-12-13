@@ -16,6 +16,7 @@
 #ifndef MBED_LOWPOWERTIMER_H
 #define MBED_LOWPOWERTIMER_H
 
+#include "RTE_Components.h"
 #include "platform/platform.h"
 #include "drivers/Timer.h"
 #include "platform/NonCopyable.h"

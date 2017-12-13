@@ -17,6 +17,7 @@
 #define MBED_ANALOGOUT_H
 
 #include "platform/platform.h"
+#include "RTE_Components.h"
 
 #if defined (DEVICE_ANALOGOUT) || defined(DOXYGEN_ONLY)
 

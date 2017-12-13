@@ -1,4 +1,5 @@
 #include "mbed.h"
+#include "RTE_Components.h"
 
 #if !DEVICE_PORTOUT
   #error [NOT_SUPPORTED] PortOut is not supported

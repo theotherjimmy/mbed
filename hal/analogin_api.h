@@ -19,6 +19,7 @@
 #ifndef MBED_ANALOGIN_API_H
 #define MBED_ANALOGIN_API_H
 
+#include "RTE_Components.h"
 #include "device.h"
 
 #if DEVICE_ANALOGIN

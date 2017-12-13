@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include "TestHarness.h"
 #include "mbed.h"
+#include "RTE_Components.h"
 
 /* EEPROM 24LC256 Test Unit, to test I2C asynchronous communication.
  */
