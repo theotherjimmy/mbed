@@ -17,6 +17,8 @@
 #ifndef MBED_MBED_RTX_H
 #define MBED_MBED_RTX_H
 
+#include "RTE_Components.h"
+
 #if defined(TARGET_K20D50M)
 
 #ifndef INITIAL_SP

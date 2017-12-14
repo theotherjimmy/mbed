@@ -16,6 +16,7 @@
 #ifndef MBED_OBJECTS_H
 #define MBED_OBJECTS_H
 
+#include "RTE_Components.h"
 #include "cmsis.h"
 #include "PortNames.h"
 #include "PeripheralNames.h"

@@ -22,6 +22,8 @@
  * Reference: "K64 Sub-Family Reference Manual, Rev. 2", chapter 34
  */
 
+#include "RTE_Components.h"
+
 #if defined(DEVICE_TRNG)
 
 #include <stdlib.h>
