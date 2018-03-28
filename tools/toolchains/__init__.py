@@ -565,6 +565,7 @@ class mbedToolchain:
         if self.labels is None:
             toolchain_labels = [c.__name__ for c in getmro(self.__class__)]
             toolchain_labels.remove('mbedToolchain')
+            toolchain_labels.remove('object')
             self.labels = {
                 'TARGET': self.target.labels,
                 'FEATURE': self.target.features,
