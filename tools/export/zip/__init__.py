@@ -36,9 +36,12 @@ class ZIP(Exporter):
 
     TOOLCHAIN = 'ARM'
 
+    @classmethod
+    def is_target_supported(cls, target_name):
+        return True
+
     def get_toolchain(self):
         return 'uARM' if (self.target in self.USING_MICROLIB) else 'ARM'
 
     def generate(self):
         return True
-        

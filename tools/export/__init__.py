@@ -57,7 +57,8 @@ EXPORTERS = {
     u'vscode_armc5' : vscode.VSCodeArmc5,
     u'cmake_gcc_arm': cmake.GccArm,
     u'cces' : cces.CCES,
-    u'codeblocks': codeblocks.CodeBlocks
+    u'codeblocks': codeblocks.CodeBlocks,
+    u'zip': zip.ZIP,
 }
 
 ERROR_MESSAGE_UNSUPPORTED_TOOLCHAIN = """
