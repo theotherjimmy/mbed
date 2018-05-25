@@ -94,7 +94,7 @@ def export(target, ide, build=None, src=None, macros=None, project_id=None,
     project_dir, name, src, lib = setup_project(ide, target, program=project_id,
                                                 source_dir=src, build=build, export_path=export_path)
 
-    zip_name = name+".zip" if zip_proj else None
+    zip_name = "{}_{}_{}.zip".format(name, ide, target) if zip_proj else None
 
     return export_project(src, project_dir, target, ide, name=name,
                           macros=macros, libraries_paths=lib, zip_proj=zip_name,
@@ -201,6 +201,13 @@ def main():
     parser.add_argument("--ignore", dest="ignore", type=argparse_many(str),
                         default=None, help="Comma separated list of patterns to add to mbedignore (eg. ./main.cpp)")
 
+    parser.add_argument(
+        "-z", "--zip",
+        dest="zip",
+        action="store_true",
+        default=False,
+        help="zip exported project on completion"
+    )
     options = parser.parse_args()
 
     # Print available tests in order and exit
@@ -250,7 +257,7 @@ def main():
         if exists(EXPORT_DIR):
             rmtree(EXPORT_DIR)
 
-    zip_proj = not bool(options.source_dir)
+    zip_proj = not bool(options.source_dir) or options.zip
 
     notify = TerminalNotifier()
 
