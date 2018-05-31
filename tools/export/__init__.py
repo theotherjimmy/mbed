@@ -198,6 +198,9 @@ def zip_export(file_name, prefix, resources, project_files, inc_repos, notify):
     with zipfile.ZipFile(file_name, "w") as zip_file:
         for prj_file in project_files:
             zip_file.write(prj_file, join(prefix, basename(prj_file)))
+            zipped += 1
+            notify.progress("Zipping", prj_file,
+                            100 * (zipped / total_files))
         for loc, to_zip in to_zip_list:
             res = resources[loc]
             for source in to_zip:
@@ -206,9 +209,9 @@ def zip_export(file_name, prefix, resources, project_files, inc_repos, notify):
                         source,
                         join(prefix, loc,
                              relpath(source, res.file_basepath[source])))
+                    zipped += 1
                     notify.progress("Zipping", source,
                                     100 * (zipped / total_files))
-                    zipped += 1
         for lib, res in resources.items():
             for source in res.lib_builds:
                 target_dir, _ = splitext(source)

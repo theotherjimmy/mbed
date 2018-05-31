@@ -20,7 +20,7 @@ from tools.export.exporters import Exporter
 
 
 class ZIP(Exporter):
-    NAME = 'ZIP'
+    NAME = 'Zip Archive'
 
     TARGETS = [
     ]
