@@ -158,3 +158,25 @@ class CMSIS(Exporter):
     @staticmethod
     def clean(_):
         os.remove('project.cpdsc')
+
+
+class CmsisPack(Exporter):
+    NAME = 'CMSIS Pack'
+    TOOLCHAIN = 'ARM'
+
+    @classmethod
+    def is_target_supported(cls, target_name):
+        target = TARGET_MAP[target_name]
+        return cls.TOOLCHAIN in target.supported_toolchains
+
+    def generate(self):
+        ctx = {
+            "name": self.name,
+            "resources": self.resources,
+        }
+        self.gen_file('cmsis/pdsc.tmpl', ctx, '%s.cpdsc')
+
+
+    @staticmethod
+    def clean(_):
+        os.remove('%s.cpdsc')
