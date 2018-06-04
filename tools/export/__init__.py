@@ -28,9 +28,10 @@ import zipfile
 from ..build_api import prepare_toolchain, scan_resources
 from ..toolchains import Resources
 from ..targets import TARGET_NAMES
-from . import (lpcxpresso, ds5_5, iar, makefile, embitz, coide, kds, simplicity,
-               atmelstudio, mcuxpresso, sw4stm32, e2studio, zip, cmsis, uvision,
-               cdt, vscode, gnuarmeclipse, qtcreator, cmake, nb, cces, codeblocks)
+from . import (
+    lpcxpresso, ds5_5, iar, makefile, embitz, coide, kds, simplicity,
+    atmelstudio, mcuxpresso, sw4stm32, e2studio, zip, cmsis, uvision, cdt,
+    vscode, gnuarmeclipse, qtcreator, cmake, nb, cces, codeblocks, cmsis_pack)
 
 EXPORTERS = {
     u'uvision5': uvision.Uvision,
@@ -55,7 +56,10 @@ EXPORTERS = {
     u'vscode_armc5' : vscode.VSCodeArmc5,
     u'cmake_gcc_arm': cmake.GccArm,
     u'cces' : cces.CCES,
-    u'codeblocks': codeblocks.CodeBlocks
+    u'codeblocks': codeblocks.CodeBlocks,
+    u'cmsis-pack-armc5': cmsis_pack.Armc5,
+    u'cmsis-pack-gcc': cmsis_pack.GccArm,
+    u'cmsis-pack-iar': cmsis_pack.IAR,
 }
 
 ERROR_MESSAGE_UNSUPPORTED_TOOLCHAIN = """
