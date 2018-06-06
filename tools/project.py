@@ -130,7 +130,12 @@ def export(target, ide, build=None, src=None, macros=None, project_id=None,
         export_path=export_path,
     )
 
-    zip_name = name+".zip" if zip_proj else None
+    if zip_proj is None:
+        zip_name = name+".zip"
+    elif zip_proj:
+        zip_name = zip_proj
+    else:
+        zip_name = None
 
     return export_project(
         src,
@@ -197,7 +202,6 @@ def get_args(argv):
         "-p",
         type=test_known,
         dest="program",
-        help="The index of the desired test program: [0-%s]" % (len(TESTS) - 1)
     )
 
     group.add_argument(
@@ -300,7 +304,7 @@ def get_args(argv):
 
     parser.add_argument(
         "-z", "--zip",
-        action="store_true",
+        nargs="?"
         default=False,
     )
 

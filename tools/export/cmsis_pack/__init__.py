@@ -56,9 +56,6 @@ class CMSISPack(Exporter):
 
         Note: subclasses should not need to override this method
         """
-        if not self.resources.linker_script:
-            raise NotSupportedException("No linker script found.")
-
         self.resources.win_to_unix()
 
         dev = DeviceCMSIS(self.target)
@@ -70,10 +67,10 @@ class CMSISPack(Exporter):
             'linker_script': self.resources.linker_script,
             'include_paths': list(set(join(p, "") for p in self.resources.inc_dirs if p)),
             'object_files': self.resources.objects,
-            'c_files' : self.resources.c_sources,
-            's_files' : self.resources.s_sources,
-            'cpp_files' : self.resources.cpp_sources,
-            'headers' : self.resources.headers,
+            'c_files': self.resources.c_sources,
+            's_files': self.resources.s_sources,
+            'cpp_files': self.resources.cpp_sources,
+            'headers': self.resources.headers,
             'hex_files': self.resources.hex_files,
             'libraries': self.resources.libraries,
             'preinclude': self.toolchain.get_config_header(),
@@ -99,7 +96,15 @@ class CMSISPack(Exporter):
                 'linker_script': res.linker_script
             }
 
-        self.gen_file("cmsis_pack/pdsc.tmpl", ctx, 'MBED.%s_%s.pdsc' % (self.target.upper(), self.TOOLCHAIN.upper()))
+        self.gen_file(
+            "cmsis_pack/pdsc.tmpl",
+            ctx,
+            "%s.%s_%s.pdsc" % (
+                self.project_name.upper(),
+                self.target.upper(),
+                self.TOOLCHAIN.upper(),
+            )
+        )
 
 
 class GccArm(CMSISPack):

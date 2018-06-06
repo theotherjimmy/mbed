@@ -198,7 +198,7 @@ def zip_export(file_name, prefix, resources, project_files, inc_repos, notify):
     zipped = 0
     with zipfile.ZipFile(file_name, "w") as zip_file:
         for prj_file in project_files:
-            zip_file.write(prj_file, join(prefix, basename(prj_file)))
+            zip_file.write(prj_file, basename(prj_file))
         for loc, to_zip in to_zip_list:
             res = resources[loc]
             for source in to_zip:
@@ -304,7 +304,6 @@ def export_project(src_paths, export_path, target, ide, libraries_paths=None,
     files, exporter = generate_project_files(resources, export_path,
                                              target, name, toolchain, ide,
                                              macros=macros)
-    files.append(config_header)
     if zip_proj:
         for resource in resource_dict.values():
             for label, res in resource.features.items():
