@@ -45,7 +45,7 @@ ROM_OVERRIDES = set([
     # managed BL
     "target.bootloader_img", "target.restrict_size",
     "target.header_format", "target.header_offset",
-    "target.app_offset",
+    "target.app_offset", "target.make_update_img",
 
     # unmanaged BL
     "target.mbed_app_start", "target.mbed_app_size",
@@ -710,8 +710,9 @@ class Config(object):
                                       "start at 0x%x" % rom_start)
             part_size = (part.maxaddr() - part.minaddr()) + 1
             part_size = Config._align_ceiling(rom_start + part_size, self.sectors) - rom_start
-            yield Region("bootloader", rom_start, part_size, False,
-                         filename)
+            if not self.target.make_update_img:
+                yield Region(
+                    "bootloader", rom_start, part_size, False, filename)
             start = rom_start + part_size
             if self.target.header_format:
                 if self.target.header_offset:
