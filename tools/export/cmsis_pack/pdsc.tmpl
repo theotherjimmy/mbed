@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <package schemaVersion="1.3" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="PACK.xsd">
   <vendor>MBED</vendor>
-  <name>{{target}}_{{toolchain}}</name>
+  <name>mbedOS</name>
   <description> TODO: Fill later </description>
   <url>developer.mbed.org/pack</url>
   <releases>
-    <release version="5.5.4">Generated {{time}}</release>
+    <release version="5.10.2">Generated {{time}}</release>
   </releases>
   <conditions>
     <condition id="Everything">
@@ -14,12 +14,12 @@
       <deny Cclass="CMSIS" Cgroup="RTOS"/>
     </condition>
     <condition id="Everything-and-mbed">
-      <require Cclass="mbed OS" Cgroup="Core" Cversion="5.5.4"/>
+      <require Cclass="mbed OS" Cgroup="Core" Cversion="5.10.2"/>
       <require condition="Everything"/>
     </condition>
   </conditions>
   <components>
-    <component Cclass="mbed OS" Cgroup="Core" Cversion="5.5.4" condition="Everything">
+    <component Cclass="mbed OS" Cgroup="Core" Cversion="5.10.2" condition="Everything">
       <description></description>
       <RTE_Components_h>
         {%- for name, value in syms %}
@@ -28,6 +28,7 @@
 #include "{{preinclude}}"
       </RTE_Components_h>
       <files>
+        <file name="./html/index.html" category="doc"/>
         {%- for src in c_files %}
         <file name="{{src|escape}}" category="sourceC"/>
         {%- endfor -%}
@@ -51,7 +52,7 @@
       </files>
     </component>
     {%- for feature, data in features.iteritems() %}
-    <component Cclass="mbed OS" Cgroup="{{feature|replace('_', ' ')|title}}" condition="Everything-and-mbed" Cversion="5.5.4">
+    <component Cclass="mbed OS" Cgroup="{{feature|replace('_', ' ')|title}}" condition="Everything-and-mbed" Cversion="5.10.2">
       <description></description>
       <files>
         {%- for src in data.c_files %}
