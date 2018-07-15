@@ -82,7 +82,7 @@ class CMSISPack(Exporter):
             'compreq': self.COMPILER_REQUIREMENT,
             'features': {}
         }
-        for feature, res in self.resources.features.iteritems():
+        for feature, res in self.resources.features.items():
             ctx['features'][feature] = {
                 'object_files': res.objects,
                 'include_paths': list(set(join(p, "") for p in res.inc_dirs if p)),

@@ -304,7 +304,7 @@ def get_args(argv):
 
     parser.add_argument(
         "-z", "--zip",
-        nargs="?"
+        nargs="?",
         default=False,
     )
 
