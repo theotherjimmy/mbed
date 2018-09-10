@@ -227,6 +227,24 @@ class Resources(object):
         self._label_paths = [(p, b, i) for p, b, i in self._label_paths
                              if basename(p) not in self._prefixed_labels]
 
+    def _new_resources_from_labels(self, prefix, labels):
+        prefixed_labels = set("%s_%s" % (prefix, label) for label in labels)
+        new_resources = Resources(self._notify, self._collect_ignores)
+        new_resources._add_labels(prefix, labels)
+        for path, base_path, into_path in self._label_paths:
+            if basename(path) in prefixed_labels:
+                new_resources.add_directory(path, base_path, into_path)
+        return new_resources
+
+    def new_res_from_target(self, target):
+        return self._new_resources_from_labels("TARGET", target.labels)
+
+    def new_res_from_toolchain(self, toolchain):
+        return self._new_resources_from_labels(
+            "TOOLCHAIN",
+            toolchain.get_labels()["TOOLCHAIN"]
+        )
+
     def add_target_labels(self, target):
         self._add_labels("TARGET", target.labels)
         self._add_labels("COMPONENT", target.components)
