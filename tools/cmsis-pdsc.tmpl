@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package schemaVersion="1.4" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="PACK.xsd">
-    <name>{{CGroup}}</name>
+    <name>{% if device_name %}{{device_name}}{% else %}{{CGroup}}{% endif %}</name>
     <description>Mbed OS embedded Operating System and Drivers</description>
     <vendor>{{vendor}}</vendor>
     <url>{{cur_url}}</url>
@@ -12,14 +12,14 @@
         {%- if device_name %}
         <condition id="this-device">
             <require Dname="{{device_name}}" />
-            <require Cclass="{{vendor}}" CGroup="Core" />
+            <require Cclass="{{vendor}}" Cgroup="Core" />
             <accept Tcompiler="GCC" />
             <accept Tcompiler="ARMCC" />
             <accept Tcompiler="IAR" />
         </condition>
         {%- else -%}
         <condition id="a-hal">
-            <require Cclass="{{vendor}}" CGroup="HAL" Capiversion="{{version}}" />
+            <require Cclass="{{vendor}}" Cgroup="HAL" Capiversion="{{version}}" />
             <accept Tcompiler="GCC" />
             <accept Tcompiler="ARMCC" />
             <accept Tcompiler="IAR" />
@@ -36,10 +36,12 @@
         </condition>
     </conditions>
     <components>
-        <component Cclass="{{vendor}}" CGroup="{{CGroup}}" CVersion="{{version}}" condition="{%- if device_name -%}this-device{%- else -%}a-hal{%- endif -%}">
+        <component Cclass="{{vendor}}" Cgroup="{{CGroup}}" CVersion="{{version}}" condition="{%- if device_name -%}this-device{%- else -%}a-hal{%- endif -%}">
             <files>
-            {%-for cat, name, cond in files%}
+            {%- for cat, name, cond in files %}
+            {%- if cat %}
                 <file category="{{cat}}" name="{{name}}" {% if cond -%}condition="{{cond}}" {% endif -%} />
+            {%- endif %}
             {%- endfor %}
             </files>
         </component>

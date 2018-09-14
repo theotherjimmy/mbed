@@ -68,6 +68,7 @@ TYPE_MAPPING = {
     FileType.INC_DIR: "include",
     FileType.OBJECT: "object",
     FileType.LD_SCRIPT: "linkerScript",
+    FileType.HEADER: None,
 }
 
 
@@ -75,10 +76,9 @@ def get_files(res, target=None):
     all_file_refs = []
     all_file_names = []
     for typ, typ_name in TYPE_MAPPING.items():
-        for ref in res.get_file_refs(typ):
-            name, _ = ref
+        for name in res.get_file_names(typ):
             all_file_names.append((typ_name, name, None))
-            all_file_refs.append(ref)
+        all_file_refs.extend(res.get_file_refs(typ))
     if target != None:
         for tc in ["GCC_ARM", "ARM", "IAR"]:
             if tc not in target.supported_toolchains:
@@ -86,10 +86,9 @@ def get_files(res, target=None):
             cur_tc = prepare_toolchain([""], "BUILD", target, tc)
             tc_res = res.new_res_from_toolchain(cur_tc)
             for typ, typ_name in TYPE_MAPPING.items():
-                for ref in tc_res.get_file_refs(typ):
-                    name, _ = ref
+                for name in tc_res.get_file_names(typ):
                     all_file_names.append((typ_name, name, tc))
-                    all_file_refs.append(ref)
+                all_file_refs.extend(tc_res.get_file_refs(typ))
     return sorted(all_file_refs), sorted(all_file_names)
 
 
@@ -165,7 +164,7 @@ def main():
                 },
             )
             tgt_refs.append(FileRef(tgt_pdsc_name, tgt_pdsc_name))
-            pack_file_name = "{}.{}.{}.pack".format(vendor, tgt.name, options.version)
+            pack_file_name = "{}.{}.{}.pack".format(vendor, tgt.device_name, options.version)
             zip_files(pack_file_name, tgt_refs)
             done_things += 1
             progress(notifier, "packaging", pack_file_name, done_things, total_things)
