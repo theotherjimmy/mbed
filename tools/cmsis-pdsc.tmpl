@@ -38,9 +38,9 @@
     <components>
         <component Cclass="{{vendor}}" Cgroup="{{CGroup}}" Cversion="{{version}}" condition="{%- if device_name -%}this-device{%- else -%}a-hal{%- endif -%}" Cvariant="{{pack_name}}" >
             <files>
-            {%- for cat, name, cond in files %}
+            {%- for cat, name, cond, config in files %}
             {%- if cat %}
-                <file category="{{cat}}" name="{{name}}" {% if cond -%}condition="{{cond}}" {% endif -%} />
+                <file category="{{cat}}" name="{{name}}" {% if cond -%}condition="{{cond}}" {% endif -%} {% if config -%}attr="config"{% endif -%} />
             {%- endif %}
             {%- endfor %}
             </files>

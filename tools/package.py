@@ -3,6 +3,7 @@ from __future__ import print_function
 import argparse
 import socket
 import sys
+from collections import namedtuple
 from datetime import datetime
 from os.path import join, abspath, dirname, exists
 from jinja2 import FileSystemLoader, StrictUndefined
@@ -25,6 +26,7 @@ from tools.notifier.term import TerminalNotifier
 from tools.notifier.mock import MockNotifier
 from tools.targets import TARGETS
 from tools.build_api import prepare_toolchain
+from tools.config import Config
 
 
 def get_ip():
@@ -63,36 +65,46 @@ def gen_file(template_file, target_file, version, data):
 
 TYPE_MAPPING = {
     FileType.C_SRC: "sourceC",
-    FileType.CPP_SRC: "sourceC++",
+    FileType.CPP_SRC: "sourceCpp",
     FileType.ASM_SRC: "sourceAsm",
     FileType.INC_DIR: "include",
     FileType.OBJECT: "object",
     FileType.LD_SCRIPT: "linkerScript",
-    FileType.HEADER: "header",
+    FileType.HEADER: None,
 }
 
 
-def get_files(res, target=None):
-    all_file_refs = []
-    all_file_names = []
+CmsisRef = namedtuple("CmsisRef", "type_name, name, toolchain, config")
+
+
+def _get_files_inner(res, target, tc):
+    file_refs = []
+    file_names = []
     for typ, typ_name in TYPE_MAPPING.items():
         for name in res.get_file_names(typ):
             if name.startswith("./"):
                 name = name[2:]
-            all_file_names.append((typ_name, name, None))
-        all_file_refs.extend(res.get_file_refs(typ))
+            if typ == FileType.ASM_SRC and tc == "ARM":
+                name = name[:-1] + "sx"
+            file_names.append(CmsisRef(typ_name, name, tc, False))
+        if typ == FileType.ASM_SRC and tc == "ARM":
+            file_refs.extend(FileRef(name[:-1] + "sx", path) for name, path in res.get_file_refs(typ))
+        else:
+            file_refs.extend(res.get_file_refs(typ))
+    return file_refs, file_names
+
+
+def get_files(res, target=None):
+    all_file_refs, all_file_names = _get_files_inner(res, target, None)
     if target != None:
         for tc in ["GCC_ARM", "ARM", "IAR"]:
             if tc not in target.supported_toolchains:
                 continue
             cur_tc = prepare_toolchain([""], "BUILD", target, tc)
             tc_res = res.new_res_from_toolchain(cur_tc)
-            for typ, typ_name in TYPE_MAPPING.items():
-                for name in tc_res.get_file_names(typ):
-                    if name.startswith("./"):
-                        name = name[2:]
-                    all_file_names.append((typ_name, name, tc))
-                all_file_refs.extend(tc_res.get_file_refs(typ))
+            tc_refs, tc_names = _get_files_inner(tc_res, target, tc)
+            all_file_refs.extend(tc_refs)
+            all_file_names.extend(tc_names)
     return sorted(all_file_refs), sorted(all_file_names)
 
 
@@ -153,7 +165,23 @@ def main():
         if ("5" in getattr(tgt, "release_versions", []) and
             getattr(tgt, "device_name", None)):
             tgt_res = core_res.new_res_from_target(tgt)
+
+            tgt.features = []
+            config = Config(tgt)
+            tgt = config.target
+            config.load_resources(core_res)
+            config.load_resources(tgt_res)
+            tgt_cfg_header = "config.{}.h".format(tgt.name)
+            config.get_config_data_header(tgt_cfg_header)
+
             tgt_refs, files = get_files(tgt_res, tgt)
+            tgt_refs.append(FileRef("mbed_config.h", tgt_cfg_header))
+            files.append(CmsisRef(
+                "header",
+                "mbed_config.h",
+                False,
+                True,
+            ))
 
             tgt_pdsc_name = "{}.{}.pdsc".format(vendor, tgt.name)
             gen_file(
