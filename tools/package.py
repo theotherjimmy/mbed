@@ -68,7 +68,7 @@ TYPE_MAPPING = {
     FileType.INC_DIR: "include",
     FileType.OBJECT: "object",
     FileType.LD_SCRIPT: "linkerScript",
-    FileType.HEADER: None,
+    FileType.HEADER: "header",
 }
 
 
@@ -77,6 +77,8 @@ def get_files(res, target=None):
     all_file_names = []
     for typ, typ_name in TYPE_MAPPING.items():
         for name in res.get_file_names(typ):
+            if name.startswith("./"):
+                name = name[2:]
             all_file_names.append((typ_name, name, None))
         all_file_refs.extend(res.get_file_refs(typ))
     if target != None:
@@ -87,6 +89,8 @@ def get_files(res, target=None):
             tc_res = res.new_res_from_toolchain(cur_tc)
             for typ, typ_name in TYPE_MAPPING.items():
                 for name in tc_res.get_file_names(typ):
+                    if name.startswith("./"):
+                        name = name[2:]
                     all_file_names.append((typ_name, name, tc))
                 all_file_refs.extend(tc_res.get_file_refs(typ))
     return sorted(all_file_refs), sorted(all_file_names)
@@ -135,6 +139,7 @@ def main():
             "vendor": vendor,
             "files": core_files,
             "CGroup": core_group,
+            "pack_name": core_group,
             "device_name": False,
         },
     )
@@ -160,11 +165,12 @@ def main():
                     "vendor": vendor,
                     "files": files,
                     "CGroup": "HAL",
+                    "pack_name": tgt.name,
                     "device_name": tgt.device_name,
                 },
             )
             tgt_refs.append(FileRef(tgt_pdsc_name, tgt_pdsc_name))
-            pack_file_name = "{}.{}.{}.pack".format(vendor, tgt.device_name, options.version)
+            pack_file_name = "{}.{}.{}.pack".format(vendor, tgt.name, options.version)
             zip_files(pack_file_name, tgt_refs)
             done_things += 1
             progress(notifier, "packaging", pack_file_name, done_things, total_things)

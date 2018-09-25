@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package schemaVersion="1.4" xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" xs:noNamespaceSchemaLocation="PACK.xsd">
-    <name>{% if device_name %}{{device_name}}{% else %}{{CGroup}}{% endif %}</name>
+    <name>{{pack_name}}</name>
     <description>Mbed OS embedded Operating System and Drivers</description>
     <vendor>{{vendor}}</vendor>
     <url>{{cur_url}}</url>
@@ -36,7 +36,7 @@
         </condition>
     </conditions>
     <components>
-        <component Cclass="{{vendor}}" Cgroup="{{CGroup}}" CVersion="{{version}}" condition="{%- if device_name -%}this-device{%- else -%}a-hal{%- endif -%}">
+        <component Cclass="{{vendor}}" Cgroup="{{CGroup}}" Cversion="{{version}}" condition="{%- if device_name -%}this-device{%- else -%}a-hal{%- endif -%}" Cvariant="{{pack_name}}" >
             <files>
             {%- for cat, name, cond in files %}
             {%- if cat %}
