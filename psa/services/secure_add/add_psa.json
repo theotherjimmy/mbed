@@ -1,0 +1,21 @@
+{
+    "name": "SECURE_ADD",
+    "type": "APPLICATION-ROT",
+    "priority": "NORMAL",
+    "id": "0x00000003",
+    "entry_point": "secure_add_entry",
+    "stack_size": "0x400",
+    "heap_size": "0x400",
+    "services": [{
+        "name": "PSA_SECURE_ADD",
+        "identifier": "0x00012A00",
+        "signal": "PSA_SECURE_ADD_MSK",
+        "non_secure_clients": true,
+        "minor_version": 1,
+        "minor_policy": "RELAXED"
+      }
+    ],
+    "source_files": [
+      "TARGET_PSA_TFM/partition.c"
+    ]
+  }
