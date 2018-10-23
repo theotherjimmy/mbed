@@ -48,6 +48,7 @@ MEMORY
      * where 'xx' is the device group; for example, 'cy8c6xx7_cm4_dual.ld'.
      */
     ram               (rwx)   : ORIGIN = 0x08000000, LENGTH = 0x10000
+    shared_ram        (rw)    : ORIGIN = 0x08010000, LENGTH = 0x1000
     flash             (rx)    : ORIGIN = 0x10000000, LENGTH = 0x78000
 
     /* This is a 32K flash region used for EEPROM emulation. This region can also be used as the general purpose flash.
@@ -298,6 +299,16 @@ SECTIONS
     /* Check if data + heap + stack exceeds RAM limit */
     ASSERT(__StackLimit >= __HeapLimit, "region RAM overflowed with stack")
 
+    /* .shared_mem section contains memory shared between CM0+ and CM4 */
+    .shared_mem :
+    {
+        __shared_memory_start = .;
+        . += 0x1000;
+        __shared_memory_end = .;
+
+        /* Check if section is 4 bytes aligned */
+        ASSERT (((__shared_memory_start % 4) == 0), "Error: shared_mem section is not 4 bytes aligned!!");
+    } > shared_ram
 
     /* Emulated EEPROM Flash area */
     .cy_em_eeprom :
@@ -333,7 +344,7 @@ SECTIONS
         KEEP(*(.cy_toc_part2))
     } > sflash_toc_2
 
-    
+
     /* Supervisory Flash: Table of Content # 2 Copy */
     .cy_rtoc_part2 :
     {

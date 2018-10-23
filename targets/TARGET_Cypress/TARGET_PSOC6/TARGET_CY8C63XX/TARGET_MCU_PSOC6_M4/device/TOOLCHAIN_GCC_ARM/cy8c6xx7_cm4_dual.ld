@@ -49,7 +49,7 @@ MEMORY
      * Your changes must be aligned with the corresponding memory regions for CM0+ core in 'xx_cm0plus.ld',
      * where 'xx' is the device group; for example, 'cy8c6xx7_cm0plus.ld'.
      */
-    ram               (rwx)   : ORIGIN = 0x08010000, LENGTH = 0x37800
+    ram               (rwx)   : ORIGIN = 0x08011000, LENGTH = 0x36800
     flash             (rx)    : ORIGIN = 0x10080000, LENGTH = 0x78000
 
     /* This is a 32K flash region used for EEPROM emulation. This region can also be used as the general purpose flash.
@@ -339,7 +339,7 @@ SECTIONS
         KEEP(*(.cy_toc_part2))
     } > sflash_toc_2
 
-    
+
     /* Supervisory Flash: Table of Content # 2 Copy */
     .cy_rtoc_part2 :
     {
