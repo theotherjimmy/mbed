@@ -4611,5 +4611,22 @@
                 "macro_name": "CY_CLK_SLOWCLK_FREQ_HZ"
             }
         }
+    },
+    "FUTURE_SEQUANA_M0_PSA": {
+        "inherits": ["FUTURE_SEQUANA_M0"],
+        "macros_add": ["PSOC6_DYNSRM_DISABLE=1"]
+    },
+    "FUTURE_SEQUANA_PSA": {
+        "inherits": ["FUTURE_SEQUANA"],
+        "sub_target": "FUTURE_SEQUANA_M0_PSA",
+        "extra_labels_remove": ["CORDIO"],
+        "macros_add": ["PSOC6_DYNSRM_DISABLE=1"],
+        "M0_CORE_IMAGE": [
+            {
+                "name": "psoc63_m0_psa_1.0.hex",
+                "features": [],
+                "description": "PSA M0 image"
+            }
+        ]
     }
 }
