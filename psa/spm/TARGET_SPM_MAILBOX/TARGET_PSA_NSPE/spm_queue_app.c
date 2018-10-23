@@ -1,0 +1,108 @@
+#include "cmsis_os2.h"
+#include "psa_defs.h"
+#include "mbed_assert.h"
+#include "ipc_queue.h"
+#include "ipc_defs.h"
+#include "spm_init_api.h"
+#include "spm_queue_app_plat.h"
+
+#ifndef SHARED_MEM_START_ADDR
+#error "SHARED_MEM_START_ADDR is not defined"
+#endif
+
+static os_mutex_t queue_mutex_storage;
+static os_semaphore_t full_sema;
+static os_semaphore_t read_sema;
+
+static const osMutexAttr_t queue_mutex_attr = {
+    .name      = "Q_MUT",
+    .attr_bits = osMutexRecursive | osMutexPrioInherit | osMutexRobust,
+    .cb_mem    = &queue_mutex_storage,
+    .cb_size   = sizeof(queue_mutex_storage)
+};
+
+// Full queue semaphore attributes for the consumer queue
+static const osSemaphoreAttr_t full_sem_attr = {
+    .name      = "Q_W_SEM",
+    .attr_bits = 0,
+    .cb_mem    = &full_sema,
+    .cb_size   = sizeof(full_sema)
+};
+
+// Read semaphore attributes for the consumer queue
+static const osSemaphoreAttr_t read_sem_attr = {
+    .name      = "Q_R_SEM",
+    .attr_bits = 0,
+    .cb_mem    = &read_sema,
+    .cb_size   = sizeof(read_sema)
+};
+
+static ipc_producer_queue_t _prod_queue;
+ipc_producer_queue_t *prod_queue = &_prod_queue;
+static ipc_consumer_queue_t _cons_queue;
+ipc_consumer_queue_t *cons_queue = &_cons_queue;
+
+
+
+/*******************************************************************************
+* Function Name: on_popped_item
+*******************************************************************************/
+void on_popped_item(ipc_queue_item_t item)
+{
+    osStatus_t os_status = osSemaphoreRelease((osSemaphoreId_t)(item.b));
+    MBED_ASSERT(osOK == os_status);
+    PSA_UNUSED(os_status);
+}
+
+void spm_ipc_queues_init(void)
+{
+    // Initialization by data from shared memory
+    // -----------------------------------------
+
+    // This table is holding addresses of the platform's shared memory.
+    addr_table_t *shared_addr_table_ptr = (addr_table_t *)SHARED_MEM_START_ADDR;
+    MBED_ASSERT(shared_addr_table_ptr->magic = ADDR_TABLE_MAGIC);
+
+    ipc_base_queue_t *tx_queue_mem_ptr = (ipc_base_queue_t *)(shared_addr_table_ptr->tx_queue_ptr);
+    MBED_ASSERT(tx_queue_mem_ptr->magic == IPC_QUEUE_BASE_MAGIC);
+
+    ipc_base_queue_t *rx_queue_mem_ptr = (ipc_base_queue_t *)(shared_addr_table_ptr->rx_queue_ptr);
+    MBED_ASSERT(rx_queue_mem_ptr->magic == IPC_QUEUE_BASE_MAGIC);
+
+    osMutexId_t queue_mutex = osMutexNew(&queue_mutex_attr);
+    MBED_ASSERT(queue_mutex != NULL);    // TODO: Panic instead
+
+    osSemaphoreId_t full_queue_sem = osSemaphoreNew(IPC_QUEUE_SEM_MAX_COUNT, IPC_QUEUE_SEM_INITIAL_COUNT, &full_sem_attr);
+    MBED_ASSERT(full_queue_sem != NULL);    // TODO: Panic instead
+
+    osSemaphoreId_t queue_read_sem = osSemaphoreNew(IPC_QUEUE_SEM_MAX_COUNT, IPC_QUEUE_SEM_INITIAL_COUNT, &read_sem_attr);
+    MBED_ASSERT(queue_read_sem != NULL);    // TODO: Panic instead
+
+    ipc_producer_queue_init(prod_queue, tx_queue_mem_ptr, queue_mutex, full_queue_sem);
+    ipc_consumer_queue_init(cons_queue, rx_queue_mem_ptr, queue_read_sem);
+
+    spm_ipc_queues_init_plat();
+}
+
+void ipc_interrupt_handler(void)
+{
+    osStatus_t os_status = osSemaphoreRelease(prod_queue->full_queue_sem);
+    MBED_ASSERT((osOK == os_status) || (osErrorResource == os_status));
+
+    os_status = osSemaphoreRelease(cons_queue->read_sem);
+    MBED_ASSERT((osOK == os_status) || (osErrorResource == os_status));
+
+    PSA_UNUSED(os_status);
+
+    ipc_interrupt_handler_plat();
+}
+
+/*******************************************************************************
+* Function Name: ipc_rx_queue_dispatcher
+*******************************************************************************/
+void ipc_rx_queue_dispatcher(void *arg)
+{
+    while (true) {
+        ipc_queue_drain(cons_queue);
+    }
+}
