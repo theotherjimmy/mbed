@@ -285,7 +285,7 @@ static void message_handler(psa_msg_t *msg, SignalHandler handler, NVStore &inst
             break;
         }
     }
-    psa_end(msg->handle, status);
+    psa_reply(msg->handle, status);
 }
 
 void secure_storage_entry(void *ptr)

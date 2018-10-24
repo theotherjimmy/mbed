@@ -194,10 +194,36 @@ void psa_close(psa_handle_t handle)
     // TODO: Panic instead
     MBED_ASSERT(handle >= 0);
 
+    osRtxSemaphore_t res_sem_storage = {0, 0, 0, 0, 0, 0, 0, 0};
+    const osSemaphoreAttr_t res_sem_attr = {
+        .name      = "CLOSE_RES_SEM",
+        .attr_bits = 0,
+        .cb_mem    = &res_sem_storage,
+        .cb_size   = sizeof(res_sem_storage),
+    };
+
+    spm_pending_close_msg_t msg = {
+        .handle = handle,
+        .completion_sem_id = osSemaphoreNew( IPC_RES_SEM_MAX_COUNT,
+                                             IPC_RES_SEM_INITIAL_COUNT,
+                                             &res_sem_attr
+                                           )
+    };
+
+    MBED_ASSERT(msg.completion_sem_id != NULL);
     ipc_queue_item_t queue_item = {
         .a = PSA_IPC_DISCONNECT,
-        .c = (uint32_t)(handle)
+        .b = (uint32_t)(&msg),
+        .c = (uint32_t)handle
     };
 
     ipc_queue_enqueue(prod_queue, queue_item);
+
+    osStatus_t os_status = osSemaphoreAcquire(msg.completion_sem_id, osWaitForever);
+    MBED_ASSERT(osOK == os_status);
+
+    os_status = osSemaphoreDelete(msg.completion_sem_id);
+    MBED_ASSERT(osOK == os_status);
+
+    PSA_UNUSED(os_status);
 }

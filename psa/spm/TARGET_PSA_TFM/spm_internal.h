@@ -208,6 +208,14 @@ void psa_connect_async(uint32_t sid, spm_pending_connect_msg_t *msg);
  */
 void psa_call_async(psa_handle_t handle, spm_pending_call_msg_t *msg);
 
+/*
+ * Validates parameters sent from caller and queues a disconnect message on the correct ROT_SRV.
+ *
+ * @param[in] handle - handle of channel to close
+ * @param[in] msg - pointer to close message struct
+ */
+void psa_close_async(psa_handle_t handle, spm_pending_close_msg_t *msg);
+
 
 /*
  * Validates IOvecs.

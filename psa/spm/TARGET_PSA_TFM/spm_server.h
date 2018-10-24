@@ -136,9 +136,9 @@ void psa_write(psa_handle_t msg_handle, uint32_t outvec_idx, const void *buffer,
  * Negative return code represent errors, Positive integers are application-specific.
  *
  * @param[in] msg_handle Handle for the client's message.
- * @param[in] retval Return code to the client.
+ * @param[in] status Message result value to be reported to the client.
  */
-void psa_end(psa_handle_t msg_handle, psa_error_t retval);
+void psa_reply(psa_handle_t msg_handle, psa_error_t status);
 
 /**
  * Send a doorbell signal to a specific partition that is listening for that signal type.

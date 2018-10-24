@@ -72,7 +72,7 @@ void on_popped_item(ipc_queue_item_t item)
 
         case PSA_IPC_DISCONNECT:
         {
-            psa_close((psa_handle_t)(item.c));
+            psa_close_async((psa_handle_t)(item.c), (spm_pending_close_msg_t *)(item.b));
             break;
         }
 

@@ -55,4 +55,12 @@ typedef __PACKED_STRUCT spm_pending_version_msg {
     osSemaphoreId_t completion_sem_id; /* Semaphore to be released at the end of execution */
 } __ALIGNED(4) spm_pending_version_msg_t;
 
+/*
+ * Structure containing data sent from NSPE for closing a connection.
+ */
+typedef __PACKED_STRUCT spm_pending_close_msg {
+    psa_handle_t handle;               /* Handle of channel to be closed */
+    osSemaphoreId_t completion_sem_id; /* Semaphore to be released at the end of execution */
+} __ALIGNED(4) spm_pending_close_msg_t;
+
 #endif // SPM_MESSAGES_H

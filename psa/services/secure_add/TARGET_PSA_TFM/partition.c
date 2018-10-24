@@ -51,7 +51,7 @@ void secure_add_entry(void *ptr)
                 }
             }
 
-            psa_end(msg.handle, status);
+            psa_reply(msg.handle, status);
         }
     }
 }

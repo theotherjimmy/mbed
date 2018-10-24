@@ -66,7 +66,7 @@ extern "C" {
 #define PSA_IPC_VERSION          (4)  /**< The IPC message type that indicates a client query for a specific sid.*/
 
 /* Error codes */
-#define PSA_DROP_CONNECTION     (INT32_MIN)       /**< The result code in a call to psa_end() to indicate a non-recoverable error in the client.*/
+#define PSA_DROP_CONNECTION     (INT32_MIN)       /**< The result code in a call to psa_reply() to indicate a non-recoverable error in the client.*/
 #define PSA_CONNECTION_REFUSED  (INT32_MIN + 1)    /**< The return value from psa_connect() if the RoT Service or SPM was unable to establish a connection.*/
 
 #define PSA_UNUSED(var) ((void)(var))
