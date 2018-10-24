@@ -168,12 +168,3 @@ void nspe_done(osSemaphoreId_t completion_sem_id)
 
     ipc_queue_enqueue(prod_queue, item_to_enqueue);
 }
-
-
-// void ipc_tx_queue_dispatcher(void)
-int main(void)
-{
-    while (true) {
-        ipc_queue_drain(cons_queue);
-    }
-}
