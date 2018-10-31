@@ -15,8 +15,9 @@
 
 #include "mbed_error.h"
 #include "rtx_os.h"
-#include "spm_internal.h"
 #include "handles_manager.h"
+#include "spm_hal_addresses.h"
+#include "spm_hal_spe.h"
 
 MBED_STATIC_ASSERT( MBED_CONF_SPM_IPC_MAX_NUM_OF_CHANNELS <= PSA_HANDLE_MGR_MAX_HANDLES_NUM,
                     "Number of channels exceeds maximum number of handles allowed in handles manager!"
@@ -72,9 +73,7 @@ uint32_t init_partitions(spm_partition_t **partitions);
 
 void psa_spm_init(void)
 {
-    uint32_t region_count = 0;
-    const mem_region_t *regions = get_mem_regions(MEM_PARTITIONS_ALL, &region_count);
-    memory_protection_init(regions, region_count);
+    spm_hal_memory_protection_init();
 
     g_spm.channel_mem_pool = osMemoryPoolNew(
         MBED_CONF_SPM_IPC_MAX_NUM_OF_CHANNELS,
@@ -95,4 +94,37 @@ void psa_spm_init(void)
     }
 
     g_spm.partition_count = init_partitions(&(g_spm.partitions));
+
+    // Sanity for platform's specific addresses
+
+    uint32_t secure_ram_base   = spm_hal_get_plat_sec_ram_base();
+    size_t   secure_ram_len    = spm_hal_get_plat_sec_ram_len();
+    uint32_t secure_flash_base = spm_hal_get_plat_sec_flash_base();
+    size_t   secure_flash_len  = spm_hal_get_plat_sec_flash_len();
+
+    uint32_t non_secure_ram_base   = spm_hal_get_plat_non_sec_ram_base();
+    size_t   non_secure_ram_len    = spm_hal_get_plat_non_sec_ram_len();
+    uint32_t non_secure_flash_base = spm_hal_get_plat_non_sec_flash_base();
+    size_t   non_secure_flash_len  = spm_hal_get_plat_non_sec_flash_len();
+
+    if (((uintptr_t)secure_ram_base + secure_ram_len - 1) < (uintptr_t)secure_ram_base
+       ) {
+        error("%s - Illegal secure ram region! base = 0x%x, len = 0x%x.\n",
+                __func__, secure_ram_base, secure_ram_len);
+    }
+
+    if (((uintptr_t)secure_flash_base + secure_flash_len - 1) < (uintptr_t)secure_flash_base) {
+        error("%s - Illegal secure flash region! base = 0x%x, len = 0x%x.\n",
+                __func__, secure_flash_base, secure_flash_len);
+    }
+
+    if (((uintptr_t)non_secure_ram_base + non_secure_ram_len - 1) < (uintptr_t)non_secure_ram_base) {
+        error("%s - Illegal non-secure ram region! base = 0x%x, len = 0x%x.\n",
+                __func__, non_secure_ram_base, non_secure_ram_len);
+    }
+
+    if (((uintptr_t)non_secure_flash_base + non_secure_flash_len - 1) < (uintptr_t)non_secure_flash_base) {
+        error("%s - Illegal non-secure flash region! base = 0x%x, len = 0x%x.\n",
+                __func__, non_secure_flash_base, non_secure_flash_len);
+    }
 }

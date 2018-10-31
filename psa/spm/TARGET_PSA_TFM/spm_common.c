@@ -17,6 +17,7 @@
 #include "psa_defs.h"
 #include "spm_internal.h"
 #include "spm_panic.h"
+#include "spm_hal_addresses.h"
 
 bool core_util_atomic_cas_u8(volatile uint8_t *ptr, uint8_t *expectedCurrentValue, uint8_t desiredValue);
 
@@ -98,4 +99,75 @@ spm_partition_t *get_active_partition(void)
     }
 
     return NULL; // Valid in case of NSPE
+}
+
+bool is_buffer_accessible(const void *ptr, size_t size, spm_partition_t *accessing_partition)
+{
+    if (NULL == ptr) {
+        return false;
+    }
+
+    if (size == 0) {
+        return true;
+    }
+
+    // Check wrap around of ptr + size
+    if (((uintptr_t)ptr + size - 1) < (uintptr_t)ptr) {
+        return false;
+    }
+
+    // Note: Sanity checks on platform addresses and sizes is done in psa_spm_init()
+
+    uint32_t secure_ram_base   = spm_hal_get_plat_sec_ram_base();
+    size_t   secure_ram_len    = spm_hal_get_plat_sec_ram_len();
+    uint32_t secure_flash_base = spm_hal_get_plat_sec_flash_base();
+    size_t   secure_flash_len  = spm_hal_get_plat_sec_flash_len();
+
+    uint32_t non_secure_ram_base   = spm_hal_get_plat_non_sec_ram_base();
+    size_t   non_secure_ram_len    = spm_hal_get_plat_non_sec_ram_len();
+    uint32_t non_secure_flash_base = spm_hal_get_plat_non_sec_flash_base();
+    size_t   non_secure_flash_len  = spm_hal_get_plat_non_sec_flash_len();
+
+
+    // Check NSPE case
+    if (accessing_partition == NULL) {
+
+        // Make sure the NSPE is accessing the non-secure ram range OR the non-secure flash range
+
+        // RAM
+        if ( ((uintptr_t)ptr >= (uintptr_t)non_secure_ram_base) && ((uintptr_t)ptr < ((uintptr_t)non_secure_ram_base + non_secure_ram_len)) &&
+             (((uintptr_t)ptr + size) <= ((uintptr_t)non_secure_ram_base + non_secure_ram_len))
+           ) {
+               return true;
+        }
+
+        // FLASH
+        if ( ((uintptr_t)ptr >= (uintptr_t)non_secure_flash_base) && ((uintptr_t)ptr < ((uintptr_t)non_secure_flash_base + non_secure_flash_len)) &&
+             (((uintptr_t)ptr + size) <= ((uintptr_t)non_secure_flash_base + non_secure_flash_len))
+           ) {
+               return true;
+        }
+    }
+    else    // Check SPE case
+    {
+        // As we do not expect secure partitions to use SPE addresses for iovecs, we make sure here that the SPE is accessing
+        // the secure ram range OR the secure flash range
+
+        // RAM
+        if ( ((uintptr_t)ptr >= (uintptr_t)secure_ram_base) && ((uintptr_t)ptr < ((uintptr_t)secure_ram_base + secure_ram_len)) &&
+             (((uintptr_t)ptr + size) <= ((uintptr_t)secure_ram_base + secure_ram_len))
+           ) {
+               return true;
+        }
+
+        // FLASH
+        if ( ((uintptr_t)ptr >= (uintptr_t)secure_flash_base) && ((uintptr_t)ptr < ((uintptr_t)secure_flash_base + secure_flash_len)) &&
+             (((uintptr_t)ptr + size) <= ((uintptr_t)secure_flash_base + secure_flash_len))
+           ) {
+               return true;
+        }
+
+    }
+
+    return false;
 }

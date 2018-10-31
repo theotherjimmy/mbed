@@ -4,8 +4,8 @@
 #include "spm_internal.h"
 #include "mbed_assert.h"
 #include "ipc_queue.h"
-#include "spm_init_api.h"
 #include "ipc_defs.h"
+#include "spm_hal_mailbox.h"
 
 static os_mutex_t queue_mutex_storage;
 static os_semaphore_t full_sema;
@@ -40,7 +40,7 @@ ipc_producer_queue_t *prod_queue = &_prod_queue;
 static ipc_consumer_queue_t _cons_queue;
 ipc_consumer_queue_t *cons_queue = &_cons_queue;
 
-void ipc_interrupt_handler(void)
+void spm_mailbox_irq_callback(void)
 {
     osStatus_t os_status = osSemaphoreRelease(prod_queue->full_queue_sem);
     MBED_ASSERT((osOK == os_status) || (osErrorResource == os_status));
@@ -49,8 +49,16 @@ void ipc_interrupt_handler(void)
     MBED_ASSERT((osOK == os_status) || (osErrorResource == os_status));
 
     PSA_UNUSED(os_status);
+}
 
-    ipc_interrupt_handler_plat();
+void on_new_item(void)
+{
+    spm_hal_mailbox_notify();
+}
+
+void on_vacancy(void)
+{
+    spm_hal_mailbox_notify();
 }
 
 void on_popped_item(ipc_queue_item_t item)
@@ -95,7 +103,7 @@ void on_popped_item(ipc_queue_item_t item)
     }
 }
 
-void spm_ipc_queues_init(void)
+void spm_ipc_mailbox_init(void)
 {
     // The __shared_memory_start & __shared_memory_end symbols are declared in CM0+ Linker Script.
     // &__shared_memory_start denotes the start address of the memory shared between CM0+ and CM4.
@@ -156,8 +164,6 @@ void spm_ipc_queues_init(void)
 
     ipc_producer_queue_init(prod_queue, rx_queue_mem_ptr, queue_mutex, full_queue_sem);
     ipc_consumer_queue_init(cons_queue, tx_queue_mem_ptr, queue_read_sem);
-
-    spm_ipc_queues_init_plat();
 }
 
 void nspe_done(osSemaphoreId_t completion_sem_id)

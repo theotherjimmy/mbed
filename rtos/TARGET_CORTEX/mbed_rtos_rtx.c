@@ -24,6 +24,10 @@
 #include "mbed_boot.h"
 #include "spm_init.h"
 
+#if defined(TARGET_PSA_TFM)
+#include "spm_hal_spe.h"
+#endif
+
 osThreadAttr_t _main_thread_attr;
 
 #ifndef MBED_CONF_APP_MAIN_STACK_SIZE
@@ -61,11 +65,12 @@ MBED_NORETURN void mbed_rtos_start()
 #endif
 
 #if defined(TARGET_SPM_MAILBOX)
-    spm_ipc_queues_init();
+    spm_ipc_mailbox_init();
 #endif // defined(TARGET_SPM_MAILBOX)
 
 #if defined(TARGET_PSA_TFM)
-    start_nspe();
+    // At this point, the mailbox is already initialized
+    spm_hal_start_nspe();
     psa_spm_init();
 #endif // defined(TARGET_PSA_TFM)
 

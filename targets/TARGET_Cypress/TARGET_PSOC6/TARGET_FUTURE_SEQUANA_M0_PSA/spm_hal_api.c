@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 ARM Limited
+/* Copyright (c) 2018 ARM Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,58 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "cmsis_os2.h"
-#include "psa_defs.h"
+
+
+/* -------------------------------------- Includes ----------------------------------- */
+
+#include "cy_sysint.h"
+
 #include "spm_internal.h"
-#include "spm_hal_api.h"
+
+
+/* -------------------------------------- HAL API ------------------------------------ */
 
 // These implementations are meant to be used only for SPM running on PSoC6 M0+ core.
 
-#define SPM_PSOC6_SECURE_RAM_BASE 0x08000000
-#define SPM_PSOC6_SECURE_RAM_LEN  0x10000
-#define SPM_PSOC6_SECURE_FLASH_BASE 0x10000000
-#define SPM_PSOC6_SECURE_FLASH_LEN  0x80000
-
-
-
-bool is_buffer_accessible(const void *ptr, size_t size, spm_partition_t *accessing_partition)
+void spm_hal_start_nspe(void)
 {
-    if (NULL == ptr) {
-        return false;
-    }
-
-    if (size == 0) {
-        return true;
-    }
-
-    // Check wrap around of ptr + size
-    if (((uintptr_t)ptr + size - 1) < (uintptr_t)ptr) {
-        return false;
-    }
-
-    // Make sure the NSPE is not trying to access the secure ram range
-    if (accessing_partition == NULL) {
-        if (! ( ( (uintptr_t)ptr >= (uintptr_t)(SPM_PSOC6_SECURE_RAM_BASE + SPM_PSOC6_SECURE_RAM_LEN) ) ||
-                ( ((uintptr_t)ptr + size) <= (uintptr_t)SPM_PSOC6_SECURE_RAM_BASE ) )
-           ) {
-               return false;
-           }
-
-        // Make sure the NSPE is not trying to access the secure flash range
-        if (! ( ( (uintptr_t)ptr >= (uintptr_t)(SPM_PSOC6_SECURE_FLASH_BASE + SPM_PSOC6_SECURE_FLASH_LEN) ) ||
-                ( ((uintptr_t)ptr + size) <= (uintptr_t)SPM_PSOC6_SECURE_FLASH_BASE ) )
-           ) {
-               return false;
-           }
-    }
-
-    return true;
+    Cy_SysEnableCM4(CY_CORTEX_M4_APPL_ADDR);
 }
 
-
-// TODO - implement memory protection scheme for PSoC 6
-void memory_protection_init(const mem_region_t *regions, uint32_t region_count)
+void spm_hal_memory_protection_init(void)
 {
-    PSA_UNUSED(regions);
-    PSA_UNUSED(region_count);
 }

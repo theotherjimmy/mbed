@@ -16,8 +16,6 @@
 #ifndef __MBED_SPM_INIT_H__
 #define __MBED_SPM_INIT_H__
 
-#include "spm_init_api.h"
-
 #if defined(TARGET_SPM_MAILBOX_NSPE) && defined(TARGET_SPM_MAILBOX)
 #include "cmsis_os2.h"
 

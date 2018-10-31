@@ -3,12 +3,8 @@
 #include "mbed_assert.h"
 #include "ipc_queue.h"
 #include "ipc_defs.h"
-#include "spm_init_api.h"
-#include "spm_queue_app_plat.h"
-
-#ifndef SHARED_MEM_START_ADDR
-#error "SHARED_MEM_START_ADDR is not defined"
-#endif
+#include "spm_hal_mailbox.h"
+#include "spm_hal_addresses.h"
 
 static os_mutex_t queue_mutex_storage;
 static os_semaphore_t full_sema;
@@ -43,10 +39,16 @@ static ipc_consumer_queue_t _cons_queue;
 ipc_consumer_queue_t *cons_queue = &_cons_queue;
 
 
+void on_new_item(void)
+{
+    spm_hal_mailbox_notify();
+}
 
-/*******************************************************************************
-* Function Name: on_popped_item
-*******************************************************************************/
+void on_vacancy(void)
+{
+    spm_hal_mailbox_notify();
+}
+
 void on_popped_item(ipc_queue_item_t item)
 {
     osStatus_t os_status = osSemaphoreRelease((osSemaphoreId_t)(item.b));
@@ -54,13 +56,14 @@ void on_popped_item(ipc_queue_item_t item)
     PSA_UNUSED(os_status);
 }
 
-void spm_ipc_queues_init(void)
+
+void spm_ipc_mailbox_init(void)
 {
     // Initialization by data from shared memory
     // -----------------------------------------
 
     // This table is holding addresses of the platform's shared memory.
-    addr_table_t *shared_addr_table_ptr = (addr_table_t *)SHARED_MEM_START_ADDR;
+    addr_table_t *shared_addr_table_ptr = (addr_table_t *)spm_hal_get_plat_shared_mem_address();
     MBED_ASSERT(shared_addr_table_ptr->magic = ADDR_TABLE_MAGIC);
 
     ipc_base_queue_t *tx_queue_mem_ptr = (ipc_base_queue_t *)(shared_addr_table_ptr->tx_queue_ptr);
@@ -80,11 +83,9 @@ void spm_ipc_queues_init(void)
 
     ipc_producer_queue_init(prod_queue, tx_queue_mem_ptr, queue_mutex, full_queue_sem);
     ipc_consumer_queue_init(cons_queue, rx_queue_mem_ptr, queue_read_sem);
-
-    spm_ipc_queues_init_plat();
 }
 
-void ipc_interrupt_handler(void)
+void spm_mailbox_irq_callback(void)
 {
     osStatus_t os_status = osSemaphoreRelease(prod_queue->full_queue_sem);
     MBED_ASSERT((osOK == os_status) || (osErrorResource == os_status));
@@ -93,8 +94,6 @@ void ipc_interrupt_handler(void)
     MBED_ASSERT((osOK == os_status) || (osErrorResource == os_status));
 
     PSA_UNUSED(os_status);
-
-    ipc_interrupt_handler_plat();
 }
 
 /*******************************************************************************

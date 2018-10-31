@@ -14,41 +14,40 @@
  */
 
 
-// Includes
-// --------
-#include "spm_init_api.h"
+/* -------------------------------------- Includes ----------------------------------- */
+
+#include "spm_hal_mailbox.h"
+
 #include "cmsis.h"
 #include "cyip_ipc.h"
 #include "cy_ipc_drv.h"
 #include "cy_syslib.h"
 #include "cy_sysint.h"
 
+
+
+/* ------------------------------------ Definitions ---------------------------------- */
+
 #define SPM_IPC_CHANNEL 8u
 #define SPM_IPC_NOTIFY_CM0P_INTR    (CY_IPC_INTR_SPARE + 2) // CM4 to CM0+ notify interrupt number
 #define SPM_IPC_NOTIFY_CM4_INTR     (CY_IPC_INTR_SPARE + 1) // CM0+ to CM4 notify interrupt number
 
+
+
+/* ---------------------------------- Static Globals --------------------------------- */
+
 static IPC_STRUCT_Type      *ipc_channel_handle;
 static IPC_INTR_STRUCT_Type *ipc_interrupt_ptr;
 
-// Queue CB functions
-// ------------------
 
-void on_new_item(void)
+
+/* ------------------------ Platform's Functions Implementation ---------------------- */
+
+void ipc_interrupt_handler(void)
 {
-    Cy_IPC_Drv_AcquireNotify(ipc_channel_handle, (1uL << SPM_IPC_NOTIFY_CM0P_INTR));
-}
+    // Call ARM's interrupt handler
+    spm_mailbox_irq_callback();
 
-void on_vacancy(void)
-{
-    Cy_IPC_Drv_AcquireNotify(ipc_channel_handle, (1uL << SPM_IPC_NOTIFY_CM0P_INTR));
-}
-
-
-/*******************************************************************************
-* Function Name: ipc_interrupt_handler_plat
-*******************************************************************************/
-void ipc_interrupt_handler_plat(void)
-{
     // Clear the interrupt and make a dummy read to avoid double interrupt occurrence:
     // - The double interrupt’s triggering is caused by buffered write operations on bus
     // - The dummy read of the status register is indeed required to make sure previous write completed before leaving ISR
@@ -56,8 +55,7 @@ void ipc_interrupt_handler_plat(void)
     Cy_IPC_Drv_ClearInterrupt(ipc_interrupt_ptr, CY_IPC_NO_NOTIFICATION, (1uL << SPM_IPC_CHANNEL));
 }
 
-extern void ipc_interrupt_handler(void);
-void spm_ipc_queues_init_plat(void)
+void mailbox_init(void)
 {
     // Interrupts configuration for CM4
     // * See ce216795_common.h for occupied interrupts
@@ -80,4 +78,14 @@ void spm_ipc_queues_init_plat(void)
 
     ipc_channel_handle = Cy_IPC_Drv_GetIpcBaseAddress(SPM_IPC_CHANNEL);
     CY_ASSERT(ipc_channel_handle != NULL);
+}
+
+
+
+/* -------------------------------------- HAL API ------------------------------------ */
+
+void spm_hal_mailbox_notify(void)
+{
+    CY_ASSERT(ipc_channel_handle != NULL);
+    Cy_IPC_Drv_AcquireNotify(ipc_channel_handle, (1uL << SPM_IPC_NOTIFY_CM0P_INTR));
 }

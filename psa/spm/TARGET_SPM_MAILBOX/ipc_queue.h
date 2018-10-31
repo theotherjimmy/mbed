@@ -59,6 +59,8 @@ typedef __PACKED_STRUCT ipc_queue_item_t {
     uint32_t  c;
 
 } __ALIGNED(4) ipc_queue_item_t;
+MBED_STATIC_ASSERT((sizeof(ipc_queue_item_t) % sizeof(uint32_t) == 0), "ipc_queue_item_t: Struct size must be 4 bytes aligned!");
+
 
 // NOTE: STRUCT SIZE MUST BE 4 BYTES ALIGNED !!
 typedef __PACKED_STRUCT ipc_base_queue_t {
