@@ -24,6 +24,6 @@
     }
   ],
   "source_files": [
-    "partition2.c"
+    "TARGET_PSA_TFM/partition2.c"
   ]
 }

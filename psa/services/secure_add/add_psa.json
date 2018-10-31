@@ -2,7 +2,7 @@
     "name": "SECURE_ADD",
     "type": "APPLICATION-ROT",
     "priority": "NORMAL",
-    "id": "0x00000003",
+    "id": "0x0000000F",
     "entry_point": "secure_add_entry",
     "stack_size": "0x400",
     "heap_size": "0x400",

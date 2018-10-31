@@ -19,34 +19,12 @@
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  **********************************************************************************************************************/
 
-#ifndef PSA_SECURE_ADD_PARTITION_H
-#define PSA_SECURE_ADD_PARTITION_H
+#ifndef PSA_{{partition.name|upper}}_PARTITION_ROT_SERVICES_H
+#define PSA_{{partition.name|upper}}_PARTITION_ROT_SERVICES_H
 
-#define SECURE_ADD_ID 15
+{% for rot_srv in partition.rot_services %}
+#define {{rot_srv.name|upper}} {{rot_srv.id}}
+{% endfor %}
 
-#define SECURE_ADD_ROT_SRV_COUNT (1UL)
-#define SECURE_ADD_EXT_ROT_SRV_COUNT (0UL)
-
-/* SECURE_ADD event flags */
-#define SECURE_ADD_RESERVED1_POS (1UL)
-#define SECURE_ADD_RESERVED1_MSK (1UL << SECURE_ADD_RESERVED1_POS)
-
-#define SECURE_ADD_RESERVED2_POS (2UL)
-#define SECURE_ADD_RESERVED2_MSK (1UL << SECURE_ADD_RESERVED2_POS)
-
-
-
-#define PSA_SECURE_ADD_MSK_POS (4UL)
-#define PSA_SECURE_ADD_MSK (1UL << PSA_SECURE_ADD_MSK_POS)
-
-#define SECURE_ADD_WAIT_ANY_SID_MSK (\
-    PSA_SECURE_ADD_MSK)
-
-/*
-#define SECURE_ADD_WAIT_ANY_MSK (\
-    SECURE_ADD_WAIT_ANY_SID_MSK) | \
-    PSA_DOORBELL)
-*/
-
-
-#endif // PSA_SECURE_ADD_PARTITION_H
+#endif // PSA_{{partition.name|upper}}_PARTITION_ROT_SERVICES_H
+{# End of file #}

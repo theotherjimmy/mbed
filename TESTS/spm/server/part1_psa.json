@@ -28,6 +28,6 @@
     "ROT_SRV_DB_TST"
   ],
   "source_files": [
-    "partition.c"
+    "TARGET_PSA_TFM/partition.c"
   ]
 }
