@@ -4542,7 +4542,7 @@
         "OUTPUT_EXT": "hex",
         "device_has": ["USTICKER", "INTERRUPTIN", "SERIAL", "SERIAL_ASYNCH", "SERIAL_FC", "PORTIN", "PORTOUT", "PORTINOUT", "RTC", "PWMOUT", "ANALOGIN", "ANALOGOUT", "I2C", "I2C_ASYNCH", "SPI", "SPI_ASYNCH", "STDIO_MESSAGES", "LPTICKER", "SLEEP", "FLASH" ],
         "release_versions": ["5"],
-        "extra_labels": ["Cypress", "PSOC6", "SPM_MAILBOX", "PSA_SRV_IPC"],
+        "extra_labels": ["Cypress", "PSOC6"],
         "public": false
     },
     "MCU_PSOC6_M0": {
@@ -4554,7 +4554,6 @@
     "MCU_PSOC6_M4": {
         "inherits": ["MCU_PSOC6"],
         "macros": ["MCU_PSOC6_M4"],
-        "extra_labels_add": ["SPM_MAILBOX_NSPE"],
         "public": false
     },
     "FUTURE_SEQUANA_M0": {
@@ -4615,15 +4614,13 @@
     },
     "FUTURE_SEQUANA_M0_PSA": {
         "inherits": ["FUTURE_SEQUANA_M0"],
-        "macros_add": ["PSOC6_DYNSRM_DISABLE=1"],
-        "extra_labels_add": ["PSA_TFM", "PSA_SRV_IMPL", "SPM_MAILBOX"]
+        "extra_labels_add": ["PSA_TFM", "PSA_SRV_IMPL", "SPM_MAILBOX", "PSA_SRV_IPC"]
     },
     "FUTURE_SEQUANA_PSA": {
         "inherits": ["FUTURE_SEQUANA"],
         "sub_target": "FUTURE_SEQUANA_M0_PSA",
         "extra_labels_remove": ["CORDIO"],
-        "extra_labels_add": ["PSA_NSPE", "SPM_MAILBOX"],
-        "macros_add": ["PSOC6_DYNSRM_DISABLE=1"],
+        "extra_labels_add": ["SPM_MAILBOX", "PSA_SRV_IPC", "SPM_MAILBOX_NSPE"],
         "M0_CORE_IMAGE": [
             {
                 "name": "psoc63_m0_psa_1.0.hex",
