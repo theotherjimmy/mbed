@@ -162,8 +162,12 @@ class Target(namedtuple("Target", "name json_data resolution_order resolution_or
     @cached
     def get_json_target_data():
         """Load the description of JSON target data"""
-        targets = json_file_to_dict(Target.__targets_json_location or
-                                    Target.__targets_json_location_default)
+        from_file = (Target.__targets_json_location or
+                     Target.__targets_json_location_default)
+
+        targets = json_file_to_dict(from_file)
+        for tgt in targets.values():
+            tgt["_from_file"] = from_file
 
         for extra_target in Target.__extra_target_json_files:
             for k, v in json_file_to_dict(extra_target).items():
@@ -172,6 +176,7 @@ class Target(namedtuple("Target", "name json_data resolution_order resolution_or
                           'target.' % k)
                 else:
                     targets[k] = v
+                    targets[k]["_from_file"] = extra_target
 
         return targets
 
@@ -610,4 +615,3 @@ def set_targets_json_location(location=None):
     # instead. This ensures compatibility with code that does
     # "from tools.targets import TARGET_NAMES"
     update_target_data()
-

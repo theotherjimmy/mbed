@@ -35,7 +35,7 @@ from jinja2.environment import Environment
 from .arm_pack_manager import Cache
 from .utils import (mkdir, run_cmd, run_cmd_ext, NotSupportedException,
                     ToolException, InvalidReleaseTargetException,
-                    intelhex_offset, integer, generate_update_filename)
+                    intelhex_offset, integer, generate_update_filename, copy_when_different)
 from .paths import (MBED_CMSIS_PATH, MBED_TARGETS_PATH, MBED_LIBRARIES,
                     MBED_HEADER, MBED_DRIVERS, MBED_PLATFORM, MBED_HAL,
                     MBED_CONFIG_FILE, MBED_LIBRARIES_DRIVERS,
@@ -559,6 +559,22 @@ def build_project(src_paths, build_path, target, toolchain_name,
         else:
             res, _ = toolchain.link_program(resources, build_path, name)
             res = (res, None)
+
+        into_dir, extra_artifacts = toolchain.config.deliver_into()
+        if into_dir:
+            mkdir(into_dir)
+            copy_when_different(res[0], into_dir)
+            if not extra_artifacts:
+                if (
+                    CORE_ARCH[toolchain.target.core] == 8 and
+                    not toolchain.target.core.endswith("NS")
+                ):
+                    cmse_lib = join(dirname(res[0]), "cmse_lib.o")
+                    copy_when_different(cmse_lib, into_dir)
+            else:
+                for tc, art in extra_artifacts:
+                    if toolchain_name == tc:
+                        copy_when_different(join(build_path, art), into_dir)
 
         memap_instance = getattr(toolchain, 'memap_instance', None)
         memap_table = ''

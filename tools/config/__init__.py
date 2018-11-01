@@ -41,7 +41,15 @@ try:
     unicode
 except NameError:
     unicode = str
-PATH_OVERRIDES = set(["target.bootloader_img"])
+PATH_OVERRIDES = set([
+    "target.bootloader_img",
+    "target.delivery_dir",
+])
+DELIVERY_OVERRIDES = set([
+    "target.delivery_dir",
+    "target.deliver_to_target",
+    "target.deliver_artifacts",
+])
 ROM_OVERRIDES = set([
     # managed BL
     "target.bootloader_img", "target.restrict_size",
@@ -59,7 +67,7 @@ RAM_OVERRIDES = set([
     "target.mbed_ram_start", "target.mbed_ram_size",
 ])
 
-BOOTLOADER_OVERRIDES = ROM_OVERRIDES | RAM_OVERRIDES
+BOOTLOADER_OVERRIDES = ROM_OVERRIDES | RAM_OVERRIDES | DELIVERY_OVERRIDES
 
 
 ALLOWED_FEATURES = [
@@ -493,10 +501,17 @@ class Config(object):
                     self.app_config_data.get("custom_targets", {}), tgt)
         self.target = deepcopy(self.target)
         self.target_labels = self.target.labels
+        po_without_target = set(o.split(".")[1] for o in PATH_OVERRIDES)
         for override in BOOTLOADER_OVERRIDES:
             _, attr = override.split(".")
             if not hasattr(self.target, attr):
                 setattr(self.target, attr, None)
+            elif attr in po_without_target:
+                new_path = join(
+                    dirname(self.target._from_file),
+                    getattr(self.target, attr)
+                )
+                setattr( self.target, attr, new_path)
 
         self.cumulative_overrides = {key: ConfigCumulativeOverride(key)
                                      for key in CUMULATIVE_ATTRIBUTES}
@@ -572,6 +587,18 @@ class Config(object):
             if getattr(self.target, attr, None):
                 return True
         return False
+
+    def deliver_into(self):
+        if self.target.delivery_dir:
+            label_dir = "TARGET_{}".format(
+                self.target.deliver_to_target or self.target.name
+            )
+            return (
+                join(self.target.delivery_dir, label_dir),
+                self.target.deliver_artifacts
+            )
+        else:
+            return None, None
 
     @property
     def sectors(self):
