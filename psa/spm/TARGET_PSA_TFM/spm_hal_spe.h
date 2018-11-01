@@ -58,7 +58,7 @@ void spm_hal_start_nspe(void);
 /**
  * Configure memory protection mechanism.
  * 
- * Apply memory protection schemes to ensure secure memory can only be acceed 
+ * Apply memory protection schemes to ensure secure memory can only be accessed
  * from secure-state
  * 
  * @note The function must be implemented by target specific code.

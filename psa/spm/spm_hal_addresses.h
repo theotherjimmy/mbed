@@ -86,7 +86,7 @@ size_t spm_hal_get_plat_shared_mem_size(void);
  * @note The base address:
  * <ul>
  *   <li> must be aligned with linker script values.
- *   <li> must have RW permissions only from secure cores.
+ *   <li> must have RW permissions only from secure core.
  *   <li> must be 4 bytes aligned.
  * </ul>
  *
@@ -113,7 +113,7 @@ size_t spm_hal_get_plat_sec_ram_len(void);
  * @note The base address:
  * <ul>
  *   <li> must be aligned with linker script values.
- *   <li> must have read, write and execute permissions from secure cores.
+ *   <li> must have read, write and execute permissions from secure core.
  *   <li> must be 4 bytes aligned.
  * </ul>
  *
