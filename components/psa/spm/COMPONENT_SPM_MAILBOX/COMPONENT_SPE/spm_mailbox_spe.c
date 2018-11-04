@@ -5,7 +5,7 @@
 #include "mbed_assert.h"
 #include "ipc_queue.h"
 #include "ipc_defs.h"
-#include "spm_hal_mailbox.h"
+#include "spm_api.h"
 
 static os_mutex_t queue_mutex_storage;
 static os_semaphore_t full_sema;

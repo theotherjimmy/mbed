@@ -13,30 +13,86 @@
  * limitations under the License.
  */
 
-#ifndef __SPM_HAL_ADDRESSES_H__
-#define __SPM_HAL_ADDRESSES_H__
+#ifndef __SPM_API_H__
+#define __SPM_API_H__
 
 
 /** @addtogroup SPM
- * The SPM (Secure Partition Manager) is responsible for isolating software in 
- * partitions,managing the execution of software within partitions, and 
+ * The SPM (Secure Partition Manager) is responsible for isolating software in
+ * partitions, managing the execution of software within partitions, and
  * providing IPC between partitions.
  * @{
  */
 
-
-
 #include <stdint.h>
 #include <stddef.h>
-
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 
+/** @addtogroup HAL-SPE
+ *  The HAL functions for SPE.
+ * @{
+ */
+
+
+/* ------------------------------------ HAL-SPE API ------------------------- */
+
+
+#if defined(TARGET_PSA_TFM)
+/**
+ * Start running the NSPE.
+ *
+ * SPE (Secure Processing Environment) expected to boot first. Once all
+ * the initializations are done, NSPE (Non-Secure Processing Environment)
+ * should be booted.
+ *
+ * @note The function must be implemented by target specific code.
+ */
+void spm_hal_start_nspe(void);
+
+
+/**
+ * Configure memory protection mechanism.
+ *
+ * Apply memory protection schemes to ensure secure memory can only be accessed
+ * from secure-state
+ *
+ * @note The function must be implemented by target specific code.
+ *
+ */
+void spm_hal_memory_protection_init(void);
+
+#endif // defined(TARGET_PSA_TFM)
+
+/* ---------------------------------- HAL-Mailbox API ----------------------- */
+
+
+/**
+ * @brief Wakeup mailbox dispatcher thread
+ *
+ * This function is implemented by ARM and expected to be called by target
+ * specific Inter-Processor-Communication logic on mailbox interrupt handler.
+ *
+ */
+void spm_mailbox_irq_callback(void);
+
+
+/**
+ * @brief Notify the peer processor about a general event occurrence.
+ *
+ * Wakeup the peer processor waiting on the mailbox driver event.
+ *
+ * @note The functions below should be implemented by target specific code.
+ */
+void spm_hal_mailbox_notify(void);
+
+/** @}*/ // end of HAL-SPE group
+
 /** @addtogroup HAL-Addresses
- * The HAL functions to get platform's specific addresses for 
+ * The HAL functions to get platform's specific addresses for
  * secure/non-secure partitioning.
  * @{
  */
@@ -187,14 +243,14 @@ uint32_t spm_hal_get_plat_non_sec_flash_base(void);
  * The function must be implemented by target specific code.
  *
  * @note The length must be aligned with linker script values.
- * 
+ *
  * @return The platform's length in bytes of the non-secure FLASH.
  */
 size_t spm_hal_get_plat_non_sec_flash_len(void);
 
 
-
 /** @}*/ // end of HAL-Addresses group
+
 
 #ifdef __cplusplus
 }
@@ -202,4 +258,4 @@ size_t spm_hal_get_plat_non_sec_flash_len(void);
 
 /** @}*/ // end of SPM group
 
-#endif  // __SPM_HAL_ADDRESSES_H__
+#endif  // __SPM_API_H__

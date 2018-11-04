@@ -15,9 +15,9 @@
 
 #include "mbed_error.h"
 #include "rtx_os.h"
+#include "spm_internal.h"
 #include "handles_manager.h"
-#include "spm_hal_addresses.h"
-#include "spm_hal_spe.h"
+#include "spm_api.h"
 
 MBED_STATIC_ASSERT( MBED_CONF_SPM_IPC_MAX_NUM_OF_CHANNELS <= PSA_HANDLE_MGR_MAX_HANDLES_NUM,
                     "Number of channels exceeds maximum number of handles allowed in handles manager!"

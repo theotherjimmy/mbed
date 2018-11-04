@@ -25,7 +25,7 @@
 #include "spm_init.h"
 
 #if defined(COMPONENT_SPE)
-#include "spm_hal_spe.h"
+#include "spm_api.h"
 #endif
 
 osThreadAttr_t _main_thread_attr;

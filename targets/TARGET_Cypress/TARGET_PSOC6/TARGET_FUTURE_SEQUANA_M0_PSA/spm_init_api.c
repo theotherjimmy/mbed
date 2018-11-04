@@ -16,7 +16,7 @@
 
 /* -------------------------------------- Includes ----------------------------------- */
 
-#include "spm_hal_mailbox.h"
+#include "spm_api.h"
 
 #include "cmsis.h"
 #include "cyip_ipc.h"

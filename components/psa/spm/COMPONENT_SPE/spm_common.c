@@ -17,7 +17,7 @@
 #include "psa_defs.h"
 #include "spm_internal.h"
 #include "spm_panic.h"
-#include "spm_hal_addresses.h"
+#include "spm_api.h"
 
 bool core_util_atomic_cas_u8(volatile uint8_t *ptr, uint8_t *expectedCurrentValue, uint8_t desiredValue);
 
