@@ -4681,6 +4681,7 @@
     "FUTURE_SEQUANA_PSA": {
         "inherits": ["NSPE_Target", "FUTURE_SEQUANA"],
         "sub_target": "FUTURE_SEQUANA_M0_PSA",
+        "macros_add": ["PU_ENABLE"],
         "extra_labels_remove": ["CORDIO"],
         "extra_labels_add": ["PSOC6_PSA"],
         "components_add": ["SPM_MAILBOX"]
