@@ -16,6 +16,6 @@
     }
   ],
   "source_files": [
-    "TARGET_PSA_TFM/partition1.c"
+    "COMPONENT_SPE/partition1.c"
   ]
 }

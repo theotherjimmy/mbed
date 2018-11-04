@@ -42,7 +42,7 @@ extern "C" {
 /* ------------------------------------ HAL-SPE API ------------------------- */
 
 
-#if defined(TARGET_PSA_TFM)
+#if defined(COMPONENT_SPE)
 /**
  * Start running the NSPE.
  * 

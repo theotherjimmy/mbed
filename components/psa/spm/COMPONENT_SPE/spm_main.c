@@ -1,4 +1,4 @@
-#if defined(TARGET_SPM_MAILBOX)
+#if defined(COMPONENT_SPM_MAILBOX)
 
 #include "ipc_queue.h"
 extern ipc_consumer_queue_t *cons_queue;

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "mbed.h"
 #include "greentea-client/test_env.h"
 #include "unity.h"
 #include "utest.h"

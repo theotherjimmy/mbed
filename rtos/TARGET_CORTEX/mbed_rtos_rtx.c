@@ -24,7 +24,7 @@
 #include "mbed_boot.h"
 #include "spm_init.h"
 
-#if defined(TARGET_PSA_TFM)
+#if defined(COMPONENT_SPE)
 #include "spm_hal_spe.h"
 #endif
 
@@ -64,22 +64,22 @@ MBED_NORETURN void mbed_rtos_start()
     _main_thread_attr.tz_module = 1U;
 #endif
 
-#if defined(TARGET_SPM_MAILBOX)
+#if defined(COMPONENT_SPM_MAILBOX)
     spm_ipc_mailbox_init();
-#endif // defined(TARGET_SPM_MAILBOX)
+#endif // defined(COMPONENT_SPM_MAILBOX)
 
-#if defined(TARGET_PSA_TFM)
+#if defined(COMPONENT_SPE)
     // At this point, the mailbox is already initialized
     spm_hal_start_nspe();
     psa_spm_init();
-#endif // defined(TARGET_PSA_TFM)
+#endif // defined(COMPONENT_SPE)
 
-#if defined(TARGET_SPM_MAILBOX_NSPE) && defined(TARGET_SPM_MAILBOX)
+#if defined(COMPONENT_NSPE) && defined(COMPONENT_SPM_MAILBOX)
     osThreadId_t spm_result = osThreadNew((osThreadFunc_t)ipc_rx_queue_dispatcher, NULL, &dispatcher_th_attr);
     if ((void *)spm_result == NULL) {
         MBED_ERROR1(MBED_MAKE_ERROR(MBED_MODULE_PLATFORM, MBED_ERROR_CODE_INITIALIZATION_FAILED), "Dispatcher thread not created", &dispatcher_th_attr);
     }
-#endif // defined(TARGET_SPM_MAILBOX_NSPE) && defined(TARGET_SPM_MAILBOX)
+#endif // defined(COMPONENT_NSPE) && defined(COMPONENT_SPM_MAILBOX)
 
     singleton_mutex_id = osMutexNew(&singleton_mutex_attr);
     osThreadId_t result = osThreadNew((osThreadFunc_t)mbed_start, NULL, &_main_thread_attr);

@@ -32,6 +32,6 @@
     }
   ],
   "source_files": [
-    "TARGET_PSA_TFM/server.c"
+    "COMPONENT_SPE/server.c"
   ]
 }

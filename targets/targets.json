@@ -4,6 +4,7 @@
         "default_toolchain": "ARM",
         "supported_toolchains": null,
         "extra_labels": [],
+        "components": ["PSA_SRV_IMPL", "PSA_SRV_EMUL", "NSPE"],
         "is_disk_virtual": false,
         "macros": [],
         "device_has": [],
@@ -30,6 +31,14 @@
                 "value": "0x1000"
             }
         }
+    },
+    "NSPE_Target": {
+        "components": ["PSA_SRV_IPC", "NSPE"],
+        "public": false
+    },
+    "SPE_Target": {
+        "components": ["PSA_SRV_IMPL", "PSA_SRV_IPC", "SPE"],
+        "public": false
     },
     "CM4_UARM": {
         "inherits": ["Target"],
@@ -4613,20 +4622,13 @@
         }
     },
     "FUTURE_SEQUANA_M0_PSA": {
-        "inherits": ["FUTURE_SEQUANA_M0"],
-        "extra_labels_add": ["PSA_TFM", "PSA_SRV_IMPL", "SPM_MAILBOX", "PSA_SRV_IPC"]
+        "inherits": ["SPE_Target", "FUTURE_SEQUANA_M0"],
+        "components_add": ["SPM_MAILBOX"]
     },
     "FUTURE_SEQUANA_PSA": {
-        "inherits": ["FUTURE_SEQUANA"],
+        "inherits": ["NSPE_Target", "FUTURE_SEQUANA"],
         "sub_target": "FUTURE_SEQUANA_M0_PSA",
         "extra_labels_remove": ["CORDIO"],
-        "extra_labels_add": ["SPM_MAILBOX", "PSA_SRV_IPC", "SPM_MAILBOX_NSPE"],
-        "M0_CORE_IMAGE": [
-            {
-                "name": "psoc63_m0_psa_1.0.hex",
-                "features": [],
-                "description": "PSA M0 image"
-            }
-        ]
+        "components_add": ["SPM_MAILBOX"]
     }
 }

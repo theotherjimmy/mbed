@@ -16,7 +16,7 @@
 #ifndef __MBED_SPM_INIT_H__
 #define __MBED_SPM_INIT_H__
 
-#if defined(TARGET_SPM_MAILBOX_NSPE) && defined(TARGET_SPM_MAILBOX)
+#if defined(COMPONENT_SPM_MAILBOX)
 #include "cmsis_os2.h"
 
 MBED_ALIGN(8) char dispatcher_th_stack[0x100];
@@ -32,9 +32,9 @@ const osThreadAttr_t dispatcher_th_attr = {
 };
 
 void ipc_rx_queue_dispatcher(void);
-#endif // defined(TARGET_SPM_MAILBOX_NSPE) && defined(TARGET_SPM_MAILBOX)
+#endif // defined(COMPONENT_SPM_MAILBOX)
 
-#if defined(TARGET_PSA_TFM)
+#if defined(COMPONENT_SPE)
 void psa_spm_init(void);
 #endif
 
