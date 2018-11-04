@@ -19,58 +19,60 @@
 #include "greentea-client/test_env.h"
 #include "unity/unity.h"
 #include "utest/utest.h"
-#include "mbed_psa_storage.h"
+#include "psa_prot_internal_storage.h"
 
 using namespace utest::v1;
 
 #define TEST_BUFF_SIZE 16
 
-static void psa_storage_test()
+static void pits_test()
 {
-    psa_error_t status = PSA_SUCCESS;
+    psa_its_status_t status = PSA_ITS_SUCCESS;
     uint8_t write_buff[TEST_BUFF_SIZE] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F};
     uint8_t read_buff[TEST_BUFF_SIZE] = {0};
-    bool exists = true;
-    size_t read_size = 0;
+    struct psa_its_info_t info = {0, PSA_ITS_WRITE_ONCE_FLAG};
     memset(read_buff, 0, TEST_BUFF_SIZE);
 
-    status = mbed_psa_st_file_exists(5, &exists);
-    TEST_ASSERT_EQUAL(PSA_SUCCESS, status);
-    TEST_ASSERT_EQUAL(exists, false);
+    status = psa_its_get_info(5, &info);
+    TEST_ASSERT_EQUAL(PSA_ITS_ERROR_KEY_NOT_FOUND, status);
 
-    status = mbed_psa_st_set(5, write_buff, TEST_BUFF_SIZE);
-    TEST_ASSERT_EQUAL(PSA_SUCCESS, status);
+    status = psa_its_set(5, TEST_BUFF_SIZE, write_buff, 0);
+    TEST_ASSERT_EQUAL(PSA_ITS_SUCCESS, status);
 
-    status = mbed_psa_st_file_exists(5, &exists);
-    TEST_ASSERT_EQUAL(PSA_SUCCESS, status);
-    TEST_ASSERT_EQUAL(exists, true);
+    status = psa_its_get_info(5, &info);
+    TEST_ASSERT_EQUAL(PSA_ITS_SUCCESS, status);
+    TEST_ASSERT_EQUAL(TEST_BUFF_SIZE, info.size);
+    TEST_ASSERT_EQUAL(0, info.flags);
 
-    status = mbed_psa_st_get_size(5, &read_size);
-    TEST_ASSERT_EQUAL(PSA_SUCCESS, status);
-    TEST_ASSERT_EQUAL(read_size, TEST_BUFF_SIZE);
-
-    read_size = 0;
-    status = mbed_psa_st_get(5, read_buff, TEST_BUFF_SIZE, &read_size);
-    TEST_ASSERT_EQUAL(PSA_SUCCESS, status);
-    TEST_ASSERT_EQUAL(read_size, TEST_BUFF_SIZE);
+    status = psa_its_get(5, 0, TEST_BUFF_SIZE, read_buff);
+    TEST_ASSERT_EQUAL(PSA_ITS_SUCCESS, status);
     TEST_ASSERT_EQUAL_MEMORY(write_buff, read_buff, TEST_BUFF_SIZE);
 
-    status = mbed_psa_st_erase(5);
-    TEST_ASSERT_EQUAL(PSA_SUCCESS, status);
+    memset(read_buff, 0, TEST_BUFF_SIZE);
+    status = psa_its_get(5, 1, TEST_BUFF_SIZE, read_buff);
+    TEST_ASSERT_NOT_EQUAL(PSA_ITS_SUCCESS, status);
 
-    status = mbed_psa_st_file_exists(5, &exists);
-    TEST_ASSERT_EQUAL(PSA_SUCCESS, status);
-    TEST_ASSERT_EQUAL(exists, false);
+    status = psa_its_get(5, 1, TEST_BUFF_SIZE - 1, read_buff);
+    TEST_ASSERT_EQUAL(PSA_ITS_SUCCESS, status);
+    TEST_ASSERT_EQUAL_MEMORY(write_buff + 1, read_buff, TEST_BUFF_SIZE - 1);
+
+    status = psa_its_remove(5);
+    TEST_ASSERT_EQUAL(PSA_ITS_SUCCESS, status);
+
+    status = psa_its_get_info(5, &info);
+    TEST_ASSERT_EQUAL(PSA_ITS_ERROR_KEY_NOT_FOUND, status);
 }
 
 
 Case cases[] = {
-    Case("PSA_Storage - Basic",  psa_storage_test),
+    Case("PSA prot internal storage - Basic",  pits_test),
 };
 
 utest::v1::status_t greentea_test_setup(const size_t number_of_cases)
 {
-    GREENTEA_SETUP(120, "default_auto");
+#ifndef NO_GREENTEA
+    GREENTEA_SETUP(60, "default_auto");
+#endif
     return greentea_test_setup_handler(number_of_cases);
 }
 
