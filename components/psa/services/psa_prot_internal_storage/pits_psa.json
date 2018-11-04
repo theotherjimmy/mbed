@@ -40,6 +40,6 @@
       }
     ],
     "source_files": [
-      "TARGET_PSA_TFM/partition.cpp"
+      "COMPONENT_SPE/partition.cpp"
     ]
   }
