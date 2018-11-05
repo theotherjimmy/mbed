@@ -646,7 +646,7 @@
     },
     "K64F": {
         "supported_form_factors": ["ARDUINO"],
-        "components": ["SD"],
+        "components_add": ["SD"],
         "core": "Cortex-M4F",
         "supported_toolchains": ["ARM", "GCC_ARM", "IAR"],
         "extra_labels": ["Freescale", "MCUXpresso_MCUS", "KSDK2_MCUS", "FRDM", "KPSDK_MCUS", "KPSDK_CODE", "MCU_K64F", "Freescale_EMAC", "PSA_SRV_EMUL", "PSA_SRV_IMPL"],
@@ -746,7 +746,7 @@
     },
     "K66F": {
         "supported_form_factors": ["ARDUINO"],
-        "components": ["SD"],
+        "components_add": ["SD"],
         "core": "Cortex-M4F",
         "supported_toolchains": ["ARM", "GCC_ARM", "IAR"],
         "extra_labels": ["Freescale", "MCUXpresso_MCUS", "KSDK2_MCUS", "FRDM", "Freescale_EMAC"],
@@ -764,7 +764,7 @@
     },
     "K82F": {
         "supported_form_factors": ["ARDUINO"],
-        "components": ["SPIF"],
+        "components_add": ["SPIF"],
         "core": "Cortex-M4F",
         "supported_toolchains": ["ARM", "GCC_ARM", "IAR"],
         "extra_labels": ["Freescale", "MCUXpresso_MCUS", "KSDK2_MCUS", "FRDM"],
@@ -1245,7 +1245,7 @@
     },
     "USI_WM_BN_BM_22": {
         "inherits": ["FAMILY_STM32"],
-        "components": ["SPIF"],
+        "components_add": ["SPIF"],
         "core": "Cortex-M4F",
         "extra_labels_add": ["STM32F4", "STM32F412xG", "STM32F412ZG", "WICED", "CYW4343X", "CORDIO"],
         "features": ["BLE", "STORAGE"],
@@ -1285,7 +1285,7 @@
         }
     },
     "DISCO_F413ZH": {
-        "components": ["QSPIF"],
+        "components_add": ["QSPIF"],
         "inherits": ["FAMILY_STM32"],
         "supported_form_factors": ["ARDUINO"],
         "core": "Cortex-M4F",
@@ -1790,7 +1790,7 @@
         "device_name": "STM32L486RG"
     },
     "MTB_ADV_WISE_1570": {
-        "components": ["FLASHIAP"],
+        "components_add": ["FLASHIAP"],
         "inherits": ["FAMILY_STM32"],
         "core": "Cortex-M4F",
         "extra_labels_add": ["STM32L4", "STM32L486RG", "STM32L486xG", "WISE_1570"],
@@ -1958,7 +1958,7 @@
         "bootloader_supported": true
     },
     "DISCO_F469NI": {
-        "components": ["QSPIF"],
+        "components_add": ["QSPIF"],
         "inherits": ["FAMILY_STM32"],
         "supported_form_factors": ["ARDUINO"],
         "core": "Cortex-M4F",
@@ -2093,7 +2093,7 @@
         }
     },
     "DISCO_L475VG_IOT01A": {
-        "components": ["QSPIF"],
+        "components_add": ["QSPIF"],
         "inherits": ["FAMILY_STM32"],
         "core": "Cortex-M4F",
         "extra_labels_add": ["STM32L4", "STM32L475xG", "STM32L475VG"],
@@ -2117,7 +2117,7 @@
         "bootloader_supported": true
     },
     "DISCO_L476VG": {
-        "components": ["QSPIF"],
+        "components_add": ["QSPIF"],
         "inherits": ["FAMILY_STM32"],
         "core": "Cortex-M4F",
         "extra_labels_add": ["STM32L4", "STM32L476xG", "STM32L476VG"],
