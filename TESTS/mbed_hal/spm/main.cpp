@@ -88,7 +88,7 @@ __attribute__((naked)) void call_mem(uint32_t addr)
 }
 }
 
-static void test_memory(uint32_t , uint32_t expected_fatal_count)
+static void test_memory(uint32_t addr, uint32_t expected_fatal_count)
 {
     call_mem(addr);
     // Although call_mem is a "naked" function, it is called using AAPCS.
