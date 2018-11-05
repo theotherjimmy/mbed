@@ -13,6 +13,10 @@
  * limitations under the License.
  */
 
+#ifndef COMPONENT_PSA_SRV_IPC
+#error [NOT_SUPPORTED] SPM tests can run only on SPM-enabled targets
+#endif // COMPONENT_PSA_SRV_IPC
+
 #include "mbed.h"
 #include "greentea-client/test_env.h"
 #include "unity.h"
