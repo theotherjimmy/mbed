@@ -98,25 +98,10 @@ def find_cm0_image(toolchain, resources, elf, hexf):
     # Locate user-specified image
     from tools.resources import FileType
     hex_files = resources.get_file_paths(FileType.HEX)
-    project_hex = next((f for f in hex_files if os.path.basename(f) == os.path.basename(hexf)), None)
-    default_hex = next((f for f in hex_files if os.path.basename(f) == toolchain.target.m0_core_img), None)
-
-    m0hexf = project_hex if project_hex else default_hex
-    if project_hex and default_hex:
-            toolchain.notify.debug("Multiple M0 core hex image files found:")
-            toolchain.notify.debug("%s" % project_hex)
-            toolchain.notify.debug("%s" % default_hex)
-
-    # if project_hex and default_hex:
-    #     toolchain.notify.tool_error("Multiple M0 core hex image files found:")
-    #     toolchain.notify.tool_error("%s" % project_hex)
-    #     toolchain.notify.tool_error("%s" % default_hex)
-    #     raise ConfigException("Multiple M0 core hex image files found.")
-
-    # try:
-    #     m0hexf = filter(None, (project_hex, default_hex))[0]
-    # except IndexError:
-    #     m0hexf = None
+    if toolchain.target.name.endswith('_PSA'):
+        m0hexf = next((f for f in hex_files if os.path.basename(f) == os.path.basename(hexf)), None)
+    else:
+        m0hexf = next((f for f in hex_files if os.path.basename(f) == toolchain.target.m0_core_img), None)
 
     if m0hexf:
         toolchain.notify.debug("M0 core image file found %s." % os.path.basename(m0hexf))

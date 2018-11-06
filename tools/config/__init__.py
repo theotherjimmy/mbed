@@ -36,17 +36,16 @@ from ..utils import (json_file_to_dict, intelhex_offset, integer,
 from ..arm_pack_manager import Cache
 from ..targets import (CUMULATIVE_ATTRIBUTES, TARGET_MAP, generate_py_target,
                        get_resolution_order, Target)
+from ..settings import DELIVERY_DIR
 
 try:
     unicode
 except NameError:
     unicode = str
 PATH_OVERRIDES = set([
-    "target.bootloader_img",
-    "target.delivery_dir",
+    "target.bootloader_img"
 ])
 DELIVERY_OVERRIDES = set([
-    "target.delivery_dir",
     "target.deliver_to_target",
     "target.deliver_artifacts",
 ])
@@ -589,12 +588,10 @@ class Config(object):
         return False
 
     def deliver_into(self):
-        if self.target.delivery_dir:
-            label_dir = "TARGET_{}".format(
-                self.target.deliver_to_target or self.target.name
-            )
+        if self.target.deliver_to_target:
+            label_dir = "TARGET_{}".format(self.target.deliver_to_target)
             return (
-                join(self.target.delivery_dir, label_dir),
+                join(DELIVERY_DIR, label_dir),
                 self.target.deliver_artifacts
             )
         else:
