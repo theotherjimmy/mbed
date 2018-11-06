@@ -564,7 +564,6 @@ def build_project(src_paths, build_path, target, toolchain_name,
 
         into_dir, extra_artifacts = toolchain.config.deliver_into()
         if into_dir:
-            makedirs(into_dir)
             copy_when_different(res[0], into_dir)
             if not extra_artifacts:
                 if (

@@ -590,10 +590,11 @@ class Config(object):
     def deliver_into(self):
         if self.target.deliver_to_target:
             label_dir = "TARGET_{}".format(self.target.deliver_to_target)
-            return (
-                join(DELIVERY_DIR, label_dir),
-                self.target.deliver_artifacts
-            )
+            target_delivery_dir = join(DELIVERY_DIR, label_dir)
+            if not exists(target_delivery_dir):
+                os.makedirs(target_delivery_dir)
+
+            return target_delivery_dir, self.target.deliver_artifacts
         else:
             return None, None
 
