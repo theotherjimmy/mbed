@@ -42,7 +42,6 @@ from os.path import (join, splitext, dirname, relpath, basename, split, normcase
                      abspath, exists)
 
 from .ignore import MbedIgnoreSet, IGNORE_FILENAME
-from ..utils import NotSupportedException
 
 # Support legacy build conventions: the original mbed build system did not have
 # standard labels for the "TARGET_" and "TOOLCHAIN_" specific directories, but
@@ -534,10 +533,5 @@ class Resources(object):
 
     def filter_spe(self):
         spe_filter = lambda x: 'COMPONENT_SPE' in x
-        num_of_files = 0
         for type in [FileType.ASM_SRC, FileType.C_SRC, FileType.CPP_SRC]:
             self._file_refs[type] = set([f for f in self._file_refs[type] if spe_filter(f.name) or spe_filter(f.path)])
-            num_of_files += len(self._file_refs[type])
-        if num_of_files == 0:
-            raise NotSupportedException("App should use default secure image")
-
