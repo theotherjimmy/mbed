@@ -43,7 +43,8 @@ from tools.utils import argparse_filestring_type, argparse_lowercase_type, argpa
 from tools.utils import argparse_dir_not_parent
 from tools.toolchains import mbedToolchain, TOOLCHAIN_PATHS, TOOLCHAIN_CLASSES
 from tools.settings import CLI_COLOR_MAP
-
+from tools.settings import ROOT
+from tools.targets import PSA_SECURE_TARGETS
 if __name__ == '__main__':
     try:
         # Parse Options
@@ -209,7 +210,10 @@ if __name__ == '__main__':
             if not options.build_dir:
                 args_error(parser, "argument --build is required")
 
-            base_source_paths = options.source_dir
+            if mcu in PSA_SECURE_TARGETS:
+                base_source_paths = ROOT
+            else:
+                base_source_paths = options.source_dir
 
             # Default base source path is the current directory
             if not base_source_paths:
@@ -268,7 +272,8 @@ if __name__ == '__main__':
                     app_config=config,
                     build_profile=profile,
                     stats_depth=options.stats_depth,
-                    ignore=options.ignore)
+                    ignore=options.ignore,
+                    spe_build=(mcu in PSA_SECURE_TARGETS))
 
                 # If a path to a test spec is provided, write it to a file
                 if options.test_spec:

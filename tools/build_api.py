@@ -457,7 +457,8 @@ def build_project(src_paths, build_path, target, toolchain_name,
                   notify=None, name=None, macros=None, inc_dirs=None, jobs=1,
                   report=None, properties=None, project_id=None,
                   project_description=None, config=None,
-                  app_config=None, build_profile=None, stats_depth=None, ignore=None):
+                  app_config=None, build_profile=None, stats_depth=None,
+                  ignore=None, spe_build=False):
     """ Build a project. A project may be a test or a user program.
 
     Positional arguments:
@@ -527,7 +528,8 @@ def build_project(src_paths, build_path, target, toolchain_name,
     try:
         resources = Resources(notify).scan_with_toolchain(
             src_paths, toolchain, inc_dirs=inc_dirs)
-
+        if spe_build:
+            resources.filter_spe()
         # Change linker script if specified
         if linker_script is not None:
             resources.add_file_ref(FileType.LD_SCRIPT, linker_script, linker_script)

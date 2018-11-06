@@ -69,6 +69,7 @@ CORE_ARCH = {
     "Cortex-M33-NS": 8,
 }
 
+PSA_SECURE_TARGETS = ["FUTURE_SEQUANA_M0_PSA"]
 ################################################################################
 # Generic Target class that reads and interprets the data in targets.json
 

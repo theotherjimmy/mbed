@@ -17,6 +17,5 @@ cp BUILD/tests/FUTURE_SEQUANA_PSA/GCC_ARM/TESTS/spm/server/server.hex /media/$US
 
 
 # Or if you prefer to build all of mbed-os tests
-# mbed compile -m FUTURE_SEQUANA_M0_PSA -t GCC_ARM -c --profile debug -N psoc63_m0_psa
-# mbed test --compile -m FUTURE_SEQUANA_M0_PSA -t GCC_ARM -c --profile debug -n tests-spm-*
+# mbed test --compile -m FUTURE_SEQUANA_M0_PSA -t GCC_ARM -c --profile debug
 # mbed test --compile -m FUTURE_SEQUANA_PSA -t GCC_ARM --profile debug -c -DNO_GREENTEA
