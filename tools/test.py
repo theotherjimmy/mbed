@@ -44,6 +44,7 @@ from tools.utils import argparse_dir_not_parent
 from tools.toolchains import mbedToolchain, TOOLCHAIN_PATHS, TOOLCHAIN_CLASSES
 from tools.settings import CLI_COLOR_MAP
 from tools.settings import ROOT
+from tools.targets import Target
 if __name__ == '__main__':
     try:
         # Parse Options
