@@ -23,23 +23,12 @@
 #include "spm_internal.h"
 #include "handles_manager.h"
 #include "cmsis.h"
-#include "psa_secure_add_partition.h"
 #include "psa_its_partition.h"
-
-
+#include "psa_secure_add_partition.h"
+ 
+ 
 __attribute__((weak))
 spm_partition_t g_partitions[2] = {
-    {
-        .partition_id = SECURE_ADD_ID,
-        .thread_id = 0,
-        .flags_rot_srv = SECURE_ADD_WAIT_ANY_SID_MSK,
-        .flags_interrupts = 0,
-        .rot_services = NULL,
-        .rot_services_count = SECURE_ADD_ROT_SRV_COUNT,
-        .extern_sids = NULL,
-        .extern_sids_count = SECURE_ADD_EXT_ROT_SRV_COUNT,
-        .irq_mapper = NULL,
-    },
     {
         .partition_id = ITS_ID,
         .thread_id = 0,
@@ -49,6 +38,17 @@ spm_partition_t g_partitions[2] = {
         .rot_services_count = ITS_ROT_SRV_COUNT,
         .extern_sids = NULL,
         .extern_sids_count = ITS_EXT_ROT_SRV_COUNT,
+        .irq_mapper = NULL,
+    },
+    {
+        .partition_id = SECURE_ADD_ID,
+        .thread_id = 0,
+        .flags_rot_srv = SECURE_ADD_WAIT_ANY_SID_MSK,
+        .flags_interrupts = 0,
+        .rot_services = NULL,
+        .rot_services_count = SECURE_ADD_ROT_SRV_COUNT,
+        .extern_sids = NULL,
+        .extern_sids_count = SECURE_ADD_EXT_ROT_SRV_COUNT,
         .irq_mapper = NULL,
     },
 };
@@ -63,9 +63,9 @@ __attribute__((weak))
 const uint32_t mem_region_count = 0;
 
 // forward declaration of partition initializers
-void secure_add_init(spm_partition_t *partition);
 void its_init(spm_partition_t *partition);
-
+void secure_add_init(spm_partition_t *partition);
+ 
 __attribute__((weak))
 uint32_t init_partitions(spm_partition_t **partitions)
 {
@@ -73,9 +73,9 @@ uint32_t init_partitions(spm_partition_t **partitions)
         SPM_PANIC("partitions is NULL!\n");
     }
 
-    secure_add_init(&(g_partitions[0]));
-    its_init(&(g_partitions[1]));
-
+    its_init(&(g_partitions[0]));
+    secure_add_init(&(g_partitions[1]));
+ 
     *partitions = g_partitions;
     return 2;
 }
