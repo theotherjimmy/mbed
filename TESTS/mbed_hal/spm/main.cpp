@@ -96,25 +96,24 @@ static void test_memory(uint32_t addr, uint32_t expected_fatal_count)
     TEST_ASSERT_EQUAL(expected_fatal_count, fault_occurred);
 }
 
-
 static void secure_ram_fault_test(void)
 {
-    test_memory(spm_hal_get_plat_sec_ram_base(), 1);
+    test_memory(PSA_SECURE_RAM_START, 1);
 }
 
 static void secure_flash_fault_test(void)
 {
-    test_memory(spm_hal_get_plat_sec_flash_base(), 1);
+    test_memory(PSA_SECURE_FLASH_START, 1);
 }
 
 static void non_secure_ram_fault_test(void)
 {
-    test_memory(spm_hal_get_plat_non_sec_ram_base(), 0);
+    test_memory(PSA_NON_SECURE_RAM_START, 0);
 }
 
 static void non_secure_flash_fault_test(void)
 {
-    test_memory(spm_hal_get_plat_non_sec_flash_base(), 0);
+    test_memory(PSA_NON_SECURE_FLASH_START, 0);
 }
 
 utest::v1::status_t fault_override_setup(const Case *const source, const size_t index_of_case)

@@ -118,15 +118,15 @@ bool is_buffer_accessible(const void *ptr, size_t size, spm_partition_t *accessi
 
     // Note: Sanity checks on platform addresses and sizes is done in psa_spm_init()
 
-    uint32_t secure_ram_base   = spm_hal_get_plat_sec_ram_base();
-    size_t   secure_ram_len    = spm_hal_get_plat_sec_ram_len();
-    uint32_t secure_flash_base = spm_hal_get_plat_sec_flash_base();
-    size_t   secure_flash_len  = spm_hal_get_plat_sec_flash_len();
+    uint32_t secure_ram_base   = PSA_SECURE_RAM_START;
+    size_t   secure_ram_len    = PSA_SECURE_RAM_SIZE;
+    uint32_t secure_flash_base = PSA_SECURE_FLASH_START;
+    size_t   secure_flash_len  = PSA_SECURE_FLASH_SIZE;
 
-    uint32_t non_secure_ram_base   = spm_hal_get_plat_non_sec_ram_base();
-    size_t   non_secure_ram_len    = spm_hal_get_plat_non_sec_ram_len();
-    uint32_t non_secure_flash_base = spm_hal_get_plat_non_sec_flash_base();
-    size_t   non_secure_flash_len  = spm_hal_get_plat_non_sec_flash_len();
+    uint32_t non_secure_ram_base   = PSA_NON_SECURE_RAM_START;
+    size_t   non_secure_ram_len    = PSA_NON_SECURE_RAM_SIZE;
+    uint32_t non_secure_flash_base = PSA_NON_SECURE_FLASH_START;
+    size_t   non_secure_flash_len  = PSA_NON_SECURE_FLASH_SIZE;
 
 
     // Check NSPE case

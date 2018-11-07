@@ -4554,54 +4554,54 @@
         "extra_labels": ["Cypress", "PSOC6"],
         "public": false,
         "config": {
-            "secure-flash-base": {
+            "secure-flash-start": {
                 "help": "",
-                "value": "0UL",
-                "macro_name": "PSA_SECURE_FLASH_BASE"
+                "value": "0x10000000",
+                "macro_name": "PSA_SECURE_FLASH_START"
             },
             "secure-flash-size": {
                 "help": "",
-                "value": "0UL",
+                "value": "0x78000",
                 "macro_name": "PSA_SECURE_FLASH_SIZE"
             },
-            "non-secure-flash-base": {
+            "non-secure-flash-start": {
                 "help": "",
-                "value": "0UL",
-                "macro_name": "PSA_NON_SECURE_FLASH_BASE"
+                "value": "0x10080000",
+                "macro_name": "PSA_NON_SECURE_FLASH_START"
             },
             "non-secure-flash-size": {
                 "help": "",
-                "value": "0UL",
+                "value": "0x78000",
                 "macro_name": "PSA_NON_SECURE_FLASH_SIZE"
             },
-            "secure-ram-base": {
+            "secure-ram-start": {
                 "help": "",
-                "value": "0UL",
-                "macro_name": "PSA_SECURE_RAM_BASE"
+                "value": "0x08000000",
+                "macro_name": "PSA_SECURE_RAM_START"
             },
             "secure-ram-size": {
                 "help": "",
-                "value": "0UL",
+                "value": "0x10000",
                 "macro_name": "PSA_SECURE_RAM_SIZE"
             },
-            "non-secure-ram-base": {
+            "non-secure-ram-start": {
                 "help": "",
-                "value": "0UL",
-                "macro_name": "PSA_NON_SECURE_RAM_BASE"
+                "value": "0x08010000",
+                "macro_name": "PSA_NON_SECURE_RAM_START"
             },
             "non-secure-ram-size": {
                 "help": "",
-                "value": "0UL",
+                "value": "0x37800",
                 "macro_name": "PSA_NON_SECURE_RAM_SIZE"
             },
-            "shared-ram-base": {
+            "shared-ram-start": {
                 "help": "",
-                "value": "0UL",
-                "macro_name": "PSA_SHARED_RAM_BASE"
+                "value": null,
+                "macro_name": "PSA_SHARED_RAM_START"
             },
             "shared-ram-size": {
                 "help": "",
-                "value": "0UL",
+                "value": null,
                 "macro_name": "PSA_SHARED_RAM_SIZE"
             }
         }
@@ -4678,13 +4678,25 @@
         "extra_labels_add": ["PSOC6_PSA"],
         "components_add": ["SPM_MAILBOX"],
         "macros_add": ["PU_ENABLE"],
-        "deliver_to_target": "FUTURE_SEQUANA_PSA"
+        "deliver_to_target": "FUTURE_SEQUANA_PSA",
+        "overrides": {
+            "non-secure-ram-start": "0x08011000",
+            "non-secure-ram-size": "0x36800",
+            "shared-ram-start": "0x08010000",
+            "shared-ram-size": "0x1000"
+        }
     },
     "FUTURE_SEQUANA_PSA": {
         "inherits": ["NSPE_Target", "FUTURE_SEQUANA"],
         "sub_target": "FUTURE_SEQUANA_M0_PSA",
         "extra_labels_remove": ["CORDIO"],
         "extra_labels_add": ["PSOC6_PSA"],
-        "components_add": ["SPM_MAILBOX"]
+        "components_add": ["SPM_MAILBOX"],
+        "overrides": {
+            "non-secure-ram-start": "0x08011000",
+            "non-secure-ram-size": "0x36800",
+            "shared-ram-start": "0x08010000",
+            "shared-ram-size": "0x1000"
+        }
     }
 }

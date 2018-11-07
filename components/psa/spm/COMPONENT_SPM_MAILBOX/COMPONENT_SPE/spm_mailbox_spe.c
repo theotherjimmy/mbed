@@ -40,6 +40,11 @@ ipc_producer_queue_t *prod_queue = &_prod_queue;
 static ipc_consumer_queue_t _cons_queue;
 ipc_consumer_queue_t *cons_queue = &_cons_queue;
 
+MBED_STATIC_ASSERT(
+    (sizeof(addr_table_t) + sizeof(ipc_base_queue_t) + sizeof(ipc_base_queue_t)) <= PSA_SHARED_RAM_SIZE,
+    "shared memory size is too small!"
+);
+
 void spm_mailbox_irq_callback(void)
 {
     osStatus_t os_status = osSemaphoreRelease(prod_queue->full_queue_sem);
@@ -105,18 +110,15 @@ void on_popped_item(ipc_queue_item_t item)
 
 void spm_ipc_mailbox_init(void)
 {
-    // The __shared_memory_start & __shared_memory_end symbols are declared in CM0+ Linker Script.
-    // &__shared_memory_start denotes the start address of the memory shared between CM0+ and CM4.
-    extern uint32_t __shared_memory_start;
-    extern uint32_t __shared_memory_end;
+    uint32_t *shared_memory_start = PSA_SHARED_RAM_START;
 
     // This struct is set with initial values for the address table (addresses of CM0+ / CM4 shared memory)
     const addr_table_t shared_addr_table = {
         .magic        = ADDR_TABLE_MAGIC,
-        .tx_queue_ptr = (uintptr_t)( &__shared_memory_start +
+        .tx_queue_ptr = (uintptr_t)( shared_memory_start +
                                      (sizeof(addr_table_t) / sizeof(uint32_t))
                                    ),
-        .rx_queue_ptr = (uintptr_t)( &__shared_memory_start +
+        .rx_queue_ptr = (uintptr_t)( shared_memory_start +
                                      ((sizeof(addr_table_t) + sizeof(ipc_base_queue_t)) / sizeof(uint32_t))
                                    )
     };
@@ -137,19 +139,8 @@ void spm_ipc_mailbox_init(void)
     memcpy(tx_queue_mem_ptr, &queue_mem, sizeof(ipc_base_queue_t));
     memcpy(rx_queue_mem_ptr, &queue_mem, sizeof(ipc_base_queue_t));
 
-    uintptr_t calc_shared_mem_end = (uintptr_t) ( &__shared_memory_start +
-                                                  ((sizeof(addr_table_t) + sizeof(ipc_base_queue_t) + sizeof(ipc_base_queue_t)) / sizeof(uint32_t))
-                                                );
-
-    // Verify we did not overflow our shared memory allocated size
-    MBED_ASSERT((uintptr_t)(&__shared_memory_end) >= (uintptr_t)calc_shared_mem_end);
-
-    PSA_UNUSED(calc_shared_mem_end);
-    PSA_UNUSED(__shared_memory_end);
-
     // Copy the content of shared_addr_table to the start address of CM0+ / CM4 shared memory.
-    // Since _shared_memory_start address is known to CM4, we will be able to read the address table from CM4 code
-    memcpy(&__shared_memory_start, &shared_addr_table, sizeof(shared_addr_table));
+    memcpy(shared_memory_start, &shared_addr_table, sizeof(shared_addr_table));
 
     // Init producer queue and consumer queue
 

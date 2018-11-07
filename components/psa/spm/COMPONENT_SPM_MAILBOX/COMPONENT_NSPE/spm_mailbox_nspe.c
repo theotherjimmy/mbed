@@ -62,7 +62,7 @@ void spm_ipc_mailbox_init(void)
     // -----------------------------------------
 
     // This table is holding addresses of the platform's shared memory.
-    addr_table_t *shared_addr_table_ptr = (addr_table_t *)spm_hal_get_plat_shared_mem_address();
+    addr_table_t *shared_addr_table_ptr = PSA_SHARED_RAM_START;
     MBED_ASSERT(shared_addr_table_ptr->magic = ADDR_TABLE_MAGIC);
 
     ipc_base_queue_t *tx_queue_mem_ptr = (ipc_base_queue_t *)(shared_addr_table_ptr->tx_queue_ptr);

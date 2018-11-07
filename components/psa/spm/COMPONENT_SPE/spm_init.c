@@ -13,19 +13,87 @@
  * limitations under the License.
  */
 
-#include "mbed_error.h"
+#include "mbed_assert.h"
 #include "rtx_os.h"
 #include "spm_internal.h"
 #include "handles_manager.h"
 #include "spm_api.h"
 
-MBED_STATIC_ASSERT( MBED_CONF_SPM_IPC_MAX_NUM_OF_CHANNELS <= PSA_HANDLE_MGR_MAX_HANDLES_NUM,
-                    "Number of channels exceeds maximum number of handles allowed in handles manager!"
-                  );
+MBED_STATIC_ASSERT(
+    MBED_CONF_SPM_IPC_MAX_NUM_OF_CHANNELS <= PSA_HANDLE_MGR_MAX_HANDLES_NUM,
+    "Number of channels exceeds maximum number of handles allowed in handles manager!"
+);
 
-MBED_STATIC_ASSERT( MBED_CONF_SPM_IPC_MAX_NUM_OF_MESSAGES <= PSA_HANDLE_MGR_MAX_HANDLES_NUM,
-                    "Number of active messages exceeds maximum number of handles allowed in handles manager!"
-                  );
+MBED_STATIC_ASSERT(
+    MBED_CONF_SPM_IPC_MAX_NUM_OF_MESSAGES <= PSA_HANDLE_MGR_MAX_HANDLES_NUM,
+    "Number of active messages exceeds maximum number of handles allowed in handles manager!"
+);
+
+
+// Sanity check - memory ranges are well formed
+
+MBED_STATIC_ASSERT(
+    (PSA_SECURE_RAM_START + PSA_SECURE_RAM_SIZE - 1) > PSA_SECURE_RAM_START,
+    "Illegal secure ram region!"
+);
+
+MBED_STATIC_ASSERT(
+    (PSA_SECURE_FLASH_START + PSA_SECURE_FLASH_SIZE - 1) > PSA_SECURE_FLASH_START,
+    "Illegal secure flash region!"
+);
+
+MBED_STATIC_ASSERT(
+    (PSA_NON_SECURE_RAM_START + PSA_NON_SECURE_RAM_SIZE - 1) > PSA_NON_SECURE_RAM_START,
+    "Illegal non-secure ram region!"
+);
+
+MBED_STATIC_ASSERT(
+    (PSA_NON_SECURE_FLASH_START + PSA_NON_SECURE_FLASH_SIZE - 1) > PSA_NON_SECURE_FLASH_START,
+    "Illegal non-secure flash region!"
+);
+
+MBED_STATIC_ASSERT(
+    (PSA_SHARED_RAM_START + PSA_SHARED_RAM_SIZE - 1) > PSA_SHARED_RAM_START,
+    "Illegal shared ram region!"
+);
+
+
+// Sanity check - memory ranges are not overlapping
+
+#ifndef MIN
+#define MIN( a, b ) ( ( ( a ) < ( b ) ) ? ( a ) : ( b ) )
+#endif
+
+#ifndef MAX
+#define MAX( a, b ) ( ( ( a ) > ( b ) ) ? ( a ) : ( b ) )
+#endif
+
+#define OVERLAP_CHECK( name1, start1, size1, name2, start2, size2) \
+    MBED_STATIC_ASSERT( \
+        MAX(start1, start2) >= MIN((start1 + size1), (start2 + size2)), \
+        name1 " and " name2 " are overlapping!!!" \
+    )
+
+OVERLAP_CHECK(
+    "PSA_SECURE_RAM",     PSA_SECURE_RAM_START,     PSA_SECURE_RAM_SIZE,
+    "PSA_NON_SECURE_RAM", PSA_NON_SECURE_RAM_START, PSA_NON_SECURE_RAM_SIZE
+);
+
+OVERLAP_CHECK(
+    "PSA_SECURE_RAM", PSA_SECURE_RAM_START, PSA_SECURE_RAM_SIZE,
+    "PSA_SHARED_RAM", PSA_SHARED_RAM_START, PSA_SHARED_RAM_SIZE
+);
+
+OVERLAP_CHECK(
+    "PSA_SHARED_RAM",     PSA_SHARED_RAM_START,     PSA_SHARED_RAM_SIZE,
+    "PSA_NON_SECURE_RAM", PSA_NON_SECURE_RAM_START, PSA_NON_SECURE_RAM_SIZE
+);
+
+OVERLAP_CHECK(
+    "PSA_SECURE_FLASH",     PSA_SECURE_FLASH_START, PSA_SECURE_FLASH_SIZE,
+    "PSA_NON_SECURE_FLASH", PSA_NON_SECURE_FLASH_START, PSA_NON_SECURE_FLASH_SIZE
+);
+
 
 psa_handle_item_t g_channels_handle_storage[MBED_CONF_SPM_IPC_MAX_NUM_OF_CHANNELS] = {0};
 spm_ipc_channel_t g_channel_data[MBED_CONF_SPM_IPC_MAX_NUM_OF_CHANNELS] = {0};
@@ -94,37 +162,4 @@ void psa_spm_init(void)
     }
 
     g_spm.partition_count = init_partitions(&(g_spm.partitions));
-
-    // Sanity for platform's specific addresses
-
-    uint32_t secure_ram_base   = spm_hal_get_plat_sec_ram_base();
-    size_t   secure_ram_len    = spm_hal_get_plat_sec_ram_len();
-    uint32_t secure_flash_base = spm_hal_get_plat_sec_flash_base();
-    size_t   secure_flash_len  = spm_hal_get_plat_sec_flash_len();
-
-    uint32_t non_secure_ram_base   = spm_hal_get_plat_non_sec_ram_base();
-    size_t   non_secure_ram_len    = spm_hal_get_plat_non_sec_ram_len();
-    uint32_t non_secure_flash_base = spm_hal_get_plat_non_sec_flash_base();
-    size_t   non_secure_flash_len  = spm_hal_get_plat_non_sec_flash_len();
-
-    if (((uintptr_t)secure_ram_base + secure_ram_len - 1) < (uintptr_t)secure_ram_base
-       ) {
-        error("%s - Illegal secure ram region! base = 0x%x, len = 0x%x.\n",
-                __func__, secure_ram_base, secure_ram_len);
-    }
-
-    if (((uintptr_t)secure_flash_base + secure_flash_len - 1) < (uintptr_t)secure_flash_base) {
-        error("%s - Illegal secure flash region! base = 0x%x, len = 0x%x.\n",
-                __func__, secure_flash_base, secure_flash_len);
-    }
-
-    if (((uintptr_t)non_secure_ram_base + non_secure_ram_len - 1) < (uintptr_t)non_secure_ram_base) {
-        error("%s - Illegal non-secure ram region! base = 0x%x, len = 0x%x.\n",
-                __func__, non_secure_ram_base, non_secure_ram_len);
-    }
-
-    if (((uintptr_t)non_secure_flash_base + non_secure_flash_len - 1) < (uintptr_t)non_secure_flash_base) {
-        error("%s - Illegal non-secure flash region! base = 0x%x, len = 0x%x.\n",
-                __func__, non_secure_flash_base, non_secure_flash_len);
-    }
 }
