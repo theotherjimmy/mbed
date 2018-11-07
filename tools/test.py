@@ -44,7 +44,6 @@ from tools.utils import argparse_dir_not_parent
 from tools.toolchains import mbedToolchain, TOOLCHAIN_PATHS, TOOLCHAIN_CLASSES
 from tools.settings import CLI_COLOR_MAP
 from tools.settings import ROOT
-from tools.targets import PSA_SECURE_TARGETS
 if __name__ == '__main__':
     try:
         # Parse Options
@@ -147,6 +146,7 @@ if __name__ == '__main__':
         if options.mcu is None:
             args_error(parser, "argument -m/--mcu is required")
         mcu = extract_mcus(parser, options)[0]
+        mcu_secured = Target.is_secure_target(mcu)
 
         # Toolchain
         if options.tool is None:
@@ -210,7 +210,7 @@ if __name__ == '__main__':
             if not options.build_dir:
                 args_error(parser, "argument --build is required")
 
-            if mcu in PSA_SECURE_TARGETS:
+            if mcu_secured:
                 base_source_paths = ROOT
             else:
                 base_source_paths = options.source_dir
@@ -273,7 +273,7 @@ if __name__ == '__main__':
                     build_profile=profile,
                     stats_depth=options.stats_depth,
                     ignore=options.ignore,
-                    spe_build=(mcu in PSA_SECURE_TARGETS))
+                    spe_build=mcu_secured)
 
                 # If a path to a test spec is provided, write it to a file
                 if options.test_spec:

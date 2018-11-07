@@ -69,7 +69,6 @@ CORE_ARCH = {
     "Cortex-M33-NS": 8,
 }
 
-PSA_SECURE_TARGETS = ["FUTURE_SEQUANA_M0_PSA"]
 ################################################################################
 # Generic Target class that reads and interprets the data in targets.json
 
@@ -332,6 +331,10 @@ class Target(namedtuple("Target", "name json_data resolution_order resolution_or
             names.remove("Target")
         labels = (names + CORE_LABELS[self.core] + self.extra_labels)
         return labels
+
+    @staticmethod
+    def is_secure_target(mcu):
+        return 'SPE_Target' in Target.get_target(mcu).labels
 
     def init_hooks(self, hook, toolchain):
         """Initialize the post-build hooks for a toolchain. For now, this
