@@ -40,6 +40,6 @@
       }
     ],
     "source_files": [
-      "COMPONENT_SPE/partition.cpp"
+      "COMPONENT_SPE/partition.c"
     ]
   }
