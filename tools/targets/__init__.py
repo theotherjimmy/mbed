@@ -333,11 +333,11 @@ class Target(namedtuple("Target", "name json_data resolution_order resolution_or
         return labels
 
     @property
-    def is_PSA_secure_target(mcu):
+    def is_PSA_secure_target(self):
         return 'SPE_Target' in self.resolution_order
 
     @property
-    def is_PSA_non_secure_target(mcu):
+    def is_PSA_non_secure_target(self):
         return 'NSPE_Target' in self.resolution_order
 
     def init_hooks(self, hook, toolchain):
