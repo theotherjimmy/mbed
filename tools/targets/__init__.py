@@ -334,11 +334,11 @@ class Target(namedtuple("Target", "name json_data resolution_order resolution_or
 
     @property
     def is_PSA_secure_target(self):
-        return 'SPE_Target' in self.resolution_order
+        return 'SPE_Target' in self.labels
 
     @property
     def is_PSA_non_secure_target(self):
-        return 'NSPE_Target' in self.resolution_order
+        return 'NSPE_Target' in self.labels
 
     def init_hooks(self, hook, toolchain):
         """Initialize the post-build hooks for a toolchain. For now, this
