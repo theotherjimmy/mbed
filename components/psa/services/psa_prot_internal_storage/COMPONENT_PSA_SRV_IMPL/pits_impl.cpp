@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 #include "psa_prot_internal_storage.h"
 #include "pits_impl.h"
 #include "nvstore.h"

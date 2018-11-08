@@ -110,7 +110,7 @@ void on_popped_item(ipc_queue_item_t item)
 
 void spm_ipc_mailbox_init(void)
 {
-    uint32_t *shared_memory_start = PSA_SHARED_RAM_START;
+    uint32_t *shared_memory_start = (uint32_t *)PSA_SHARED_RAM_START;
 
     // This struct is set with initial values for the address table (addresses of CM0+ / CM4 shared memory)
     const addr_table_t shared_addr_table = {

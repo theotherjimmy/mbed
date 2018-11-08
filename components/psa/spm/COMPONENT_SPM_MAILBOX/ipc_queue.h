@@ -73,21 +73,21 @@ typedef __PACKED_STRUCT ipc_base_queue_t {
 MBED_STATIC_ASSERT((sizeof(ipc_base_queue_t) % sizeof(uint32_t) == 0), "ipc_base_queue_t: Struct size must be 4 bytes aligned!");
 
 typedef struct ipc_producer_queue_t {
-    uint32_t            magic;
-    volatile uint32_t  *read_idx;
-    volatile uint32_t  *write_idx;
-    ipc_queue_item_t   *data;
-    osMutexId_t         mutex;
-    osSemaphoreId_t     full_queue_sem;
+    uint32_t                    magic;
+    volatile __PACKED uint32_t  *read_idx;
+    volatile __PACKED uint32_t  *write_idx;
+    __PACKED ipc_queue_item_t   *data;
+    osMutexId_t                 mutex;
+    osSemaphoreId_t             full_queue_sem;
 
 } ipc_producer_queue_t;
 
 typedef struct ipc_consumer_queue_t {
-    uint32_t            magic;
-    volatile uint32_t  *read_idx;
-    volatile uint32_t  *write_idx;
-    ipc_queue_item_t   *data;
-    osSemaphoreId_t     read_sem;
+    uint32_t                    magic;
+    volatile __PACKED uint32_t  *read_idx;
+    volatile __PACKED uint32_t  *write_idx;
+    __PACKED ipc_queue_item_t   *data;
+    osSemaphoreId_t             read_sem;
 
 } ipc_consumer_queue_t;
 

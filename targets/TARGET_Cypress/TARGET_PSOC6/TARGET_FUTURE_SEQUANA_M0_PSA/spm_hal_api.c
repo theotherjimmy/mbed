@@ -39,38 +39,38 @@ void spm_hal_memory_protection_init(void)
     cy_en_prot_status_t status;
 
     /* smpu */
-    status = smpu_protect(flash_spm_smpu_config, sizeof(flash_spm_smpu_config) / sizeof(flash_spm_smpu_config[0]));
+    status = smpu_protect((cy_smpu_region_config_t *)flash_spm_smpu_config, sizeof(flash_spm_smpu_config) / sizeof(flash_spm_smpu_config[0]));
     CY_ASSERT(status == CY_PROT_SUCCESS);  // TODO: Panic instead
-    status = smpu_protect(sram_spm_smpu_config, sizeof(sram_spm_smpu_config) / sizeof(sram_spm_smpu_config[0]));
+    status = smpu_protect((cy_smpu_region_config_t *)sram_spm_smpu_config, sizeof(sram_spm_smpu_config) / sizeof(sram_spm_smpu_config[0]));
     CY_ASSERT(status == CY_PROT_SUCCESS);  // TODO: Panic instead
 
     /* fixed region ppu */
-    status = ppu_fixed_rg_protect(fixed_rg_pc0_ppu_config, sizeof(fixed_rg_pc0_ppu_config) / sizeof(fixed_rg_pc0_ppu_config[0]));
+    status = ppu_fixed_rg_protect((cy_ppu_fixed_rg_cfg_t *)fixed_rg_pc0_ppu_config, sizeof(fixed_rg_pc0_ppu_config) / sizeof(fixed_rg_pc0_ppu_config[0]));
     CY_ASSERT(status == CY_PROT_SUCCESS);  // TODO: Panic instead
-    status = ppu_fixed_rg_protect(fixed_rg_spm_ppu_config, sizeof(fixed_rg_spm_ppu_config) / sizeof(fixed_rg_spm_ppu_config[0]));
+    status = ppu_fixed_rg_protect((cy_ppu_fixed_rg_cfg_t *)fixed_rg_spm_ppu_config, sizeof(fixed_rg_spm_ppu_config) / sizeof(fixed_rg_spm_ppu_config[0]));
     CY_ASSERT(status == CY_PROT_SUCCESS);  // TODO: Panic instead
-    status = ppu_fixed_rg_protect(fixed_rg_any_ppu_config, sizeof(fixed_rg_any_ppu_config) / sizeof(fixed_rg_any_ppu_config[0]));
+    status = ppu_fixed_rg_protect((cy_ppu_fixed_rg_cfg_t *)fixed_rg_any_ppu_config, sizeof(fixed_rg_any_ppu_config) / sizeof(fixed_rg_any_ppu_config[0]));
     CY_ASSERT(status == CY_PROT_SUCCESS);  // TODO: Panic instead
     /* fixed slave ppu */
-    status = ppu_fixed_sl_protect(fixed_sl_pc0_ppu_config, sizeof(fixed_sl_pc0_ppu_config) / sizeof(fixed_sl_pc0_ppu_config[0]));
+    status = ppu_fixed_sl_protect((cy_ppu_fixed_sl_cfg_t *)fixed_sl_pc0_ppu_config, sizeof(fixed_sl_pc0_ppu_config) / sizeof(fixed_sl_pc0_ppu_config[0]));
     CY_ASSERT(status == CY_PROT_SUCCESS);  // TODO: Panic instead
-    status = ppu_fixed_sl_protect(fixed_sl_spm_ppu_config, sizeof(fixed_sl_spm_ppu_config) / sizeof(fixed_sl_spm_ppu_config[0]));
+    status = ppu_fixed_sl_protect((cy_ppu_fixed_sl_cfg_t *)fixed_sl_spm_ppu_config, sizeof(fixed_sl_spm_ppu_config) / sizeof(fixed_sl_spm_ppu_config[0]));
     CY_ASSERT(status == CY_PROT_SUCCESS);  // TODO: Panic instead
-    status = ppu_fixed_sl_protect(fixed_sl_any_ppu_config, sizeof(fixed_sl_any_ppu_config) / sizeof(fixed_sl_any_ppu_config[0]));
+    status = ppu_fixed_sl_protect((cy_ppu_fixed_sl_cfg_t *)fixed_sl_any_ppu_config, sizeof(fixed_sl_any_ppu_config) / sizeof(fixed_sl_any_ppu_config[0]));
     CY_ASSERT(status == CY_PROT_SUCCESS);  // TODO: Panic instead
     /* programmable ppu */
-    status = ppu_prog_protect(prog_pc0_ppu_config, sizeof(prog_pc0_ppu_config) / sizeof(prog_pc0_ppu_config[0]));
+    status = ppu_prog_protect((cy_ppu_prog_cfg_t *)prog_pc0_ppu_config, sizeof(prog_pc0_ppu_config) / sizeof(prog_pc0_ppu_config[0]));
     CY_ASSERT(status == CY_PROT_SUCCESS);  // TODO: Panic instead
-    status = ppu_prog_protect(prog_spm_ppu_config, sizeof(prog_spm_ppu_config) / sizeof(prog_spm_ppu_config[0]));
+    status = ppu_prog_protect((cy_ppu_prog_cfg_t *)prog_spm_ppu_config, sizeof(prog_spm_ppu_config) / sizeof(prog_spm_ppu_config[0]));
     CY_ASSERT(status == CY_PROT_SUCCESS);  // TODO: Panic instead
     /* fixed group ppu */
-    status = ppu_fixed_gr_protect(fixed_gr_pc0_ppu_config, sizeof(fixed_gr_pc0_ppu_config) / sizeof(fixed_gr_pc0_ppu_config[0]));
+    status = ppu_fixed_gr_protect((cy_ppu_fixed_gr_cfg_t *)fixed_gr_pc0_ppu_config, sizeof(fixed_gr_pc0_ppu_config) / sizeof(fixed_gr_pc0_ppu_config[0]));
     CY_ASSERT(status == CY_PROT_SUCCESS);  // TODO: Panic instead
-    status = ppu_fixed_gr_protect(fixed_gr_spm_ppu_config, sizeof(fixed_gr_spm_ppu_config) / sizeof(fixed_gr_spm_ppu_config[0]));
+    status = ppu_fixed_gr_protect((cy_ppu_fixed_gr_cfg_t *)fixed_gr_spm_ppu_config, sizeof(fixed_gr_spm_ppu_config) / sizeof(fixed_gr_spm_ppu_config[0]));
     CY_ASSERT(status == CY_PROT_SUCCESS);  // TODO: Panic instead
 
     /* bus masters */
-    status = bus_masters_protect(bus_masters_config, sizeof(bus_masters_config) / sizeof(bus_masters_config[0]));
+    status = bus_masters_protect((cy_bus_master_config_t *)bus_masters_config, sizeof(bus_masters_config) / sizeof(bus_masters_config[0]));
     CY_ASSERT(status == CY_PROT_SUCCESS);  // TODO: Panic instead
 #endif // PU_ENABLE
 }
