@@ -336,6 +336,10 @@ class Target(namedtuple("Target", "name json_data resolution_order resolution_or
     def is_secure_target(mcu):
         return 'SPE_Target' in Target.get_target(mcu).labels
 
+    @staticmethod
+    def is_non_secure_target(mcu):
+        return 'NSPE_Target' in Target.get_target(mcu).labels
+
     def init_hooks(self, hook, toolchain):
         """Initialize the post-build hooks for a toolchain. For now, this
         function only allows "post binary" hooks (hooks that are executed
