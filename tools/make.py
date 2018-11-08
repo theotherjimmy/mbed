@@ -307,7 +307,7 @@ if __name__ == '__main__':
             args_error(parser, "argument -t/--tool is required")
         toolchain = options.tool[0]
 
-        if Target.is_secure_target(mcu):
+        if Target.get_target(mcu).is_PSA_secure_target:
             options.source_dir = ROOT
 
         if (options.program is None) and (not options.source_dir):

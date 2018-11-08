@@ -187,7 +187,8 @@ if __name__ == '__main__':
                     notifier = TerminalNotifier(options.verbose, options.silent)
                     mcu = TARGET_MAP[target]
                     profile = extract_profile(parser, options, toolchain)
-                    if Target.is_secure_target(mcu):
+
+                    if Target.get_target(mcu).is_PSA_secure_target:
                         lib_build_res = build_library(
                             ROOT, options.build_dir, mcu, toolchain,
                             jobs=options.jobs,

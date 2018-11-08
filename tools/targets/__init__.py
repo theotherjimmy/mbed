@@ -332,13 +332,13 @@ class Target(namedtuple("Target", "name json_data resolution_order resolution_or
         labels = (names + CORE_LABELS[self.core] + self.extra_labels)
         return labels
 
-    @staticmethod
-    def is_secure_target(mcu):
-        return 'SPE_Target' in Target.get_target(mcu).labels
+    @property
+    def is_PSA_secure_target(mcu):
+        return 'SPE_Target' in self.resolution_order
 
-    @staticmethod
-    def is_non_secure_target(mcu):
-        return 'NSPE_Target' in Target.get_target(mcu).labels
+    @property
+    def is_PSA_non_secure_target(mcu):
+        return 'NSPE_Target' in self.resolution_order
 
     def init_hooks(self, hook, toolchain):
         """Initialize the post-build hooks for a toolchain. For now, this

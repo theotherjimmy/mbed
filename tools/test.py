@@ -147,7 +147,7 @@ if __name__ == '__main__':
         if options.mcu is None:
             args_error(parser, "argument -m/--mcu is required")
         mcu = extract_mcus(parser, options)[0]
-        mcu_secured = Target.is_secure_target(mcu)
+        mcu_secured = Target.get_target(mcu).is_PSA_secure_target
 
         # Toolchain
         if options.tool is None:
