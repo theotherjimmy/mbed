@@ -35,22 +35,22 @@
     "PSA_Target": {
         "public": false,
         "config": {
-            "secure-flash-start": {
+            "secure-rom-start": {
                 "help": "Starting address of Secure flash memory",
                 "value": null,
                 "macro_name": "PSA_SECURE_FLASH_START"
             },
-            "secure-flash-size": {
+            "secure-rom-size": {
                 "help": "Size in bytes of Secure flash memory",
                 "value": null,
                 "macro_name": "PSA_SECURE_FLASH_SIZE"
             },
-            "non-secure-flash-start": {
+            "non-secure-rom-start": {
                 "help": "Starting address of Non-secure flash memory",
                 "value": null,
                 "macro_name": "PSA_NON_SECURE_FLASH_START"
             },
-            "non-secure-flash-size": {
+            "non-secure-rom-size": {
                 "help": "Size in bytes of Non-secure flash memory",
                 "value": null,
                 "macro_name": "PSA_NON_SECURE_FLASH_SIZE"
@@ -4685,10 +4685,10 @@
         "macros_add": ["PU_ENABLE", "PSOC6_DYNSRM_DISABLE=1"],
         "deliver_to_target": "FUTURE_SEQUANA_PSA",
         "overrides": {
-            "secure-flash-start": "0x10000000",
-            "secure-flash-size": "0x78000",
-            "non-secure-flash-start": "0x10080000",
-            "non-secure-flash-size": "0x78000",
+            "secure-rom-start": "0x10000000",
+            "secure-rom-size": "0x78000",
+            "non-secure-rom-start": "0x10080000",
+            "non-secure-rom-size": "0x78000",
             "secure-ram-start": "0x08000000",
             "secure-ram-size": "0x10000",
             "non-secure-ram-start": "0x08011000",
@@ -4705,10 +4705,10 @@
         "components_add": ["SPM_MAILBOX"],
         "macros_add": ["PSOC6_DYNSRM_DISABLE=1"],
         "overrides": {
-            "secure-flash-start": "0x10000000",
-            "secure-flash-size": "0x78000",
-            "non-secure-flash-start": "0x10080000",
-            "non-secure-flash-size": "0x78000",
+            "secure-rom-start": "0x10000000",
+            "secure-rom-size": "0x78000",
+            "non-secure-rom-start": "0x10080000",
+            "non-secure-rom-size": "0x78000",
             "secure-ram-start": "0x08000000",
             "secure-ram-size": "0x10000",
             "non-secure-ram-start": "0x08011000",
