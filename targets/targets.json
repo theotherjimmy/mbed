@@ -4677,7 +4677,7 @@
         "inherits": ["SPE_Target", "FUTURE_SEQUANA_M0"],
         "extra_labels_add": ["PSOC6_PSA"],
         "components_add": ["SPM_MAILBOX"],
-        "macros_add": ["PU_ENABLE"],
+        "macros_add": ["PU_ENABLE", "PSOC6_DYNSRM_DISABLE=1"],
         "deliver_to_target": "FUTURE_SEQUANA_PSA",
         "overrides": {
             "non-secure-ram-start": "0x08011000",
@@ -4692,6 +4692,7 @@
         "extra_labels_remove": ["CORDIO"],
         "extra_labels_add": ["PSOC6_PSA"],
         "components_add": ["SPM_MAILBOX"],
+        "macros_add": ["PSOC6_DYNSRM_DISABLE=1"],
         "overrides": {
             "non-secure-ram-start": "0x08011000",
             "non-secure-ram-size": "0x36800",
