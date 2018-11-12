@@ -116,6 +116,7 @@ class ConfigParameter(object):
         self.set_value(data.get("value", None), unit_name, unit_kind)
         self.help_text = data.get("help", None)
         self.required = data.get("required", False)
+        self.conflicts = data.get("conflicts", [])
         self.macro_name = data.get("macro_name", "MBED_CONF_%s" %
                                    self.sanitize(self.name.upper()))
         self.config_errors = []
@@ -243,6 +244,8 @@ class ConfigParameter(object):
             return desc + "    No value set"
         desc += "    Macro name: %s\n" % self.macro_name
         desc += "    Value: %s (set by %s)" % (self.value, self.set_by)
+        if self.conflicts:
+            desc += "    Conflicts with %s" % ", ".join(self.conflicts)
         return desc
 
 class ConfigMacro(object):
@@ -1090,6 +1093,28 @@ class Config(object):
                 continue
             else:
                 raise error
+        for param in params.values():
+            for conflict in param.conflicts:
+                if conflict in BOOTLOADER_OVERRIDES:
+                    _, attr = conflict.split(".")
+                    conf = ConfigParameter(
+                        conflict, {"value": getattr(self.target, attr)},
+                        "target", "target"
+                    )
+                else:
+                    conf = params.get(conflict)
+                if (
+                    param.value and conf and conf.value
+                    and param.value != conf.value
+                ):
+                    raise ConfigException(
+                        ("Configuration parameter {} with value {} conflicts "
+                         "with {} with value {}").format(
+                             param.name, param.value, conf.name, conf.value
+                        )
+                    )
+
+
         return True
 
 
