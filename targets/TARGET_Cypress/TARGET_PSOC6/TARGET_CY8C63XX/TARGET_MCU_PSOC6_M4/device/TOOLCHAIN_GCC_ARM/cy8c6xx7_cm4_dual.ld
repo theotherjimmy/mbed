@@ -28,12 +28,12 @@ SEARCH_DIR(.)
 GROUP(-lgcc -lc -lnosys)
 ENTRY(Reset_Handler)
 
-#if !defined(MBED_APP_START)
-  #define MBED_APP_START    0x10080000
+#if !defined(MBED_ROM_START)
+  #define MBED_ROM_START    0x10080000
 #endif
 
-#if !defined(MBED_APP_SIZE)
-  #define MBED_APP_SIZE     0x78000
+#if !defined(MBED_ROM_SIZE)
+  #define MBED_ROM_SIZE     0x78000
 #endif
 
 #if !defined(MBED_RAM_START)
@@ -65,7 +65,7 @@ MEMORY
      * where 'xx' is the device group; for example, 'cy8c6xx7_cm0plus.ld'.
      */
     ram               (rwx)   : ORIGIN = MBED_RAM_START, LENGTH = MBED_RAM_SIZE
-    flash             (rx)    : ORIGIN = MBED_APP_START, LENGTH = MBED_APP_SIZE
+    flash             (rx)    : ORIGIN = MBED_ROM_START, LENGTH = MBED_ROM_SIZE
 
     /* This is a 32K flash region used for EEPROM emulation. This region can also be used as the general purpose flash.
      * You can assign sections to this memory region for only one of the cores.
