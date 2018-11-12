@@ -32,11 +32,68 @@
             }
         }
     },
+    "PSA_Target": {
+        "public": false,
+        "config": {
+            "secure-flash-start": {
+                "help": "Starting address of Secure flash memory",
+                "value": null,
+                "macro_name": "PSA_SECURE_FLASH_START"
+            },
+            "secure-flash-size": {
+                "help": "Size in bytes of Secure flash memory",
+                "value": null,
+                "macro_name": "PSA_SECURE_FLASH_SIZE"
+            },
+            "non-secure-flash-start": {
+                "help": "Starting address of Non-secure flash memory",
+                "value": null,
+                "macro_name": "PSA_NON_SECURE_FLASH_START"
+            },
+            "non-secure-flash-size": {
+                "help": "Size in bytes of Non-secure flash memory",
+                "value": null,
+                "macro_name": "PSA_NON_SECURE_FLASH_SIZE"
+            },
+            "secure-ram-start": {
+                "help": "Starting address of Secure RAM",
+                "value": null,
+                "macro_name": "PSA_SECURE_RAM_START"
+            },
+            "secure-ram-size": {
+                "help": "Size in bytes of Secure RAM",
+                "value": null,
+                "macro_name": "PSA_SECURE_RAM_SIZE"
+            },
+            "non-secure-ram-start": {
+                "help": "Starting address of Non-secure RAM",
+                "value": null,
+                "macro_name": "PSA_NON_SECURE_RAM_START"
+            },
+            "non-secure-ram-size": {
+                "help": "Size in bytes of Non-secure RAM",
+                "value": null,
+                "macro_name": "PSA_NON_SECURE_RAM_SIZE"
+            },
+            "shared-ram-start": {
+                "help": "Starting address of Shared RAM between Secure and Non-secure worlds",
+                "value": null,
+                "macro_name": "PSA_SHARED_RAM_START"
+            },
+            "shared-ram-size": {
+                "help": "Size in bytes of Shared RAM between Secure and Non-secure worlds",
+                "value": null,
+                "macro_name": "PSA_SHARED_RAM_SIZE"
+            }
+        }
+    },
     "NSPE_Target": {
+        "inherits": ["PSA_Target"],
         "components": ["PSA_SRV_IPC", "NSPE"],
         "public": false
     },
     "SPE_Target": {
+        "inherits": ["PSA_Target"],
         "components": ["PSA_SRV_IMPL", "PSA_SRV_IPC", "SPE"],
         "public": false
     },
@@ -4552,59 +4609,7 @@
         "device_has": ["USTICKER", "INTERRUPTIN", "SERIAL", "SERIAL_ASYNCH", "SERIAL_FC", "PORTIN", "PORTOUT", "PORTINOUT", "RTC", "PWMOUT", "ANALOGIN", "ANALOGOUT", "I2C", "I2C_ASYNCH", "SPI", "SPI_ASYNCH", "STDIO_MESSAGES", "LPTICKER", "SLEEP", "FLASH" ],
         "release_versions": ["5"],
         "extra_labels": ["Cypress", "PSOC6"],
-        "public": false,
-        "config": {
-            "secure-flash-start": {
-                "help": "",
-                "value": "0x10000000",
-                "macro_name": "PSA_SECURE_FLASH_START"
-            },
-            "secure-flash-size": {
-                "help": "",
-                "value": "0x78000",
-                "macro_name": "PSA_SECURE_FLASH_SIZE"
-            },
-            "non-secure-flash-start": {
-                "help": "",
-                "value": "0x10080000",
-                "macro_name": "PSA_NON_SECURE_FLASH_START"
-            },
-            "non-secure-flash-size": {
-                "help": "",
-                "value": "0x78000",
-                "macro_name": "PSA_NON_SECURE_FLASH_SIZE"
-            },
-            "secure-ram-start": {
-                "help": "",
-                "value": "0x08000000",
-                "macro_name": "PSA_SECURE_RAM_START"
-            },
-            "secure-ram-size": {
-                "help": "",
-                "value": "0x10000",
-                "macro_name": "PSA_SECURE_RAM_SIZE"
-            },
-            "non-secure-ram-start": {
-                "help": "",
-                "value": "0x08010000",
-                "macro_name": "PSA_NON_SECURE_RAM_START"
-            },
-            "non-secure-ram-size": {
-                "help": "",
-                "value": "0x37800",
-                "macro_name": "PSA_NON_SECURE_RAM_SIZE"
-            },
-            "shared-ram-start": {
-                "help": "",
-                "value": null,
-                "macro_name": "PSA_SHARED_RAM_START"
-            },
-            "shared-ram-size": {
-                "help": "",
-                "value": null,
-                "macro_name": "PSA_SHARED_RAM_SIZE"
-            }
-        }
+        "public": false
     },
     "MCU_PSOC6_M0": {
         "inherits": ["MCU_PSOC6"],
@@ -4680,6 +4685,12 @@
         "macros_add": ["PU_ENABLE", "PSOC6_DYNSRM_DISABLE=1"],
         "deliver_to_target": "FUTURE_SEQUANA_PSA",
         "overrides": {
+            "secure-flash-start": "0x10000000",
+            "secure-flash-size": "0x78000",
+            "non-secure-flash-start": "0x10080000",
+            "non-secure-flash-size": "0x78000",
+            "secure-ram-start": "0x08000000",
+            "secure-ram-size": "0x10000",
             "non-secure-ram-start": "0x08011000",
             "non-secure-ram-size": "0x36800",
             "shared-ram-start": "0x08010000",
@@ -4694,6 +4705,12 @@
         "components_add": ["SPM_MAILBOX"],
         "macros_add": ["PSOC6_DYNSRM_DISABLE=1"],
         "overrides": {
+            "secure-flash-start": "0x10000000",
+            "secure-flash-size": "0x78000",
+            "non-secure-flash-start": "0x10080000",
+            "non-secure-flash-size": "0x78000",
+            "secure-ram-start": "0x08000000",
+            "secure-ram-size": "0x10000",
             "non-secure-ram-start": "0x08011000",
             "non-secure-ram-size": "0x36800",
             "shared-ram-start": "0x08010000",
