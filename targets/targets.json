@@ -36,24 +36,24 @@
         "public": false,
         "config": {
             "secure-flash-start": {
-                "help": "Starting address of Secure flash memory",
+                "help": "Starting address of Secure ROM",
                 "value": null,
-                "macro_name": "PSA_SECURE_FLASH_START"
+                "macro_name": "PSA_SECURE_ROM_START"
             },
             "secure-flash-size": {
-                "help": "Size in bytes of Secure flash memory",
+                "help": "Size in bytes of Secure ROM",
                 "value": null,
-                "macro_name": "PSA_SECURE_FLASH_SIZE"
+                "macro_name": "PSA_SECURE_ROM_SIZE"
             },
             "non-secure-flash-start": {
-                "help": "Starting address of Non-secure flash memory",
+                "help": "Starting address of Non-secure ROM",
                 "value": null,
-                "macro_name": "PSA_NON_SECURE_FLASH_START"
+                "macro_name": "PSA_NON_SECURE_ROM_START"
             },
             "non-secure-flash-size": {
-                "help": "Size in bytes of Non-secure flash memory",
+                "help": "Size in bytes of Non-secure ROM",
                 "value": null,
-                "macro_name": "PSA_NON_SECURE_FLASH_SIZE"
+                "macro_name": "PSA_NON_SECURE_ROM_SIZE"
             },
             "secure-ram-start": {
                 "help": "Starting address of Secure RAM",

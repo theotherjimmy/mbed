@@ -120,13 +120,13 @@ bool is_buffer_accessible(const void *ptr, size_t size, spm_partition_t *accessi
 
     uint32_t secure_ram_base   = PSA_SECURE_RAM_START;
     size_t   secure_ram_len    = PSA_SECURE_RAM_SIZE;
-    uint32_t secure_flash_base = PSA_SECURE_FLASH_START;
-    size_t   secure_flash_len  = PSA_SECURE_FLASH_SIZE;
+    uint32_t secure_rom_base   = PSA_SECURE_ROM_START;
+    size_t   secure_rom_len    = PSA_SECURE_ROM_SIZE;
 
     uint32_t non_secure_ram_base   = PSA_NON_SECURE_RAM_START;
     size_t   non_secure_ram_len    = PSA_NON_SECURE_RAM_SIZE;
-    uint32_t non_secure_flash_base = PSA_NON_SECURE_FLASH_START;
-    size_t   non_secure_flash_len  = PSA_NON_SECURE_FLASH_SIZE;
+    uint32_t non_secure_rom_base   = PSA_NON_SECURE_ROM_START;
+    size_t   non_secure_rom_len    = PSA_NON_SECURE_ROM_SIZE;
 
 
     // Check NSPE case
@@ -142,8 +142,8 @@ bool is_buffer_accessible(const void *ptr, size_t size, spm_partition_t *accessi
         }
 
         // FLASH
-        if ( ((uintptr_t)ptr >= (uintptr_t)non_secure_flash_base) && ((uintptr_t)ptr < ((uintptr_t)non_secure_flash_base + non_secure_flash_len)) &&
-             (((uintptr_t)ptr + size) <= ((uintptr_t)non_secure_flash_base + non_secure_flash_len))
+        if ( ((uintptr_t)ptr >= (uintptr_t)non_secure_rom_base) && ((uintptr_t)ptr < ((uintptr_t)non_secure_rom_base + non_secure_rom_len)) &&
+             (((uintptr_t)ptr + size) <= ((uintptr_t)non_secure_rom_base + non_secure_rom_len))
            ) {
                return true;
         }
@@ -161,8 +161,8 @@ bool is_buffer_accessible(const void *ptr, size_t size, spm_partition_t *accessi
         }
 
         // FLASH
-        if ( ((uintptr_t)ptr >= (uintptr_t)secure_flash_base) && ((uintptr_t)ptr < ((uintptr_t)secure_flash_base + secure_flash_len)) &&
-             (((uintptr_t)ptr + size) <= ((uintptr_t)secure_flash_base + secure_flash_len))
+        if ( ((uintptr_t)ptr >= (uintptr_t)secure_rom_base) && ((uintptr_t)ptr < ((uintptr_t)secure_rom_base + secure_rom_len)) &&
+             (((uintptr_t)ptr + size) <= ((uintptr_t)secure_rom_base + secure_rom_len))
            ) {
                return true;
         }
