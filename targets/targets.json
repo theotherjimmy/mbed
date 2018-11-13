@@ -4682,7 +4682,7 @@
         "inherits": ["SPE_Target", "FUTURE_SEQUANA_M0"],
         "extra_labels_add": ["PSOC6_PSA"],
         "components_add": ["SPM_MAILBOX"],
-        "macros_add": ["PU_ENABLE", "PSOC6_DYNSRM_DISABLE=1"],
+        "macros_add": ["PSOC6_DYNSRM_DISABLE=1"],
         "deliver_to_target": "FUTURE_SEQUANA_PSA",
         "overrides": {
             "secure-flash-start": "0x10000000",
