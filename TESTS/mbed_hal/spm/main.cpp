@@ -103,7 +103,7 @@ static void secure_ram_fault_test(void)
 
 static void secure_flash_fault_test(void)
 {
-    test_memory(PSA_SECURE_FLASH_START, 1);
+    test_memory(PSA_SECURE_ROM_START, 1);
 }
 
 static void non_secure_ram_fault_test(void)
@@ -113,7 +113,7 @@ static void non_secure_ram_fault_test(void)
 
 static void non_secure_flash_fault_test(void)
 {
-    test_memory(PSA_NON_SECURE_FLASH_START, 0);
+    test_memory(PSA_NON_SECURE_ROM_START, 0);
 }
 
 utest::v1::status_t fault_override_setup(const Case *const source, const size_t index_of_case)

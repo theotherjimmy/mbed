@@ -36,27 +36,27 @@
         "public": false,
         "config": {
             "secure-rom-start": {
-                "help": "Starting address of Secure flash memory",
+                "help": "Starting address of Secure ROM",
                 "value": null,
-                "macro_name": "PSA_SECURE_FLASH_START",
+                "macro_name": "PSA_SECURE_ROM_START",
                 "conflicts": ["target.mbed_rom_start"]
             },
             "secure-rom-size": {
-                "help": "Size in bytes of Secure flash memory",
+                "help": "Size in bytes of Secure ROM",
                 "value": null,
-                "macro_name": "PSA_SECURE_FLASH_SIZE",
+                "macro_name": "PSA_SECURE_ROM_SIZE",
                 "conflicts": ["target.mbed_rom_size"]
             },
             "non-secure-rom-start": {
-                "help": "Starting address of Non-secure flash memory",
+                "help": "Starting address of Non-secure ROM",
                 "value": null,
-                "macro_name": "PSA_NON_SECURE_FLASH_START",
+                "macro_name": "PSA_NON_SECURE_ROM_START",
                 "conflicts": ["target.mbed_rom_start"]
             },
             "non-secure-rom-size": {
-                "help": "Size in bytes of Non-secure flash memory",
+                "help": "Size in bytes of Non-secure ROM",
                 "value": null,
-                "macro_name": "PSA_NON_SECURE_FLASH_SIZE",
+                "macro_name": "PSA_NON_SECURE_ROM_SIZE",
                 "conflicts": ["target.mbed_rom_size"]
             },
             "secure-ram-start": {
@@ -4690,7 +4690,7 @@
         "inherits": ["SPE_Target", "FUTURE_SEQUANA_M0"],
         "extra_labels_add": ["PSOC6_PSA"],
         "components_add": ["SPM_MAILBOX"],
-        "macros_add": ["PU_ENABLE", "PSOC6_DYNSRM_DISABLE=1"],
+        "macros_add": ["PSOC6_DYNSRM_DISABLE=1"],
         "deliver_to_target": "FUTURE_SEQUANA_PSA",
         "overrides": {
             "secure-rom-start": "0x10000000",
