@@ -1,0 +1,8 @@
+{
+  "name": "alpha",
+  "target_overrides": {
+    "*": {
+      "target.components_add": ["BETA"]
+    }
+  }
+}
