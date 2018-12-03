@@ -1245,6 +1245,7 @@ class Config(object):
         """
         # Update configuration files until added features creates no changes
         prev_features = set()
+        prev_components = set()
         while True:
             # Add/update the configuration with any .json files found while
             # scanning
@@ -1254,12 +1255,15 @@ class Config(object):
 
             # Add features while we find new ones
             features = set(self.get_features())
-            if features == prev_features:
+            components = set(self.target.components)
+            if features == prev_features and components == prev_components:
                 break
 
             resources.add_features(features)
+            resources.add_target_labels(self.target)
 
             prev_features = features
+            prev_components = components
         self.validate_config()
 
         if  (hasattr(self.target, "release_versions") and
