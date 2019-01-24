@@ -1,0 +1,7 @@
+{
+   "test_target": {
+   	"excluded_source": ["app1/main.cpp"],
+	"lib2.p1": "v_p1_lib2",
+	"lib2.p2": "v_p2_lib2"
+    }
+}
