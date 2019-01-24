@@ -1313,11 +1313,12 @@ class Config(object):
             raise ConfigException(message)
         all_json_paths = [
             cfg["__config_path"] for cfg in self.lib_config_data.values()
-        ]
+        ] + [self.app_config_location]
         included_json_files = [
             ref for ref in resources.get_file_refs(FileType.JSON)
             if (
-                not ref.name.endswith(self.__mbed_lib_config_name)
+                (not ref.name.endswith(self.__mbed_lib_config_name)
+                 and not ref.name.endswith(self.__mbed_app_config_name))
                 or abspath(ref.path) in all_json_paths
             )
         ]
