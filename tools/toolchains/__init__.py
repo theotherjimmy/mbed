@@ -82,7 +82,8 @@ class mbedToolchain:
         "Cortex-M33FE": ["__CORTEX_M33", "ARM_MATH_ARMV8MML", "__FPU_PRESENT=1U", "__CMSIS_RTOS", "__MBED_CMSIS_RTOS_CM", "__DSP_PRESENT=1U"],
     }
 
-    MBED_CONFIG_FILE_NAME="mbed_config.h"
+    MBED_CONFIG_FILE_NAME = "mbed_config.h"
+    MBED_CONFIG_FILE_NAME_W_HASH = "mbed_config.{config_hash}.h"
 
     PROFILE_FILE_NAME = ".profile"
 
@@ -126,15 +127,14 @@ class mbedToolchain:
         # Call guard for "get_config_data" (see the comments of get_config_data for details)
         self.config_processed = False
 
-        # Non-incremental compile
-        self.build_all = False
-
         # Build output dir
         self.build_dir = abspath(build_dir) if PRINT_COMPILER_OUTPUT_AS_LINK else build_dir
         self.timestamp = getenv("MBED_BUILD_TIMESTAMP",time())
 
         # Number of concurrent build jobs. 0 means auto (based on host system cores)
         self.jobs = 0
+
+        self._config_hash = None
 
 
         # Output notify function
@@ -254,9 +254,6 @@ class mbedToolchain:
 
     # Determine whether a source file needs updating/compiling
     def need_update(self, target, dependencies):
-        if self.build_all:
-            return True
-
         if not exists(target):
             return True
 
@@ -313,7 +310,12 @@ class mbedToolchain:
         if obj_dir is not self.prev_dir:
             self.prev_dir = obj_dir
             mkdir(obj_dir)
-        return join(obj_dir, name + '.o')
+        if self._get_config_hash:
+            return join(obj_dir, '{name}.{config_hash}.o'.format(
+                name=name, config_hash=self._get_config_hash()
+            ))
+        else:
+            return join(obj_dir, '{name}.o'.format(name=name))
 
     def make_option_file(self, options, naming=".options_{}.txt"):
         """ Generate a via file for a pile of defines
@@ -357,6 +359,17 @@ class mbedToolchain:
         cmd_list = (c.replace("\\", "/") for c in objects if c)
         return self.make_option_file(list(cmd_list), ".archive_files.txt")
 
+    def _get_config_hash(self):
+        if not self._config_hash:
+            config_hasher = md5()
+            config_hasher.update(self.target.core)
+            if self.config_data:
+                config_hasher.update(
+                    self.config.config_to_header(self.config_data)
+                )
+            self._config_hash = config_hasher.hexdigest()[:16]
+        return self._config_hash
+
     # THIS METHOD IS BEING CALLED BY THE MBED ONLINE BUILD SYSTEM
     # ANY CHANGE OF PARAMETERS OR RETURN VALUES WILL BREAK COMPATIBILITY
     def compile_sources(self, resources, inc_dirs=None):
@@ -389,8 +402,6 @@ class mbedToolchain:
         work_dir = getcwd()
         self.prev_dir = None
 
-        # Generate configuration header (this will update self.build_all if needed)
-        self.get_config_header()
         self.dump_build_profile()
 
         # Sort compile queue for consistency
@@ -504,9 +515,6 @@ class mbedToolchain:
                 deps = self.parse_dependencies(dep_path) if (exists(dep_path)) else []
             except (IOError, IndexError):
                 deps = []
-            config_file = ([self.config.app_config_location]
-                           if self.config.app_config_location else [])
-            deps.extend(config_file)
             if ext != '.c' or self.COMPILE_C_AS_CPP:
                 deps.append(join(self.build_dir, self.PROFILE_FILE_NAME + "-cxx"))
             else:
@@ -625,8 +633,6 @@ class mbedToolchain:
         mapfile = join(tmp_path, name + '.map')
 
         objects = sorted(set(r.get_file_paths(FileType.OBJECT)))
-        config_file = ([self.config.app_config_location]
-                       if self.config.app_config_location else [])
         try:
             linker_script = [path for _, path in r.get_file_refs(FileType.LD_SCRIPT)
                              if path.endswith(self.LINKER_EXT)][-1]
@@ -636,7 +642,7 @@ class mbedToolchain:
         libraries = [l for l in r.get_file_paths(FileType.LIB)
                      if l.endswith(self.LIBRARY_EXT)]
         hex_files = r.get_file_paths(FileType.HEX)
-        dependencies = objects + libraries + [linker_script] + config_file + hex_files
+        dependencies = objects + libraries + [linker_script] + hex_files
         dependencies.append(join(self.build_dir, self.PROFILE_FILE_NAME + "-ld"))
         if self.need_update(elf, dependencies):
             if not COMPARE_FIXED and exists(mapfile):
@@ -849,7 +855,10 @@ class mbedToolchain:
         if self.config_processed: # this function was already called, return its result
             return self.config_file
         # The config file is located in the build directory
-        self.config_file = join(self.build_dir, self.MBED_CONFIG_FILE_NAME)
+        filename =  self.MBED_CONFIG_FILE_NAME_W_HASH.format(
+            config_hash=self._get_config_hash()
+        )
+        self.config_file = join(self.build_dir, filename)
         # If the file exists, read its current content in prev_data
         if exists(self.config_file):
             with open(self.config_file, "r") as f:
@@ -876,8 +885,6 @@ class mbedToolchain:
                 changed = True
             else:
                 self.config_file = None # this means "config file not present"
-        # If there was a change in configuration, rebuild everything
-        self.build_all = changed
         # Make sure that this function will only return the location of the configuration
         # file for subsequent calls, without trying to manipulate its content in any way.
         self.config_processed = True
