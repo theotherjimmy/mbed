@@ -227,60 +227,31 @@ if __name__ == '__main__':
 
             library_build_success = False
             profile = extract_profile(parser, options, toolchain)
-            try:
-                # Build sources
-                notify = TerminalNotifier(options.verbose)
-                build_library(base_source_paths, options.build_dir, mcu,
-                              toolchain, jobs=options.jobs,
-                              clean=options.clean, report=build_report,
-                              properties=build_properties, name="mbed-build",
-                              macros=options.macros,
-                              notify=notify, archive=False,
-                              app_config=config,
-                              build_profile=profile,
-                              ignore=options.ignore)
+            # Build all the tests
+            notify = TerminalNotifier(options.verbose)
+            test_build_success, test_build = build_tests(
+                tests,
+                base_source_paths,
+                options.build_dir,
+                mcu,
+                toolchain,
+                clean=options.clean,
+                report=build_report,
+                properties=build_properties,
+                macros=options.macros,
+                notify=notify,
+                jobs=options.jobs,
+                continue_on_build_fail=options.continue_on_build_fail,
+                app_config=config,
+                build_profile=profile,
+                stats_depth=options.stats_depth,
+                ignore=options.ignore,
+                spe_build=mcu_secured
+            )
 
-                library_build_success = True
-            except ToolException as e:
-                # ToolException output is handled by the build log
-                pass
-            except NotSupportedException as e:
-                # NotSupportedException is handled by the build log
-                pass
-            except Exception as e:
-                if options.verbose:
-                    import traceback
-                    traceback.print_exc()
-                # Some other exception occurred, print the error message
-                print(e)
-
-            if not library_build_success:
-                print("Failed to build library")
-            else:
-                # Build all the tests
-                notify = TerminalNotifier(options.verbose)
-                test_build_success, test_build = build_tests(
-                    tests,
-                    [os.path.relpath(options.build_dir)],
-                    options.build_dir,
-                    mcu,
-                    toolchain,
-                    clean=options.clean,
-                    report=build_report,
-                    properties=build_properties,
-                    macros=options.macros,
-                    notify=notify,
-                    jobs=options.jobs,
-                    continue_on_build_fail=options.continue_on_build_fail,
-                    app_config=config,
-                    build_profile=profile,
-                    stats_depth=options.stats_depth,
-                    ignore=options.ignore,
-                    spe_build=mcu_secured)
-
-                # If a path to a test spec is provided, write it to a file
-                if options.test_spec:
-                    write_json_to_file(test_spec_from_test_builds(test_build), options.test_spec)
+            # If a path to a test spec is provided, write it to a file
+            if options.test_spec:
+                write_json_to_file(test_spec_from_test_builds(test_build), options.test_spec)
 
             # If a path to a JUnit build report spec is provided, write it to a file
             if options.build_report_junit:

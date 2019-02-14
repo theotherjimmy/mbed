@@ -2264,8 +2264,6 @@ def build_tests(tests, base_source_paths, build_path, target, toolchain_name,
     result = True
 
     jobs_count = int(jobs if jobs else cpu_count())
-    p = Pool(processes=jobs_count)
-    results = []
     for test_name, test_paths in tests.items():
         if not isinstance(test_paths, list):
             test_paths = [test_paths]
@@ -2277,7 +2275,7 @@ def build_tests(tests, base_source_paths, build_path, target, toolchain_name,
 
         args = (src_paths, test_build_path, deepcopy(target), toolchain_name)
         kwargs = {
-            'jobs': 1,
+            'jobs': jobs_count,
             'clean': clean,
             'macros': macros,
             'name': test_case_folder_name,
@@ -2288,90 +2286,43 @@ def build_tests(tests, base_source_paths, build_path, target, toolchain_name,
             'build_profile': build_profile,
             'toolchain_paths': TOOLCHAIN_PATHS,
             'stats_depth': stats_depth,
-            'notify': MockNotifier(),
+            'notify': notify,
             'spe_build': spe_build
         }
 
-        results.append(p.apply_async(build_test_worker, args, kwargs))
+        worker_result =  build_test_worker(*args, **kwargs)
 
-    p.close()
-    result = True
-    itr = 0
-    while len(results):
-        itr += 1
-        if itr > 360000:
-            p.terminate()
-            p.join()
-            raise ToolException("Compile did not finish in 10 minutes")
-        else:
-            sleep(0.01)
-            pending = 0
-            for r in results:
-                if r.ready() is True:
-                    try:
-                        worker_result = r.get()
-                        results.remove(r)
+        # Take report from the kwargs and merge it into existing report
+        if report:
+            report_entry = worker_result['kwargs']['report'][target_name][toolchain_name]
+            for test_key in report_entry.keys():
+                report[target_name][toolchain_name][test_key] = report_entry[test_key]
 
-                        # Push all deferred notifications out to the actual notifier
-                        new_notify = deepcopy(notify)
-                        for message in worker_result['kwargs']['notify'].messages:
-                            new_notify.notify(message)
-
-                        # Take report from the kwargs and merge it into existing report
-                        if report:
-                            report_entry = worker_result['kwargs']['report'][target_name][toolchain_name]
-                            report_entry[worker_result['kwargs']['project_id'].upper()][0][0]['output'] = new_notify.get_output()
-                            for test_key in report_entry.keys():
-                                report[target_name][toolchain_name][test_key] = report_entry[test_key]
-
-                        # Set the overall result to a failure if a build failure occurred
-                        if ('reason' in worker_result and
-                            not worker_result['reason'] and
-                            not isinstance(worker_result['reason'], NotSupportedException)):
-                            result = False
-                            break
+        # Set the overall result to a failure if a build failure occurred
+        if ('reason' in worker_result and
+            not worker_result['reason'] and
+            not isinstance(worker_result['reason'], NotSupportedException)):
+            result = False
+            break
 
 
-                        # Adding binary path to test build result
-                        if ('result' in worker_result and
-                            worker_result['result'] and
-                            'bin_file' in worker_result):
-                            bin_file = norm_relative_path(worker_result['bin_file'], execution_directory)
+        # Adding binary path to test build result
+        if ('result' in worker_result and
+            worker_result['result'] and
+            'bin_file' in worker_result):
+            bin_file = norm_relative_path(worker_result['bin_file'], execution_directory)
 
-                            test_key = 'test_apps' if 'test_apps-' in worker_result['kwargs']['project_id'] else 'tests'
-                            test_build[test_key][worker_result['kwargs']['project_id']] = {
-                                "binaries": [
-                                    {
-                                        "path": bin_file
-                                    }
-                                ]
-                            }
+            test_key = 'test_apps' if 'test_apps-' in worker_result['kwargs']['project_id'] else 'tests'
+            test_build[test_key][worker_result['kwargs']['project_id']] = {
+                "binaries": [
+                    {
+                        "path": bin_file
+                    }
+                ]
+            }
 
-                            test_key = worker_result['kwargs']['project_id'].upper()
-                            print('Image: %s\n' % bin_file)
-
-                    except:
-                        if p._taskqueue.queue:
-                            p._taskqueue.queue.clear()
-                            sleep(0.5)
-                        p.terminate()
-                        p.join()
-                        raise
-                else:
-                    pending += 1
-                    if pending >= jobs_count:
-                        break
-
-            # Break as soon as possible if there is a failure and we are not
-            # continuing on build failures
-            if not result and not continue_on_build_fail:
-                if p._taskqueue.queue:
-                    p._taskqueue.queue.clear()
-                    sleep(0.5)
-                p.terminate()
-                break
-
-    p.join()
+            test_key = worker_result['kwargs']['project_id'].upper()
+            print('Image: %s\n' % bin_file)
 
     test_builds = {}
     test_builds["%s-%s" % (target_name, toolchain_name)] = test_build
