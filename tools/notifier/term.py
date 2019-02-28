@@ -64,13 +64,21 @@ class TerminalNotifier(Notifier):
     def get_output(self):
         return self.output
 
+    def _is_severe(self, event):
+        if event['type'] == 'cc':
+            return event['severity'].lower() in ('warning', 'error')
+        elif event['type'] == 'tool_error':
+            return True
+        else:
+            return False
+
     def notify(self, event):
         if self.verbose:
             msg = self.print_notify_verbose(event)
         else:
             msg = self.print_notify(event)
         if msg:
-            if not self.silent:
+            if not self.silent or self._is_severe(event):
                 if self.color:
                     self.print_in_color(event, msg)
                 else:

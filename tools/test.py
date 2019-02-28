@@ -52,6 +52,7 @@ if __name__ == '__main__':
         # Parse Options
         parser = get_default_options_parser(add_app_config=True)
 
+
         parser.add_argument("-D",
                           action="append",
                           dest="macros",
@@ -109,6 +110,12 @@ if __name__ == '__main__':
                           dest="verbose",
                           default=False,
                           help="Verbose diagnostic output")
+
+        parser.add_argument("-q", "--silent",
+                          action="store_true",
+                          dest="silent",
+                          default=False,
+                          help="Silence diagnostic output")
 
         parser.add_argument("--stats-depth",
                             type=int,
@@ -229,7 +236,7 @@ if __name__ == '__main__':
             profile = extract_profile(parser, options, toolchain)
             try:
                 # Build sources
-                notify = TerminalNotifier(options.verbose)
+                notify = TerminalNotifier(options.verbose, options.silent)
                 build_library(base_source_paths, options.build_dir, mcu,
                               toolchain, jobs=options.jobs,
                               clean=options.clean, report=build_report,
@@ -258,7 +265,7 @@ if __name__ == '__main__':
                 print("Failed to build library")
             else:
                 # Build all the tests
-                notify = TerminalNotifier(options.verbose)
+                notify = TerminalNotifier(options.verbose, options.silent)
                 test_build_success, test_build = build_tests(
                     tests,
                     [os.path.relpath(options.build_dir)],
