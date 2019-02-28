@@ -23,7 +23,7 @@
 int main(void)
 {
     GREENTEA_SETUP(10, "default_auto");
-    Mutex test_mut = Mutex();
+    Mutex test_mut;
     test_mut.lock();
     bool result = true;
     test_mut.unlock();
