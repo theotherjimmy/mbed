@@ -83,6 +83,8 @@ public:
     }
 };
 
+typedef PlatformMutex Mutex;
+
 #endif
 
 #endif
