@@ -33,54 +33,85 @@ from tools.utils import argparse_filestring_type
 
 if __name__ == '__main__':
     # Parse Options
-    parser = get_default_options_parser(add_clean=False, add_options=False,
-                                        add_app_config=True)
+    parser = get_default_options_parser(
+        add_clean=False,
+        add_options=False,
+        add_app_config=True,
+    )
     parser.add_argument(
-        "--source", dest="source_dir", type=argparse_filestring_type,
-        required=True, default=[], help="The source (input) directory",
-        action="append")
+        "--source", 
+        dest="source_dir",
+        type=argparse_filestring_type,
+        required=True,
+        default=[],
+        help="The source (input) directory",
+        action="append",
+    )
     parser.add_argument(
-        "--prefix", dest="prefix", action="append", default=[],
-        help="Restrict listing to parameters that have this prefix")
+        "--prefix",
+        dest="prefix",
+        action="append",
+        default=[],
+        help="Restrict listing to parameters that have this prefix",
+    )
     parser.add_argument(
-        "-v", "--verbose", action="store_true", dest="verbose", default=False,
-        help="Verbose diagnostic output")
+        "-v", "--verbose",
+        action="store_true",
+        dest="verbose",
+        default=False,
+        help="Verbose diagnostic output",
+    )
+    parser.add_argument(
+        "config_type",
+        choices=[
+            "all",
+            "config", "configuration",
+            "headers", "include",
+        ],
+        nargs="?",
+        default="all",
+        help="Type of configuration information to display",
+    )
 
     options = parser.parse_args()
 
     # Target
-    if options.mcu is None :
+    if options.mcu is None:
         args_error(parser, "argument -m/--mcu is required")
     target = extract_mcus(parser, options)[0]
 
     options.prefix = options.prefix or [""]
 
     try:
-        params, macros, features, _ = get_config(
-            options.source_dir,
-            target,
-            options.tool[0] if options.tool else None,
-            app_config=options.app_config
-        )
-        if not params and not macros:
-            print("No configuration data available.")
-            sys.exit(0)
-        if params:
-            print("Configuration parameters")
-            print("------------------------")
-            for p in sorted(list(params.keys())):
-                if any(p.startswith(s) for s in options.prefix):
-                    if options.verbose:
-                        print(params[p].get_verbose_description())
-                    else:
-                        print(str(params[p]))
-            print("")
+        if options.config_type in ("configuration", "config", "all"):
+            params, macros, features, _ = get_config(
+                options.source_dir,
+                target,
+                options.tool[0] if options.tool else None,
+                app_config=options.app_config
+            )
+            if not params and not macros:
+                print("No configuration data available.")
+                sys.exit(0)
+            if params:
+                print("Configuration parameters")
+                print("------------------------")
+                for p in sorted(list(params.keys())):
+                    if any(p.startswith(s) for s in options.prefix):
+                        if options.verbose:
+                            print(params[p].get_verbose_description())
+                        else:
+                            print(str(params[p]))
+                print("")
 
-        print("Macros")
-        print("------")
-        for m in Config.config_macros_to_macros(macros):
-            if any(m.startswith(s) for s in options.prefix):
-                print(m)
+            print("Macros")
+            print("------")
+            for m in Config.config_macros_to_macros(macros):
+                if any(m.startswith(s) for s in options.prefix):
+                    print(m)
+        if options.config_type in ("headers", "include", "all"):
+            print("config type headers not implemented")
+            pass
 
     except KeyboardInterrupt as e:
         print("\n[CTRL+c] exit")
